@@ -83,7 +83,7 @@ namespace Acme.Collections
 ```
 declares a class named `Stack` in a namespace called `Acme.Collections`. The fully qualified name of this class is `Acme.Collections.Stack`. The class contains several members: a field named `top`, two methods named `Push` and `Pop`, and a nested class named `Entry`. The `Entry` class further contains three members: a field named `next`, a field named `data`, and a constructor. Assuming that the source code of the example is stored in the file `acme.cs`, the command line
 
-```
+```bash
 csc /t:library acme.cs
 ```
 compiles the example as a library (code without a `Main` entry point) and produces an assembly named `acme.dll`.
@@ -111,12 +111,12 @@ class Test
 ```
 If the program is stored in the file `test.cs`, when `test.cs` is compiled, the `acme.dll` assembly can be referenced using the compiler's `/r` option:
 
-```
+```bash
 csc /r:acme.dll test.cs
 ```
 This creates an executable assembly named `test.exe`, which, when run, produces the output:
 
-```
+```bash
 100
 10
 1
@@ -582,7 +582,7 @@ public class Point
 ```
 Instances of classes are created using the `new` operator, which allocates memory for a new instance, invokes a constructor to initialize the instance, and returns a reference to the instance. The following statements create two `Point` objects and store references to those objects in two variables:
 
-```
+```csharp
 Point p1 = new Point(0, 0);
 Point p2 = new Point(10, 20);
 ```

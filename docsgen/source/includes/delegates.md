@@ -10,7 +10,7 @@ An interesting and useful property of a delegate instance is that it does not kn
 
 A *delegate_declaration* is a *type_declaration* ([Type declarations](namespaces.md#type-declarations)) that declares a new delegate type.
 
-```antlr
+```bash
 delegate_declaration
     : attributes? delegate_modifier* 'delegate' return_type
       identifier variant_type_parameter_list?
@@ -236,7 +236,7 @@ Immediately prior to the execution of the final statement, `cd3 -= cd1;`, the de
 
 The output produced is:
 
-```
+```bash
 C.M1: -1
 C.M2: -2
 C.M1: 10

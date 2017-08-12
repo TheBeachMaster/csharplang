@@ -16,7 +16,7 @@ This specification presents the syntax of the C# programming language using two 
 
 ### Grammar notation
 
-The lexical and syntactic grammars are presented in Backus-Naur form using the notation of the ANTLR grammar tool.
+The lexical and syntactic grammars are presented in Backus-Naur form using the notation of the bash grammar tool.
 
 ### Lexical grammar
 
@@ -34,7 +34,7 @@ Every source file in a C# program must conform to the *compilation_unit* product
 
 The *input* production defines the lexical structure of a C# source file. Each source file in a C# program must conform to this lexical grammar production.
 
-```antlr
+```bash
 input
     : input_section?
     ;
@@ -67,7 +67,7 @@ When several lexical grammar productions match a sequence of characters in a sou
 
 Line terminators divide the characters of a C# source file into lines.
 
-```antlr
+```bash
 new_line
     : '<Carriage return character (U+000D)>'
     | '<Line feed character (U+000A)>'
@@ -87,7 +87,7 @@ For compatibility with source code editing tools that add end-of-file markers, a
 
 Two forms of comments are supported: single-line comments and delimited comments. ***Single-line comments*** start with the characters `//` and extend to the end of the source line. ***Delimited comments*** start with the characters `/*` and end with the characters `*/`. Delimited comments may span multiple lines.
 
-```antlr
+```bash
 comment
     : single_line_comment
     | delimited_comment
@@ -163,7 +163,7 @@ shows several single-line comments.
 
 White space is defined as any character with Unicode class Zs (which includes the space character) as well as the horizontal tab character, the vertical tab character, and the form feed character.
 
-```antlr
+```bash
 whitespace
     : '<Any character with Unicode class Zs>'
     | '<Horizontal tab character (U+0009)>'
@@ -176,7 +176,7 @@ whitespace
 
 There are several kinds of tokens: identifiers, keywords, literals, operators, and punctuators. White space and comments are not tokens, though they act as separators for tokens.
 
-```antlr
+```bash
 token
     : identifier
     | keyword
@@ -193,7 +193,7 @@ token
 
 A Unicode character escape sequence represents a Unicode character. Unicode character escape sequences are processed in identifiers ([Identifiers](lexical-structure.md#identifiers)), character literals ([Character literals](lexical-structure.md#character-literals)), and regular string literals ([String literals](lexical-structure.md#string-literals)). A Unicode character escape is not processed in any other location (for example, to form an operator, punctuator, or keyword).
 
-```antlr
+```bash
 unicode_escape_sequence
     : '\\u' hex_digit hex_digit hex_digit hex_digit
     | '\\U' hex_digit hex_digit hex_digit hex_digit hex_digit hex_digit hex_digit hex_digit
@@ -231,7 +231,7 @@ class Class1
 
 The rules for identifiers given in this section correspond exactly to those recommended by the Unicode Standard Annex 31, except that underscore is allowed as an initial character (as is traditional in the C programming language), Unicode escape sequences are permitted in identifiers, and the "`@`" character is allowed as a prefix to enable keywords to be used as identifiers.
 
-```antlr
+```bash
 identifier
     : available_identifier
     | '@' identifier_or_keyword
@@ -325,7 +325,7 @@ Identifiers containing two consecutive underscore characters (`U+005F`) are rese
 
 A ***keyword*** is an identifier-like sequence of characters that is reserved, and cannot be used as an identifier except when prefaced by the `@` character.
 
-```antlr
+```bash
 keyword
     : 'abstract' | 'as'       | 'base'       | 'bool'      | 'break'
     | 'byte'     | 'case'     | 'catch'      | 'char'      | 'checked'
@@ -352,7 +352,7 @@ In some places in the grammar, specific identifiers have special meaning, but ar
 
 A ***literal*** is a source code representation of a value.
 
-```antlr
+```bash
 literal
     : boolean_literal
     | integer_literal
@@ -367,7 +367,7 @@ literal
 
 There are two boolean literal values: `true` and `false`.
 
-```antlr
+```bash
 boolean_literal
     : 'true'
     | 'false'
@@ -380,7 +380,7 @@ The type of a *boolean_literal* is `bool`.
 
 Integer literals are used to write values of types `int`, `uint`, `long`, and `ulong`. Integer literals have two possible forms: decimal and hexadecimal.
 
-```antlr
+```bash
 integer_literal
     : decimal_integer_literal
     | hexadecimal_integer_literal
@@ -428,7 +428,7 @@ To permit the smallest possible `int` and `long` values to be written as decimal
 
 Real literals are used to write values of types `float`, `double`, and `decimal`.
 
-```antlr
+```bash
 real_literal
     : decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
     | '.' decimal_digit+ exponent_part? real_type_suffix?
@@ -467,9 +467,9 @@ Note that in a real literal, decimal digits are always required after the decima
 
 A character literal represents a single character, and usually consists of a character in quotes, as in `'a'`.
 
-Note: The ANTLR grammar notation makes the following confusing! In ANTLR, when you write `\'` it stands for a single quote `'`. And when you write `\\` it stands for a single backslash `\`. Therefore the first rule for a character literal means it starts with a single quote, then a character, then a single quote. And the eleven possible simple escape sequences are `\'`, `\"`, `\\`, `\0`, `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\v`.
+Note: The bash grammar notation makes the following confusing! In bash, when you write `\'` it stands for a single quote `'`. And when you write `\\` it stands for a single backslash `\`. Therefore the first rule for a character literal means it starts with a single quote, then a character, then a single quote. And the eleven possible simple escape sequences are `\'`, `\"`, `\\`, `\0`, `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\v`.
 
-```antlr
+```bash
 character_literal
     : '\'' character '\''
     ;
@@ -528,7 +528,7 @@ A regular string literal consists of zero or more characters enclosed in double 
 
 A verbatim string literal consists of an `@` character followed by a double-quote character, zero or more characters, and a closing double-quote character. A simple example is `@"hello"`. In a verbatim string literal, the characters between the delimiters are interpreted verbatim, the only exception being a *quote_escape_sequence*. In particular, simple escape sequences, and hexadecimal and Unicode escape sequences are not processed in verbatim string literals. A verbatim string literal may span multiple lines.
 
-```antlr
+```bash
 string_literal
     : regular_string_literal
     | verbatim_string_literal
@@ -615,7 +615,7 @@ Like string literals, interpolated string literals can be either regular or verb
 
 Like other literals, lexical analysis of an interpolated string literal initially results in a single token, as per the grammar below. However, before syntactic analysis, the single token of an interpolated string literal is broken into several tokens for the parts of the string enclosing the holes, and the input elements occurring in the holes are lexically analysed again. This may in turn produce more interpolated string literals to be processed, but, if lexically correct, will eventually lead to a sequence of tokens for syntactic analysis to process.
 
-```antlr
+```bash
 interpolated_string_literal
     : '$' interpolated_regular_string_literal
     | '$' interpolated_verbatim_string_literal
@@ -784,7 +784,7 @@ Examples TODO
 
 #### The null literal
 
-```antlr
+```bash
 null_literal
     : 'null'
     ;
@@ -796,7 +796,7 @@ The  *null_literal* can be implicitly converted to a reference type or nullable 
 
 There are several kinds of operators and punctuators. Operators are used in expressions to describe operations involving one or more operands. For example, the expression `a + b` uses the `+` operator to add the two operands `a` and `b`. Punctuators are for grouping and separating.
 
-```antlr
+```bash
 operator_or_punctuator
     : '{'  | '}'  | '['  | ']'  | '('   | ')'  | '.'  | ','  | ':'  | ';'
     | '+'  | '-'  | '*'  | '/'  | '%'   | '&'  | '|'  | '^'  | '!'  | '~'
@@ -820,7 +820,7 @@ The vertical bar in the *right_shift* and *right_shift_assignment* productions a
 
 The pre-processing directives provide the ability to conditionally skip sections of source files, to report error and warning conditions, and to delineate distinct regions of source code. The term "pre-processing directives" is used only for consistency with the C and C++ programming languages. In C#, there is no separate pre-processing step; pre-processing directives are processed as part of the lexical analysis phase.
 
-```antlr
+```bash
 pp_directive
     : pp_declaration
     | pp_conditional
@@ -879,7 +879,7 @@ Thus, whereas lexically, the two programs are quite different, syntactically, th
 
 The conditional compilation functionality provided by the `#if`, `#elif`, `#else`, and `#endif` directives is controlled through pre-processing expressions ([Pre-processing expressions](lexical-structure.md#pre-processing-expressions)) and conditional compilation symbols.
 
-```antlr
+```bash
 conditional_symbol
     : '<Any identifier_or_keyword except true or false>'
     ;
@@ -895,7 +895,7 @@ The name space for conditional compilation symbols is distinct and separate from
 
 Pre-processing expressions can occur in `#if` and `#elif` directives. The operators `!`, `==`, `!=`, `&&` and `||` are permitted in pre-processing expressions, and parentheses may be used for grouping.
 
-```antlr
+```bash
 pp_expression
     : whitespace? pp_or_expression whitespace?
     ;
@@ -937,7 +937,7 @@ Evaluation of a pre-processing expression always yields a boolean value. The rul
 
 The declaration directives are used to define or undefine conditional compilation symbols.
 
-```antlr
+```bash
 pp_declaration
     : whitespace? '#' whitespace? 'define' whitespace conditional_symbol pp_new_line
     | whitespace? '#' whitespace? 'undef' whitespace conditional_symbol pp_new_line
@@ -998,7 +998,7 @@ A `#undef` may "undefine" a conditional compilation symbol that is not defined. 
 
 The conditional compilation directives are used to conditionally include or exclude portions of a source file.
 
-```antlr
+```bash
 pp_conditional
     : pp_if_section pp_elif_section* pp_else_section? pp_endif
     ;
@@ -1130,7 +1130,7 @@ always produces the same token stream (`class` `Q` `{` `}`), regardless of wheth
 
 The diagnostic directives are used to explicitly generate error and warning messages that are reported in the same way as other compile-time errors and warnings.
 
-```antlr
+```bash
 pp_diagnostic
     : whitespace? '#' whitespace? 'error' pp_message
     | whitespace? '#' whitespace? 'warning' pp_message
@@ -1158,7 +1158,7 @@ always produces a warning ("Code review needed before check-in"), and produces a
 
 The region directives are used to explicitly mark regions of source code.
 
-```antlr
+```bash
 pp_region
     : pp_start_region conditional_section? pp_end_region
     ;
@@ -1193,7 +1193,7 @@ Line directives may be used to alter the line numbers and source file names that
 
 Line directives are most commonly used in meta-programming tools that generate C# source code from some other text input.
 
-```antlr
+```bash
 pp_line
     : whitespace? '#' whitespace? 'line' whitespace line_indicator pp_new_line
     ;
@@ -1226,7 +1226,7 @@ Note that a *file_name* differs from a regular string literal in that escape cha
 
 The `#pragma` preprocessing directive is used to specify optional contextual information to the compiler. The information supplied in a `#pragma` directive will never change program semantics.
 
-```antlr
+```bash
 pp_pragma
     : whitespace? '#' whitespace? 'pragma' whitespace pragma_body pp_new_line
     ;
@@ -1242,7 +1242,7 @@ C# provides `#pragma` directives to control compiler warnings. Future versions o
 
 The `#pragma warning` directive is used to disable or restore all or a particular set of warning messages during compilation of the subsequent program text.
 
-```antlr
+```bash
 pragma_warning_body
     : 'warning' whitespace warning_action
     | 'warning' whitespace warning_action whitespace warning_list

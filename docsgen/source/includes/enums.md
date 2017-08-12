@@ -19,7 +19,7 @@ declares an enum type named `Color` with members `Red`, `Green`, and `Blue`.
 
 An enum declaration declares a new enum type. An enum declaration begins with the keyword `enum`, and defines the name, accessibility, underlying type, and members of the enum.
 
-```antlr
+```bash
 enum_declaration
     : attributes? enum_modifier* 'enum' identifier enum_base? enum_body ';'?
     ;
@@ -53,7 +53,7 @@ declares an enum with an underlying type of `long`. A developer might choose to 
 
 An *enum_declaration* may optionally include a sequence of enum modifiers:
 
-```antlr
+```bash
 enum_modifier
     : 'new'
     | 'public'
@@ -71,7 +71,7 @@ The modifiers of an enum declaration have the same meaning as those of a class d
 
 The body of an enum type declaration defines zero or more enum members, which are the named constants of the enum type. No two enum members can have the same name.
 
-```antlr
+```bash
 enum_member_declarations
     : enum_member_declaration (',' enum_member_declaration)*
     ;
@@ -154,7 +154,7 @@ class Test
 
 prints out the enum member names and their associated values. The output is:
 
-```
+```bash
 Red = 0
 Green = 10
 Blue = 11

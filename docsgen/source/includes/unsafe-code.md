@@ -18,7 +18,7 @@ The unsafe features of C# are available only in unsafe contexts. An unsafe conte
 
 The associated grammar productions are shown below.
 
-```antlr
+```bash
 class_modifier_unsafe
     : 'unsafe'
     ;
@@ -153,7 +153,7 @@ Here, because `F`'s signature includes a pointer type, it can only be written in
 
 In an unsafe context, a *type* ([Types](types.md#types)) may be a *pointer_type* as well as a *value_type* or a *reference_type*. However, a *pointer_type* may also be used in a `typeof` expression ([Anonymous object creation expressions](expressions.md#anonymous-object-creation-expressions)) outside of an unsafe context as such usage is not unsafe.
 
-```antlr
+```bash
 type_unsafe
     : pointer_type
     ;
@@ -161,7 +161,7 @@ type_unsafe
 
 A *pointer_type* is written as an *unmanaged_type* or the keyword `void`, followed by a `*` token:
 
-```antlr
+```bash
 pointer_type
     : unmanaged_type '*'
     | 'void' '*'
@@ -385,7 +385,7 @@ In an unsafe context, an expression may yield a result of a pointer type, but ou
 
 In an unsafe context, the *primary_no_array_creation_expression* ([Primary expressions](expressions.md#primary-expressions)) and *unary_expression* ([Unary operators](expressions.md#unary-operators)) productions permit the following additional constructs:
 
-```antlr
+```bash
 primary_no_array_creation_expression_unsafe
     : pointer_member_access
     | pointer_element_access
@@ -404,7 +404,7 @@ These constructs are described in the following sections. The precedence and ass
 
 A *pointer_indirection_expression* consists of an asterisk (`*`) followed by a *unary_expression*.
 
-```antlr
+```bash
 pointer_indirection_expression
     : '*' unary_expression
     ;
@@ -422,7 +422,7 @@ For purposes of definite assignment analysis, a variable produced by evaluating 
 
 A *pointer_member_access* consists of a *primary_expression*, followed by a "`->`" token, followed by an *identifier* and an optional *type_argument_list*.
 
-```antlr
+```bash
 pointer_member_access
     : primary_expression '->' identifier
     ;
@@ -482,7 +482,7 @@ class Test
 
 A *pointer_element_access* consists of a *primary_no_array_creation_expression* followed by an expression enclosed in "`[`" and "`]`".
 
-```antlr
+```bash
 pointer_element_access
     : primary_no_array_creation_expression '[' expression ']'
     ;
@@ -526,7 +526,7 @@ The pointer element access operator does not check for out-of-bounds errors and 
 
 An *addressof_expression* consists of an ampersand (`&`) followed by a *unary_expression*.
 
-```antlr
+```bash
 addressof_expression
     : '&' unary_expression
     ;
@@ -619,7 +619,7 @@ class Test
 
 which produces the output:
 
-```
+```bash
 p - q = -14
 q - p = 14
 ```
@@ -645,7 +645,7 @@ Because an implicit conversion exists from any pointer type to the `void*` type,
 
 The `sizeof` operator returns the number of bytes occupied by a variable of a given type. The type specified as an operand to `sizeof` must be an *unmanaged_type* ([Pointer types](unsafe-code.md#pointer-types)).
 
-```antlr
+```bash
 sizeof_expression
     : 'sizeof' '(' unmanaged_type ')'
     ;
@@ -681,7 +681,7 @@ When applied to an operand that has struct type, the result is the total number 
 
 In an unsafe context, the *embedded_statement* ([Statements](statements.md#statements)) production permits an additional construct, the `fixed` statement, which is used to "fix" a moveable variable such that its address remains constant for the duration of the statement.
 
-```antlr
+```bash
 fixed_statement
     : 'fixed' '(' pointer_type fixed_pointer_declarators ')' embedded_statement
     ;
@@ -795,7 +795,7 @@ class Test
 
 which produces the output:
 
-```
+```bash
 [0,0,0] =  0 [0,0,1] =  1 [0,0,2] =  2 [0,0,3] =  3
 [0,1,0] =  4 [0,1,1] =  5 [0,1,2] =  6 [0,1,3] =  7
 [0,2,0] =  8 [0,2,1] =  9 [0,2,2] = 10 [0,2,3] = 11
@@ -871,7 +871,7 @@ Fixed size buffers are used to declare "C style" in-line arrays as members of st
 
 A ***fixed size buffer*** is a member that represents storage for a fixed length buffer of variables of a given type. A fixed size buffer declaration introduces one or more fixed size buffers of a given element type. Fixed size buffers are only permitted in struct declarations and can only occur in unsafe contexts ([Unsafe contexts](unsafe-code.md#unsafe-contexts)).
 
-```antlr
+```bash
 struct_member_declaration_unsafe
     : fixed_size_buffer_declaration
     ;
@@ -982,7 +982,7 @@ When the outermost containing struct variable of a fixed size buffer member is a
 
 In an unsafe context, a local variable declaration ([Local variable declarations](statements.md#local-variable-declarations)) may include a stack allocation initializer which allocates memory from the call stack.
 
-```antlr
+```bash
 local_variable_initializer_unsafe
     : stackalloc_initializer
     ;

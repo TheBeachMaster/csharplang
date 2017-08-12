@@ -399,7 +399,7 @@ The arguments of properties ([Properties](classes.md#properties)), events ([Even
 
 The arguments of an instance constructor, method, indexer or delegate invocation are specified as an *argument_list*:
 
-```antlr
+```bash
 argument_list
     : argument (',' argument)*
     ;
@@ -479,7 +479,7 @@ class Test
 }
 ```
 produces the output
-```
+```bash
 x = 0, y = 1, z = 2
 x = 4, y = -1, z = 3
 ```
@@ -963,7 +963,7 @@ In these situations, the boxed instance is considered to contain a variable of t
 
 Primary expressions include the simplest forms of expressions.
 
-```antlr
+```bash
 primary_expression
     : primary_no_array_creation_expression
     | array_creation_expression
@@ -1012,7 +1012,7 @@ A *primary_expression* that consists of a *literal* ([Literals](lexical-structur
 
 An *interpolated_string_expression* consists of a `$` sign followed by a regular or verbatim string literal, wherein holes, delimited by `{` and `}`, enclose expressions and formatting specifications. An interpolated string expression is the result of an *interpolated_string_literal* that has been broken up into individual tokens, as described in [Interpolated string literals](lexical-structure.md#interpolated-string-literals).
 
-```antlr
+```bash
 interpolated_string_expression
     : '$' interpolated_regular_string
     | '$' interpolated_verbatim_string
@@ -1067,7 +1067,7 @@ TODO: examples.
 
 A *simple_name* consists of an identifier, optionally followed by a type argument list:
 
-```antlr
+```bash
 simple_name
     : identifier type_argument_list?
     ;
@@ -1105,7 +1105,7 @@ A *simple_name* is either of the form `I` or of the form `I<A1,...,Ak>`, where `
 
 A *parenthesized_expression* consists of an *expression* enclosed in parentheses.
 
-```antlr
+```bash
 parenthesized_expression
     : '(' expression ')'
     ;
@@ -1117,7 +1117,7 @@ A *parenthesized_expression* is evaluated by evaluating the *expression* within 
 
 A *member_access* consists of a *primary_expression*, a *predefined_type*, or a *qualified_alias_member*, followed by a "`.`" token, followed by an *identifier*, optionally followed by a *type_argument_list*.
 
-```antlr
+```bash
 member_access
     : primary_expression '.' identifier type_argument_list?
     | predefined_type '.' identifier type_argument_list?
@@ -1201,7 +1201,7 @@ class A
 #### Grammar ambiguities
 
 The productions for *simple_name* ([Simple names](expressions.md#simple-names)) and *member_access* ([Member access](expressions.md#member-access)) can give rise to ambiguities in the grammar for expressions. For example, the statement:
-```
+```bash
 F(G<A,B>(7));
 ```
 could be interpreted as a call to `F` with two arguments, `G < A` and `B > (7)`. Alternatively, it could be interpreted as a call to `F` with one argument, which is a call to a generic method `G` with two type arguments and one regular argument.
@@ -1233,7 +1233,7 @@ the tokens `C<T>` are interpreted as a *namespace_or_type_name* with a *type_arg
 
 An *invocation_expression* is used to invoke a method.
 
-```antlr
+```bash
 invocation_expression
     : primary_expression '(' argument_list? ')'
     ;
@@ -1402,7 +1402,7 @@ namespace N2
 ```
 
 The output of this example is:
-```
+```bash
 E.F(1)
 D.G(2)
 C.H(3)
@@ -1423,7 +1423,7 @@ The run-time processing of a delegate invocation of the form `D(A)`, where `D` i
 
 An *element_access* consists of a *primary_no_array_creation_expression*, followed by a "`[`" token, followed by an *argument_list*, followed by a "`]`" token. The *argument_list* consists of one or more *argument*s, separated by commas.
 
-```antlr
+```bash
 element_access
     : primary_no_array_creation_expression '[' expression_list ']'
     ;
@@ -1475,7 +1475,7 @@ Depending on the context in which it is used, an indexer access causes invocatio
 
 A *this_access* consists of the reserved word `this`.
 
-```antlr
+```bash
 this_access
     : 'this'
     ;
@@ -1496,7 +1496,7 @@ Use of `this` in a *primary_expression* in a context other than the ones listed 
 
 A *base_access* consists of the reserved word `base` followed by either a "`.`" token and an identifier or an *argument_list* enclosed in square brackets:
 
-```antlr
+```bash
 base_access
     : 'base' '.' identifier
     | 'base' '[' expression_list ']'
@@ -1511,7 +1511,7 @@ When a *base_access* references a virtual function member (a method, property, o
 
 ### Postfix increment and decrement operators
 
-```antlr
+```bash
 post_increment_expression
     : primary_expression '++'
     ;
@@ -1564,7 +1564,7 @@ The `new` operator implies creation of an instance of a type, but does not neces
 
 An *object_creation_expression* is used to create a new instance of a *class_type* or a *value_type*.
 
-```antlr
+```bash
 object_creation_expression
     : 'new' type '(' argument_list? ')' object_or_collection_initializer?
     | 'new' type object_or_collection_initializer
@@ -1615,7 +1615,7 @@ The run-time processing of an *object_creation_expression* of the form `new T(A)
 
 An ***object initializer*** specifies values for zero or more fields, properties or indexed elements of an object.
 
-```antlr
+```bash
 object_initializer
     : '{' member_initializer_list? '}'
     | '{' member_initializer_list ',' '}'
@@ -1768,7 +1768,7 @@ where `__c`, etc., are generated variables that are invisible and inaccessible t
 
 A collection initializer specifies the elements of a collection.
 
-```antlr
+```bash
 collection_initializer
     : '{' element_initializer_list '}'
     | '{' element_initializer_list ',' '}'
@@ -1843,7 +1843,7 @@ where `__clist`, `__c1` and `__c2` are temporary variables that are otherwise in
 
 An *array_creation_expression* is used to create a new instance of an *array_type*.
 
-```antlr
+```bash
 array_creation_expression
     : 'new' non_array_type '[' expression_list ']' rank_specifier* array_initializer?
     | 'new' array_type array_initializer
@@ -1929,7 +1929,7 @@ var contacts = new[] {
 
 A *delegate_creation_expression* is used to create a new instance of a *delegate_type*.
 
-```antlr
+```bash
 delegate_creation_expression
     : 'new' delegate_type '(' expression ')'
     ;
@@ -1982,7 +1982,7 @@ the `A.f` field is initialized with a delegate that refers to the second `Square
 
 An *anonymous_object_creation_expression* is used to create an object of an anonymous type.
 
-```antlr
+```bash
 anonymous_object_creation_expression
     : 'new' anonymous_object_initializer
     ;
@@ -2067,7 +2067,7 @@ Thus, in a projection initializer the *identifier* selects both the value and th
 
 The `typeof` operator is used to obtain the `System.Type` object for a type.
 
-```antlr
+```bash
 typeof_expression
     : 'typeof' '(' type ')'
     | 'typeof' '(' unbound_type_name ')'
@@ -2135,7 +2135,7 @@ class Test
 }
 ```
 produces the following output:
-```
+```bash
 System.Int32
 System.Int32
 System.String
@@ -2155,7 +2155,7 @@ Also note that the result of `typeof(X<>)` does not depend on the type argument 
 
 The `checked` and `unchecked` operators are used to control the ***overflow checking context*** for integral-type arithmetic operations and conversions.
 
-```antlr
+```bash
 checked_expression
     : 'checked' '(' expression ')'
     ;
@@ -2264,7 +2264,7 @@ The `checked` and `unchecked` operators and statements allow programmers to cont
 
 A default value expression is used to obtain the default value ([Default values](variables.md#default-values)) of a type. Typically a default value expression is used for type parameters, since it may not be known if the type parameter is a value type or a reference type. (No conversion exists from the `null` literal to a type parameter unless the type parameter is known to be a reference type.)
 
-```antlr
+```bash
 default_value_expression
     : 'default' '(' type ')'
     ;
@@ -2279,7 +2279,7 @@ A *default_value_expression* is a constant expression ([Constant expressions](ex
 
 A *nameof_expression* is used to obtain the name of a program entity as a constant string.
 
-```antlr
+```bash
 nameof_expression
     : 'nameof' '(' named_entity ')'
     ;
@@ -2322,7 +2322,7 @@ An *anonymous_method_expression* is one of two ways of defining an anonymous fun
 
 The `?`, `+`, `-`, `!`, `~`, `++`, `--`, cast, and `await` operators are called the unary operators.
 
-```antlr
+```bash
 unary_expression
     : primary_expression
     | null_conditional_expression
@@ -2344,7 +2344,7 @@ If the operand of a *unary_expression* has the compile-time type `dynamic`, it i
 
 The null-conditional operator applies a list of operations to its operand only if that operand is non-null. Otherwise the result of applying the operator is `null`.
 
-```antlr
+```bash
 null_conditional_expression
     : primary_expression null_conditional_operations
     ;
@@ -2432,7 +2432,7 @@ except that `a.b` and `a.b[0]` are evaluated only once.
 
 A null-conditional expression is only allowed as a *member_declarator* in an *anonymous_object_creation_expression* ([Anonymous object creation expressions](expressions.md#anonymous-object-creation-expressions)) if it ends with an (optionally null-conditional) member access. Grammatically, this requirement can be expressed as:
 
-```antlr
+```bash
 null_conditional_member_access
     : primary_expression null_conditional_operations? '?' '.' identifier type_argument_list?
     | primary_expression null_conditional_operations '.' identifier type_argument_list?
@@ -2445,7 +2445,7 @@ This is a special case of the grammar for *null_conditional_expression* above. T
 
 A null-conditional expression is only allowed as a *statement_expression* ([Expression statements](statements.md#expression-statements)) if it ends with an invocation. Grammatically, this requirement can be expressed as:
 
-```antlr
+```bash
 null_conditional_invocation_expression
     : primary_expression null_conditional_operations '(' argument_list? ')'
     ;
@@ -2535,7 +2535,7 @@ The result of evaluating `~x`, where `x` is an expression of an enumeration type
 
 ### Prefix increment and decrement operators
 
-```antlr
+```bash
 pre_increment_expression
     : '++' unary_expression
     ;
@@ -2573,7 +2573,7 @@ An `operator++` or `operator--` implementation can be invoked using either postf
 
 A *cast_expression* is used to explicitly convert an expression to a given type.
 
-```antlr
+```bash
 cast_expression
     : '(' type ')' unary_expression
     ;
@@ -2596,7 +2596,7 @@ From the disambiguation rule it follows that, if `x` and `y` are identifiers, `(
 
 The await operator is used to suspend evaluation of the enclosing async function until the asynchronous operation represented by the operand has completed.
 
-```antlr
+```bash
 await_expression
     : 'await' unary_expression
     ;
@@ -2656,7 +2656,7 @@ An awaiter's implementation of the interface methods `INotifyCompletion.OnComple
 
 The `*`, `/`, `%`, `+`, and `-` operators are called the arithmetic operators.
 
-```antlr
+```bash
 multiplicative_expression
     : unary_expression
     | multiplicative_expression '*' unary_expression
@@ -3021,7 +3021,7 @@ The predefined subtraction operators are listed below. The operators all subtrac
 
 The `<<` and `>>` operators are used to perform bit shifting operations.
 
-```antlr
+```bash
 shift_expression
     : additive_expression
     | shift_expression '<<' additive_expression
@@ -3080,7 +3080,7 @@ When the left operand of the `>>` operator is of a signed integral type, the ope
 
 The `==`, `!=`, `<`, `>`, `<=`, `>=`, `is` and `as` operators are called the relational and type-testing operators.
 
-```antlr
+```bash
 relational_expression
     : shift_expression
     | relational_expression '<' shift_expression
@@ -3183,7 +3183,7 @@ The operators compare the operands according to the rules of the IEEE 754 standa
 *  If either operand is NaN, the result is `false` for all operators except `!=`, for which the result is `true`. For any two operands, `x != y` always produces the same result as `!(x == y)`. However, when one or both operands are NaN, the `<`, `>`, `<=`, and `>=` operators do not produce the same results as the logical negation of the opposite operator. For example, if either of `x` and `y` is NaN, then `x < y` is `false`, but `!(x >= y)` is `true`.
 *  When neither operand is NaN, the operators compare the values of the two floating-point operands with respect to the ordering
 
-   ```
+   ```bash
    -inf < -max < ... < -min < -0.0 == +0.0 < +min < ... < +max < +inf
    ```
 
@@ -3286,7 +3286,7 @@ class Test
 }
 ```
 produces the output
-```
+```bash
 True
 False
 False
@@ -3422,7 +3422,7 @@ the type parameter `T` of `G` is known to be a reference type, because it has th
 
 The `&`, `^`, and `|` operators are called the logical operators.
 
-```antlr
+```bash
 and_expression
     : equality_expression
     | and_expression '&' equality_expression
@@ -3521,7 +3521,7 @@ The following table lists the results produced by these operators for all combin
 
 The `&&` and `||` operators are called the conditional logical operators. They are also called the "short-circuiting" logical operators.
 
-```antlr
+```bash
 conditional_and_expression
     : inclusive_or_expression
     | conditional_and_expression '&&' inclusive_or_expression
@@ -3575,7 +3575,7 @@ For an example of a type that implements `operator true` and `operator false`, s
 
 The `??` operator is called the null coalescing operator.
 
-```antlr
+```bash
 null_coalescing_expression
     : conditional_or_expression
     | conditional_or_expression '??' null_coalescing_expression
@@ -3599,7 +3599,7 @@ The type of the expression `a ?? b` depends on which implicit conversions are av
 
 The `?:` operator is called the conditional operator. It is at times also called the ternary operator.
 
-```antlr
+```bash
 conditional_expression
     : null_coalescing_expression
     | null_coalescing_expression '?' expression ':' expression
@@ -3635,7 +3635,7 @@ An ***anonymous function*** is an expression that represents an "in-line" method
 
 For historical reasons there are two syntactic flavors of anonymous functions, namely *lambda_expression*s and *anonymous_method_expression*s. For almost all purposes, *lambda_expression*s are more concise and expressive than *anonymous_method_expression*s, which remain in the language for backwards compatibility.
 
-```antlr
+```bash
 lambda_expression
     : anonymous_function_signature '=>' anonymous_function_body
     ;
@@ -3830,7 +3830,7 @@ class Test
 }
 ```
 the local variable `x` is captured by the anonymous function, and the lifetime of `x` is extended at least until the delegate returned from `F` becomes eligible for garbage collection (which doesn't happen until the very end of the program). Since each invocation of the anonymous function operates on the same instance of `x`, the output of the example is:
-```
+```bash
 1
 2
 3
@@ -3889,7 +3889,7 @@ class Test
 }
 ```
 produces the output:
-```
+```bash
 1
 3
 5
@@ -3908,7 +3908,7 @@ static D[] F() {
 }
 ```
 the output is:
-```
+```bash
 5
 5
 5
@@ -3926,7 +3926,7 @@ static D[] F() {
 }
 ```
 only one instance of the iteration variable is captured, which produces the output:
-```
+```bash
 3
 3
 3
@@ -3945,7 +3945,7 @@ static D[] F() {
 }
 ```
 the three delegates capture the same instance of `x` but separate instances of `y`, and the output is:
-```
+```bash
 1 1
 2 1
 3 1
@@ -3973,7 +3973,7 @@ class Test
 }
 ```
 the two anonymous functions capture the same instance of the local variable `x`, and they can thus "communicate" through that variable. The output of the example is:
-```
+```bash
 5
 10
 ```
@@ -3986,7 +3986,7 @@ An anonymous function `F` must always be converted to a delegate type `D` or an 
 
 ***Query expressions*** provide a language integrated syntax for queries that is similar to relational and hierarchical query languages such as SQL and XQuery.
 
-```antlr
+```bash
 query_expression
     : from_clause query_body
     ;
@@ -4131,11 +4131,11 @@ from x in ( e ) . Cast < T > ( )
 ```
 
 A `join` clause that explicitly specifies a range variable type
-```
+```bash
 join T x in e on k1 equals k2
 ```
 is translated into
-```
+```bash
 join x in ( e ) . Cast < T > ( ) on k1 equals k2
 ```
 
@@ -4609,7 +4609,7 @@ The `System.Linq` namespace provides an implementation of the query operator pat
 
 The assignment operators assign a new value to a variable, a property, an event, or an indexer element.
 
-```antlr
+```bash
 assignment
     : unary_expression assignment_operator expression
     ;
@@ -4790,7 +4790,7 @@ An event assignment expression does not yield a value. Thus, an event assignment
 
 An *expression* is either a *non_assignment_expression* or an *assignment*.
 
-```antlr
+```bash
 expression
     : non_assignment_expression
     | assignment
@@ -4807,7 +4807,7 @@ non_assignment_expression
 
 A *constant_expression* is an expression that can be fully evaluated at compile-time.
 
-```antlr
+```bash
 constant_expression
     : expression
     ;
@@ -4867,7 +4867,7 @@ An implicit constant expression conversion ([Implicit constant expression conver
 
 A *boolean_expression* is an expression that yields a result of type `bool`; either directly or through application of `operator true` in certain contexts as specified in the following.
 
-```antlr
+```bash
 boolean_expression
     : expression
     ;
