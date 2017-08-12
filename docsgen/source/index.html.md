@@ -8,24 +8,31 @@ toc_footers:
   - <a href='https://dot.net'>Get Started with dotNet</a>
   - <a href='https://www.otienoken.me'>WHOAMI</a>
 
-includes:
-  - introduction 
-  - lexical-structure 
+includes: 
+
+  - introduction  
+
+  - lexical-structure  
+
   - basic-concepts 
   - types 
   - variables 
-  - conversions 
-  - expressions
+  - conversions  
+
+  - expressions 
+
   - statements 
   - namesapces 
   - classes 
   - structs 
   - arrays 
   - interfaces 
-  - enums
+  - enums 
+
   - delegates 
   - exceptions
-  - attributes
+  - attributes 
+  
   - unsafe-code
 
 
