@@ -1107,7 +1107,7 @@ class Hello
 }
 ```
 results in the output:
-```
+```bash
 hello,
 #if Debug
         world
