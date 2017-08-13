@@ -11,21 +11,21 @@
 <h2 id="array-types">Array types</h2>
 
 <p>An array type is written as a <em>non_array_type</em> followed by one or more *rank_specifier*s:</p>
-<pre class="highlight shell"><code>
+<pre class="highlight plaintext"><code>
 array_type
     : non_array_type rank_specifier+
     ;
 
 non_array_type
-    : <span class="nb">type</span>
+    : type
     ;
 
 rank_specifier
-    : <span class="s1">'['</span> dim_separator<span class="k">*</span> <span class="s1">']'</span>
+    : '[' dim_separator* ']'
     ;
 
 dim_separator
-    : <span class="s1">','</span>
+    : ','
     ;
 </code></pre>
 <p>A <em>non_array_type</em> is any <em>type</em> that is not itself an <em>array_type</em>.</p>
@@ -125,14 +125,14 @@ dim_separator
 <h2 id="array-initializers">Array initializers</h2>
 
 <p>Array initializers may be specified in field declarations (<a href="classes.md#fields">Fields</a>), local variable declarations (<a href="statements.md#local-variable-declarations">Local variable declarations</a>), and array creation expressions (<a href="expressions.md#array-creation-expressions">Array creation expressions</a>):</p>
-<pre class="highlight shell"><code>
+<pre class="highlight plaintext"><code>
 array_initializer
-    : <span class="s1">'{'</span> variable_initializer_list? <span class="s1">'}'</span>
-    | <span class="s1">'{'</span> variable_initializer_list <span class="s1">','</span> <span class="s1">'}'</span>
+    : '{' variable_initializer_list? '}'
+    | '{' variable_initializer_list ',' '}'
     ;
 
 variable_initializer_list
-    : variable_initializer <span class="o">(</span><span class="s1">','</span> variable_initializer<span class="o">)</span><span class="k">*</span>
+    : variable_initializer (',' variable_initializer)*
     ;
 
 variable_initializer
@@ -150,11 +150,10 @@ variable_initializer
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[]</span> <span class="p">{</span><span class="m">0</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">4</span><span class="p">,</span> <span class="m">6</span><span class="p">,</span> <span class="m">8</span><span class="p">};</span>
 </code></pre>
-<p>For a single-dimensional array, the array initializer must consist of a sequence of expressions that are assignment compatible with the element type of the array. The expressions initialize array elements in increasing order, starting with the element at index zero. The number of expressions in the array initializer determines the length of the array instance being created. For example, the array initializer above creates an <code class="prettyprint">int[]</code> instance of length 5 and then initializes the instance with the following values:
-<code class="prettyprint">csharp
-a[0] = 0; a[1] = 2; a[2] = 4; a[3] = 6; a[4] = 8;
-</code></p>
-
+<p>For a single-dimensional array, the array initializer must consist of a sequence of expressions that are assignment compatible with the element type of the array. The expressions initialize array elements in increasing order, starting with the element at index zero. The number of expressions in the array initializer determines the length of the array instance being created. For example, the array initializer above creates an <code class="prettyprint">int[]</code> instance of length 5 and then initializes the instance with the following values: </p>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="n">a</span><span class="p">[</span><span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">2</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">2</span><span class="p">]</span> <span class="p">=</span> <span class="m">4</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">3</span><span class="p">]</span> <span class="p">=</span> <span class="m">6</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">4</span><span class="p">]</span> <span class="p">=</span> <span class="m">8</span><span class="p">;</span>
+</code></pre>
 <p>For a multi-dimensional array, the array initializer must have as many levels of nesting as there are dimensions in the array. The outermost nesting level corresponds to the leftmost dimension and the innermost nesting level corresponds to the rightmost dimension. The length of each dimension of the array is determined by the number of elements at the corresponding nesting level in the array initializer. For each nested array initializer, the number of elements must be the same as the other array initializers at the same level. The example: </p>
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[,]</span> <span class="n">b</span> <span class="p">=</span> <span class="p">{{</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">},</span> <span class="p">{</span><span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">},</span> <span class="p">{</span><span class="m">4</span><span class="p">,</span> <span class="m">5</span><span class="p">},</span> <span class="p">{</span><span class="m">6</span><span class="p">,</span> <span class="m">7</span><span class="p">},</span> <span class="p">{</span><span class="m">8</span><span class="p">,</span> <span class="m">9</span><span class="p">}};</span>
@@ -163,15 +162,14 @@ a[0] = 0; a[1] = 2; a[2] = 4; a[3] = 6; a[4] = 8;
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[,]</span> <span class="n">b</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">5</span><span class="p">,</span> <span class="m">2</span><span class="p">];</span>
 </code></pre>
-<p>and then initializes the array instance with the following values:
-<code class="prettyprint">csharp
-b[0, 0] = 0; b[0, 1] = 1;
-b[1, 0] = 2; b[1, 1] = 3;
-b[2, 0] = 4; b[2, 1] = 5;
-b[3, 0] = 6; b[3, 1] = 7;
-b[4, 0] = 8; b[4, 1] = 9;
-</code></p>
-
+<p>and then initializes the array instance with the following values: </p>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="n">b</span><span class="p">[</span><span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">1</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">1</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">2</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">2</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">4</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">2</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">5</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">3</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">6</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">3</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">7</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">4</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">8</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">4</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">9</span><span class="p">;</span>
+</code></pre>
 <p>If a dimension other than the rightmost is given with length zero, the subsequent dimensions are assumed to also have length zero. The example: </p>
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[,]</span> <span class="n">c</span> <span class="p">=</span> <span class="p">{};</span>

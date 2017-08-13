@@ -200,7 +200,7 @@
       <script src="javascripts/all.js"></script>
   </head>
 
-  <body class="index" data-languages="[&quot;csharp&quot;,&quot;bash&quot;]">
+  <body class="index" data-languages="[&quot;csharp&quot;,&quot;bash&quot;,&quot;antlr&quot;]">
     <a href="#" id="nav-button">
       <span>
         NAV
@@ -212,6 +212,7 @@
         <div class="lang-selector">
               <a href="#" data-language-name="csharp">csharp</a>
               <a href="#" data-language-name="bash">bash</a>
+              <a href="#" data-language-name="antlr">antlr</a>
         </div>
         <div class="search">
           <input type="text" class="search" id="input-search" placeholder="Search">
@@ -18013,21 +18014,21 @@ struct Point
 <h2 id="array-types">Array types</h2>
 
 <p>An array type is written as a <em>non_array_type</em> followed by one or more *rank_specifier*s:</p>
-<pre class="highlight shell"><code>
+<pre class="highlight plaintext"><code>
 array_type
     : non_array_type rank_specifier+
     ;
 
 non_array_type
-    : <span class="nb">type</span>
+    : type
     ;
 
 rank_specifier
-    : <span class="s1">'['</span> dim_separator<span class="k">*</span> <span class="s1">']'</span>
+    : '[' dim_separator* ']'
     ;
 
 dim_separator
-    : <span class="s1">','</span>
+    : ','
     ;
 </code></pre>
 <p>A <em>non_array_type</em> is any <em>type</em> that is not itself an <em>array_type</em>.</p>
@@ -18127,14 +18128,14 @@ dim_separator
 <h2 id="array-initializers">Array initializers</h2>
 
 <p>Array initializers may be specified in field declarations (<a href="classes.md#fields">Fields</a>), local variable declarations (<a href="statements.md#local-variable-declarations">Local variable declarations</a>), and array creation expressions (<a href="expressions.md#array-creation-expressions">Array creation expressions</a>):</p>
-<pre class="highlight shell"><code>
+<pre class="highlight plaintext"><code>
 array_initializer
-    : <span class="s1">'{'</span> variable_initializer_list? <span class="s1">'}'</span>
-    | <span class="s1">'{'</span> variable_initializer_list <span class="s1">','</span> <span class="s1">'}'</span>
+    : '{' variable_initializer_list? '}'
+    | '{' variable_initializer_list ',' '}'
     ;
 
 variable_initializer_list
-    : variable_initializer <span class="o">(</span><span class="s1">','</span> variable_initializer<span class="o">)</span><span class="k">*</span>
+    : variable_initializer (',' variable_initializer)*
     ;
 
 variable_initializer
@@ -18152,11 +18153,10 @@ variable_initializer
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[]</span> <span class="p">{</span><span class="m">0</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">4</span><span class="p">,</span> <span class="m">6</span><span class="p">,</span> <span class="m">8</span><span class="p">};</span>
 </code></pre>
-<p>For a single-dimensional array, the array initializer must consist of a sequence of expressions that are assignment compatible with the element type of the array. The expressions initialize array elements in increasing order, starting with the element at index zero. The number of expressions in the array initializer determines the length of the array instance being created. For example, the array initializer above creates an <code class="prettyprint">int[]</code> instance of length 5 and then initializes the instance with the following values:
-<code class="prettyprint">csharp
-a[0] = 0; a[1] = 2; a[2] = 4; a[3] = 6; a[4] = 8;
-</code></p>
-
+<p>For a single-dimensional array, the array initializer must consist of a sequence of expressions that are assignment compatible with the element type of the array. The expressions initialize array elements in increasing order, starting with the element at index zero. The number of expressions in the array initializer determines the length of the array instance being created. For example, the array initializer above creates an <code class="prettyprint">int[]</code> instance of length 5 and then initializes the instance with the following values: </p>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="n">a</span><span class="p">[</span><span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">2</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">2</span><span class="p">]</span> <span class="p">=</span> <span class="m">4</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">3</span><span class="p">]</span> <span class="p">=</span> <span class="m">6</span><span class="p">;</span> <span class="n">a</span><span class="p">[</span><span class="m">4</span><span class="p">]</span> <span class="p">=</span> <span class="m">8</span><span class="p">;</span>
+</code></pre>
 <p>For a multi-dimensional array, the array initializer must have as many levels of nesting as there are dimensions in the array. The outermost nesting level corresponds to the leftmost dimension and the innermost nesting level corresponds to the rightmost dimension. The length of each dimension of the array is determined by the number of elements at the corresponding nesting level in the array initializer. For each nested array initializer, the number of elements must be the same as the other array initializers at the same level. The example: </p>
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[,]</span> <span class="n">b</span> <span class="p">=</span> <span class="p">{{</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">},</span> <span class="p">{</span><span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">},</span> <span class="p">{</span><span class="m">4</span><span class="p">,</span> <span class="m">5</span><span class="p">},</span> <span class="p">{</span><span class="m">6</span><span class="p">,</span> <span class="m">7</span><span class="p">},</span> <span class="p">{</span><span class="m">8</span><span class="p">,</span> <span class="m">9</span><span class="p">}};</span>
@@ -18165,15 +18165,14 @@ a[0] = 0; a[1] = 2; a[2] = 4; a[3] = 6; a[4] = 8;
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[,]</span> <span class="n">b</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">5</span><span class="p">,</span> <span class="m">2</span><span class="p">];</span>
 </code></pre>
-<p>and then initializes the array instance with the following values:
-<code class="prettyprint">csharp
-b[0, 0] = 0; b[0, 1] = 1;
-b[1, 0] = 2; b[1, 1] = 3;
-b[2, 0] = 4; b[2, 1] = 5;
-b[3, 0] = 6; b[3, 1] = 7;
-b[4, 0] = 8; b[4, 1] = 9;
-</code></p>
-
+<p>and then initializes the array instance with the following values: </p>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="n">b</span><span class="p">[</span><span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">1</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">1</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">2</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">2</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">4</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">2</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">5</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">3</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">6</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">3</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">7</span><span class="p">;</span>
+<span class="n">b</span><span class="p">[</span><span class="m">4</span><span class="p">,</span> <span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">8</span><span class="p">;</span> <span class="n">b</span><span class="p">[</span><span class="m">4</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">9</span><span class="p">;</span>
+</code></pre>
 <p>If a dimension other than the rightmost is given with length zero, the subsequent dimensions are assumed to also have length zero. The example: </p>
 <pre class="highlight csharp tab-csharp"><code>
 <span class="kt">int</span><span class="p">[,]</span> <span class="n">c</span> <span class="p">=</span> <span class="p">{};</span>
@@ -19713,7 +19712,8 @@ C.M1: 60
 <p>The attribute <code class="prettyprint">AttributeUsage</code> (<a href="attributes.md#the-attributeusage-attribute">The AttributeUsage attribute</a>) is used to describe how an attribute class can be used.</p>
 
 <p><code class="prettyprint">AttributeUsage</code> has a positional parameter (<a href="attributes.md#positional-and-named-parameters">Positional and named parameters</a>) that enables an attribute class to specify the kinds of declarations on which it can be used. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">SimpleAttribute</span><span class="p">:</span> <span class="n">Attribute</span> 
@@ -19722,19 +19722,22 @@ C.M1: 60
 <span class="p">}</span>
 </code></pre>
 <p>defines an attribute class named <code class="prettyprint">SimpleAttribute</code> that can be placed on *class_declaration*s and *interface_declaration*s only. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[Simple]</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{...}</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[Simple]</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{...}</span>
 
 <span class="na">[Simple]</span> <span class="k">interface</span> <span class="n">Interface1</span> <span class="p">{...}</span>
 </code></pre>
 <p>shows several uses of the <code class="prettyprint">Simple</code> attribute. Although this attribute is defined with the name <code class="prettyprint">SimpleAttribute</code>, when this attribute is used, the <code class="prettyprint">Attribute</code> suffix may be omitted, resulting in the short name <code class="prettyprint">Simple</code>. Thus, the example above is semantically equivalent to the following:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[SimpleAttribute]</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{...}</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[SimpleAttribute]</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{...}</span>
 
 <span class="na">[SimpleAttribute]</span> <span class="k">interface</span> <span class="n">Interface1</span> <span class="p">{...}</span>
 </code></pre>
 <p><code class="prettyprint">AttributeUsage</code> has a named parameter (<a href="attributes.md#positional-and-named-parameters">Positional and named parameters</a>) called <code class="prettyprint">AllowMultiple</code>, which indicates whether the attribute can be specified more than once for a given entity. If <code class="prettyprint">AllowMultiple</code> for an attribute class is true, then that attribute class is a <strong><em>multi-use attribute class</em></strong>, and can be specified more than once on an entity. If <code class="prettyprint">AllowMultiple</code> for an attribute class is false or it is unspecified, then that attribute class is a <strong><em>single-use attribute class</em></strong>, and can be specified at most once on an entity.</p>
 
 <p>The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">AuthorAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -19751,7 +19754,8 @@ C.M1: 60
 <span class="p">}</span>
 </code></pre>
 <p>defines a multi-use attribute class named <code class="prettyprint">AuthorAttribute</code>. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[Author("Brian Kernighan"), Author("Dennis Ritchie")]</span> 
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[Author("Brian Kernighan"), Author("Dennis Ritchie")]</span> 
 <span class="k">class</span> <span class="nc">Class1</span>
 <span class="p">{</span>
     <span class="p">...</span>
@@ -19762,12 +19766,14 @@ C.M1: 60
 <p><code class="prettyprint">AttributeUsage</code> has another named parameter called <code class="prettyprint">Inherited</code>, which indicates whether the attribute, when specified on a base class, is also inherited by classes that derive from that base class. If <code class="prettyprint">Inherited</code> for an attribute class is true, then that attribute is inherited. If <code class="prettyprint">Inherited</code> for an attribute class is false then that attribute is not inherited. If it is unspecified, its default value is true.</p>
 
 <p>An attribute class <code class="prettyprint">X</code> not having an <code class="prettyprint">AttributeUsage</code> attribute attached to it, as in</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="k">class</span> <span class="nc">X</span><span class="p">:</span> <span class="n">Attribute</span> <span class="p">{...}</span>
 </code></pre>
 <p>is equivalent to the following:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span>
     <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">All</span><span class="p">,</span>
@@ -19781,7 +19787,8 @@ C.M1: 60
 <p>Attribute classes can have <strong><em>positional parameters</em></strong> and <strong><em>named parameters</em></strong>. Each public instance constructor for an attribute class defines a valid sequence of positional parameters for that attribute class. Each non-static public read-write field and property for an attribute class defines a named parameter for the attribute class.</p>
 
 <p>The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.Class)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">HelpAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -19803,7 +19810,8 @@ C.M1: 60
 <p>defines an attribute class named <code class="prettyprint">HelpAttribute</code> that has one positional parameter, <code class="prettyprint">url</code>, and one named parameter, <code class="prettyprint">Topic</code>. Although it is non-static and public, the property <code class="prettyprint">Url</code> does not define a named parameter, since it is not read-write.</p>
 
 <p>This attribute class might be used as follows:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[Help("http://www.mycompany.com/.../Class1.htm")]</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[Help("http://www.mycompany.com/.../Class1.htm")]</span>
 <span class="k">class</span> <span class="nc">Class1</span>
 <span class="p">{</span>
     <span class="p">...</span>
@@ -19833,7 +19841,8 @@ C.M1: 60
 <p><strong><em>Attribute specification</em></strong> is the application of a previously defined attribute to a declaration. An attribute is a piece of additional declarative information that is specified for a declaration. Attributes can be specified at global scope (to specify attributes on the containing assembly or module) and for <em>type_declaration*s (<a href="namespaces.md#type-declarations">Type declarations</a>), *class_member_declaration*s (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>), *interface_member_declaration*s (<a href="interfaces.md#interface-members">Interface members</a>), *struct_member_declaration*s (<a href="structs.md#struct-members">Struct members</a>), *enum_member_declaration*s (<a href="enums.md#enum-members">Enum members</a>), *accessor_declarations</em> (<a href="classes.md#accessors">Accessors</a>), <em>event_accessor_declarations</em> (<a href="classes.md#field-like-events">Field-like events</a>), and *formal_parameter_list*s (<a href="classes.md#method-parameters">Method parameters</a>).</p>
 
 <p>Attributes are specified in <strong><em>attribute sections</em></strong>. An attribute section consists of a pair of square brackets, which surround a comma-separated list of one or more attributes. The order in which attributes are specified in such a list, and the order in which sections attached to the same program entity are arranged, is not significant. For instance, the attribute specifications <code class="prettyprint">[A][B]</code>, <code class="prettyprint">[B][A]</code>, <code class="prettyprint">[A,B]</code>, and <code class="prettyprint">[B,A]</code> are equivalent.</p>
-<pre class="highlight plaintext"><code>global_attributes
+<pre class="highlight plaintext"><code>
+global_attributes
     : global_attribute_section+
     ;
 
@@ -19915,7 +19924,8 @@ attribute_argument_expression
 <p>An attribute consists of an <em>attribute_name</em> and an optional list of positional and named arguments. The positional arguments (if any) precede the named arguments. A positional argument consists of an <em>attribute_argument_expression</em>; a named argument consists of a name, followed by an equal sign, followed by an <em>attribute_argument_expression</em>, which, together, are constrained by the same rules as simple assignment. The order of named arguments is not significant.</p>
 
 <p>The <em>attribute_name</em> identifies an attribute class. If the form of <em>attribute_name</em> is <em>type_name</em> then this name must refer to an attribute class. Otherwise, a compile-time error occurs. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
 
 <span class="na">[Class1]</span> <span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>    <span class="c1">// Error</span>
 </code></pre>
@@ -19935,18 +19945,21 @@ attribute_argument_expression
 </ul>
 
 <p>In other contexts, inclusion of an <em>attribute_target_specifier</em> is permitted but unnecessary. For instance, a class declaration may either include or omit the specifier <code class="prettyprint">type</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[type: Author("Brian Kernighan")]</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[type: Author("Brian Kernighan")]</span>
 <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
 
 <span class="na">[Author("Dennis Ritchie")]</span>
 <span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>
 </code></pre>
 <p>It is an error to specify an invalid <em>attribute_target_specifier</em>. For instance, the specifier <code class="prettyprint">param</code> cannot be used on a class declaration:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[param: Author("Brian Kernighan")]</span>        <span class="c1">// Error</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[param: Author("Brian Kernighan")]</span>        <span class="c1">// Error</span>
 <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
 </code></pre>
 <p>By convention, attribute classes are named with a suffix of <code class="prettyprint">Attribute</code>. An <em>attribute_name</em> of the form <em>type_name</em> may either include or omit this suffix. If an attribute class is found both with and without this suffix, an ambiguity is present, and a compile-time error results. If the <em>attribute_name</em> is spelled such that its right-most <em>identifier</em> is a verbatim identifier (<a href="lexical-structure.md#identifiers">Identifiers</a>), then only an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.All)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">X</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -19969,7 +19982,8 @@ attribute_argument_expression
 <span class="k">class</span> <span class="nc">Class4</span> <span class="p">{}</span>
 </code></pre>
 <p>shows two attribute classes named <code class="prettyprint">X</code> and <code class="prettyprint">XAttribute</code>. The attribute <code class="prettyprint">[X]</code> is ambiguous, since it could refer to either <code class="prettyprint">X</code> or <code class="prettyprint">XAttribute</code>. Using a verbatim identifier allows the exact intent to be specified in such rare cases. The attribute <code class="prettyprint">[XAttribute]</code> is not ambiguous (although it would be if there was an attribute class named <code class="prettyprint">XAttributeAttribute</code>!). If the declaration for class <code class="prettyprint">X</code> is removed, then both attributes refer to the attribute class named <code class="prettyprint">XAttribute</code>, as follows:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.All)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">XAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -19985,7 +19999,8 @@ attribute_argument_expression
 <span class="k">class</span> <span class="nc">Class3</span> <span class="p">{}</span>
 </code></pre>
 <p>It is a compile-time error to use a single-use attribute class more than once on the same entity. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.Class)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">HelpStringAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -20021,7 +20036,8 @@ attribute_argument_expression
 </ul>
 
 <p>For example:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="na">[AttributeUsage(AttributeTargets.Class)]</span>
 <span class="k">public</span> <span class="k">class</span> <span class="nc">TestAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -20046,7 +20062,8 @@ attribute_argument_expression
 <span class="k">class</span> <span class="nc">MyClass</span> <span class="p">{}</span>
 </code></pre>
 <p>A <em>typeof_expression</em> (<a href="expressions.md#the-typeof-operator">The typeof operator</a>) used as an attribute argument expression can reference a non-generic type, a closed constructed type, or an unbound generic type, but it cannot reference an open type. This is to ensure that the expression can be resolved at compile-time.</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">A</span><span class="p">:</span> <span class="n">Attribute</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">class</span> <span class="nc">A</span><span class="p">:</span> <span class="n">Attribute</span>
 <span class="p">{</span>
     <span class="k">public</span> <span class="nf">A</span><span class="p">(</span><span class="n">Type</span> <span class="n">t</span><span class="p">)</span> <span class="p">{...}</span>
 <span class="p">}</span>
@@ -20117,7 +20134,8 @@ attribute_argument_expression
 <p>The attribute <code class="prettyprint">AttributeUsage</code> is used to describe the manner in which the attribute class can be used.</p>
 
 <p>A class that is decorated with the <code class="prettyprint">AttributeUsage</code> attribute must derive from <code class="prettyprint">System.Attribute</code>, either directly or indirectly. Otherwise, a compile-time error occurs.</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">namespace</span> <span class="nn">System</span>
 <span class="p">{</span>
     <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span><span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Class</span><span class="p">)]</span>
     <span class="k">public</span> <span class="k">class</span> <span class="nc">AttributeUsageAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -20178,7 +20196,8 @@ attribute_argument_expression
 </ul>
 
 <p>In addition, a compile-time error occurs if a conditional method is used in a <em>delegate_creation_expression</em>. The example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+<pre class="highlight csharp tab-csharp"><code>
+<span class="cp">#define DEBUG
 </span>
 <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 <span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
@@ -20203,7 +20222,8 @@ attribute_argument_expression
 <p>It is important to note that the inclusion or exclusion of a call to a conditional method is controlled by the conditional compilation symbols at the point of the call. In the example</p>
 
 <p>File <code class="prettyprint">class1.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
 
 <span class="k">class</span> <span class="nc">Class1</span> 
 <span class="p">{</span>
@@ -20214,7 +20234,8 @@ attribute_argument_expression
 <span class="p">}</span>
 </code></pre>
 <p>File <code class="prettyprint">class2.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+<pre class="highlight csharp tab-csharp"><code>
+<span class="cp">#define DEBUG
 </span>
 <span class="k">class</span> <span class="nc">Class2</span>
 <span class="p">{</span>
@@ -20224,7 +20245,8 @@ attribute_argument_expression
 <span class="p">}</span>
 </code></pre>
 <p>File <code class="prettyprint">class3.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="cp">#undef DEBUG
+<pre class="highlight csharp tab-csharp"><code>
+<span class="cp">#undef DEBUG
 </span>
 <span class="k">class</span> <span class="nc">Class3</span>
 <span class="p">{</span>
@@ -20238,7 +20260,8 @@ attribute_argument_expression
 <p>The use of conditional methods in an inheritance chain can be confusing. Calls made to a conditional method through <code class="prettyprint">base</code>, of the form <code class="prettyprint">base.M</code>, are subject to the normal conditional method call rules. In the example</p>
 
 <p>File <code class="prettyprint">class1.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 <span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
 
 <span class="k">class</span> <span class="nc">Class1</span> 
@@ -20250,7 +20273,8 @@ attribute_argument_expression
 <span class="p">}</span>
 </code></pre>
 <p>File <code class="prettyprint">class2.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
 <span class="k">class</span> <span class="nc">Class2</span><span class="p">:</span> <span class="n">Class1</span>
 <span class="p">{</span>
@@ -20261,7 +20285,8 @@ attribute_argument_expression
 <span class="p">}</span>
 </code></pre>
 <p>File <code class="prettyprint">class3.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+<pre class="highlight csharp tab-csharp"><code>
+<span class="cp">#define DEBUG
 </span>
 <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 
@@ -20278,7 +20303,8 @@ attribute_argument_expression
 <h4 id="conditional-attribute-classes">Conditional attribute classes</h4>
 
 <p>An attribute class (<a href="attributes.md#attribute-classes">Attribute classes</a>) decorated with one or more <code class="prettyprint">Conditional</code> attributes is a <strong><em>conditional attribute class</em></strong>. A conditional attribute class is thus associated with the conditional compilation symbols declared in its <code class="prettyprint">Conditional</code> attributes. This example:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 <span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
 <span class="na">[Conditional("ALPHA")]</span>
 <span class="na">[Conditional("BETA")]</span>
@@ -20291,7 +20317,8 @@ attribute_argument_expression
 <p>It is important to note that the inclusion or exclusion of an attribute specification of a conditional attribute class is controlled by the conditional compilation symbols at the point of the specification. In the example</p>
 
 <p>File <code class="prettyprint">test.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
 <span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
 
 <span class="na">[Conditional("DEBUG")]</span>
@@ -20299,14 +20326,16 @@ attribute_argument_expression
 <span class="k">public</span> <span class="k">class</span> <span class="nc">TestAttribute</span> <span class="p">:</span> <span class="n">Attribute</span> <span class="p">{}</span>
 </code></pre>
 <p>File <code class="prettyprint">class1.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+<pre class="highlight csharp tab-csharp"><code>
+<span class="cp">#define DEBUG
 </span>
 <span class="na">[Test]</span>                <span class="c1">// TestAttribute is specified</span>
 
 <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
 </code></pre>
 <p>File <code class="prettyprint">class2.cs</code>:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="cp">#undef DEBUG
+<pre class="highlight csharp tab-csharp"><code>
+<span class="cp">#undef DEBUG
 </span>
 <span class="na">[Test]</span>                 <span class="c1">// TestAttribute is not specified</span>
 
@@ -20317,7 +20346,8 @@ attribute_argument_expression
 <h3 id="the-obsolete-attribute">The Obsolete attribute</h3>
 
 <p>The attribute <code class="prettyprint">Obsolete</code> is used to mark types and members of types that should no longer be used.</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">namespace</span> <span class="nn">System</span>
 <span class="p">{</span>
     <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span>
         <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Class</span> <span class="p">|</span> 
@@ -20345,7 +20375,8 @@ attribute_argument_expression
 <p>If a program uses a type or member that is decorated with the <code class="prettyprint">Obsolete</code> attribute, the compiler issues a warning or an error. Specifically, the compiler issues a warning if no error parameter is provided, or if the error parameter is provided and has the value <code class="prettyprint">false</code>. The compiler issues an error if the error parameter is specified and has the value <code class="prettyprint">true</code>.</p>
 
 <p>In the example</p>
-<pre class="highlight csharp tab-csharp"><code><span class="na">[Obsolete("This class is obsolete; use class B instead")]</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="na">[Obsolete("This class is obsolete; use class B instead")]</span>
 <span class="k">class</span> <span class="nc">A</span>
 <span class="p">{</span>
     <span class="k">public</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{}</span>
@@ -20373,7 +20404,8 @@ attribute_argument_expression
 <p>When an optional parameter is annotated with one of the caller info attributes, omitting the corresponding argument in a call does not necessarily cause the default parameter value to be substituted. Instead, if the specified information about the calling context is available, that information will be passed as the argument value.</p>
 
 <p>For example:</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System.Runtime.CompilerServices</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">using</span> <span class="nn">System.Runtime.CompilerServices</span>
 
 <span class="p">...</span>
 
@@ -20451,7 +20483,8 @@ attribute_argument_expression
 <h4 id="the-indexername-attribute">The IndexerName attribute</h4>
 
 <p>Indexers are implemented in .NET using indexed properties, and have a name in the .NET metadata. If no <code class="prettyprint">IndexerName</code> attribute is present for an indexer, then the name <code class="prettyprint">Item</code> is used by default. The <code class="prettyprint">IndexerName</code> attribute enables a developer to override this default and specify a different name.</p>
-<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System.Runtime.CompilerServices.CSharp</span>
+<pre class="highlight csharp tab-csharp"><code>
+<span class="k">namespace</span> <span class="nn">System.Runtime.CompilerServices.CSharp</span>
 <span class="p">{</span>
     <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span><span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Property</span><span class="p">)]</span>
     <span class="k">public</span> <span class="k">class</span> <span class="nc">IndexerNameAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
@@ -21549,6 +21582,7 @@ stackalloc_initializer
           <div class="lang-selector">
                 <a href="#" data-language-name="csharp">csharp</a>
                 <a href="#" data-language-name="bash">bash</a>
+                <a href="#" data-language-name="antlr">antlr</a>
           </div>
       </div>
     </div>
