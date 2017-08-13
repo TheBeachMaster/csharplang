@@ -1,0 +1,1846 @@
+<h1 id="introduction">Introduction</h1>
+
+<p>C# (pronounced &ldquo;See Sharp&rdquo;) is a simple, modern, object-oriented, and type-safe programming language. C# has its roots in the C family of languages and will be immediately familiar to C, C++, and Java programmers. C# is standardized by ECMA International as the <strong><em>ECMA-334</em></strong> standard and by ISO/IEC as the <strong><em>ISO/IEC 23270</em></strong> standard. Microsoft&rsquo;s C# compiler for the .NET Framework is a conforming implementation of both of these standards.</p>
+
+<p>C# is an object-oriented language, but C# further includes support for <strong><em>component-oriented</em></strong> programming. Contemporary software design increasingly relies on software components in the form of self-contained and self-describing packages of functionality. Key to such components is that they present a programming model with properties, methods, and events; they have attributes that provide declarative information about the component; and they incorporate their own documentation. C# provides language constructs to directly support these concepts, making C# a very natural language in which to create and use software components.</p>
+
+<p>Several C# features aid in the construction of robust and durable applications: <strong><em>Garbage collection</em></strong> automatically reclaims memory occupied by unused objects; <strong><em>exception handling</em></strong> provides a structured and extensible approach to error detection and recovery; and the <strong><em>type-safe</em></strong> design of the language makes it impossible to read from uninitialized variables, to index arrays beyond their bounds, or to perform unchecked type casts.</p>
+
+<p>C# has a <strong><em>unified type system</em></strong>. All C# types, including primitive types such as <code class="prettyprint">int</code> and <code class="prettyprint">double</code>, inherit from a single root <code class="prettyprint">object</code> type. Thus, all types share a set of common operations, and values of any type can be stored, transported, and operated upon in a consistent manner. Furthermore, C# supports both user-defined reference types and value types, allowing dynamic allocation of objects as well as in-line storage of lightweight structures.</p>
+
+<p>To ensure that C# programs and libraries can evolve over time in a compatible manner, much emphasis has been placed on <strong><em>versioning</em></strong> in C#&lsquo;s design. Many programming languages pay little attention to this issue, and, as a result, programs written in those languages break more often than necessary when newer versions of dependent libraries are introduced. Aspects of C#&rsquo;s design that were directly influenced by versioning considerations include the separate <code class="prettyprint">virtual</code> and <code class="prettyprint">override</code> modifiers, the rules for method overload resolution, and support for explicit interface member declarations.</p>
+
+<p>The rest of this chapter describes the essential features of the C# language. Although later chapters describe rules and exceptions in a detail-oriented and sometimes mathematical manner, this chapter strives for clarity and brevity at the expense of completeness. The intent is to provide the reader with an introduction to the language that will facilitate the writing of early programs and the reading of later chapters.</p>
+
+<h2 id="hello-world">Hello world</h2>
+
+<p>The &ldquo;Hello, World&rdquo; program is traditionally used to introduce a programming language. Here it is in C#:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Hello</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Hello, World"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>C# source files typically have the file extension <code class="prettyprint">.cs</code>. Assuming that the &ldquo;Hello, World&rdquo; program is stored in the file <code class="prettyprint">hello.cs</code>, the program can be compiled with the Microsoft C# compiler using the command line
+<code class="prettyprint">
+csc hello.cs
+</code>
+which produces an executable assembly named <code class="prettyprint">hello.exe</code>. The output produced by this application when it is run is
+<code class="prettyprint">
+Hello, World
+</code></p>
+
+<p>The &ldquo;Hello, World&rdquo; program starts with a <code class="prettyprint">using</code> directive that references the <code class="prettyprint">System</code> namespace. Namespaces provide a hierarchical means of organizing C# programs and libraries. Namespaces contain types and other namespaces—for example, the <code class="prettyprint">System</code> namespace contains a number of types, such as the <code class="prettyprint">Console</code> class referenced in the program, and a number of other namespaces, such as <code class="prettyprint">IO</code> and <code class="prettyprint">Collections</code>. A <code class="prettyprint">using</code> directive that references a given namespace enables unqualified use of the types that are members of that namespace. Because of the <code class="prettyprint">using</code> directive, the program can use <code class="prettyprint">Console.WriteLine</code> as shorthand for <code class="prettyprint">System.Console.WriteLine</code>.</p>
+
+<p>The <code class="prettyprint">Hello</code> class declared by the &ldquo;Hello, World&rdquo; program has a single member, the method named <code class="prettyprint">Main</code>. The <code class="prettyprint">Main</code> method is declared with the <code class="prettyprint">static</code> modifier. While instance methods can reference a particular enclosing object instance using the keyword <code class="prettyprint">this</code>, static methods operate without reference to a particular object. By convention, a static method named <code class="prettyprint">Main</code> serves as the entry point of a program.</p>
+
+<p>The output of the program is produced by the <code class="prettyprint">WriteLine</code> method of the <code class="prettyprint">Console</code> class in the <code class="prettyprint">System</code> namespace. This class is provided by the .NET Framework class libraries, which, by default, are automatically referenced by the Microsoft C# compiler. Note that C# itself does not have a separate runtime library. Instead, the .NET Framework is the runtime library of C#.</p>
+
+<h2 id="program-structure">Program structure</h2>
+
+<p>The key organizational concepts in C# are <strong><em>programs</em></strong>, <strong><em>namespaces</em></strong>, <strong><em>types</em></strong>, <strong><em>members</em></strong>, and <strong><em>assemblies</em></strong>. C# programs consist of one or more source files. Programs declare types, which contain members and can be organized into namespaces. Classes and interfaces are examples of types. Fields, methods, properties, and events are examples of members. When C# programs are compiled, they are physically packaged into assemblies. Assemblies typically have the file extension <code class="prettyprint">.exe</code> or <code class="prettyprint">.dll</code>, depending on whether they implement <strong><em>applications</em></strong> or <strong><em>libraries</em></strong>.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="nn">Acme.Collections</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">Stack</span>
+    <span class="p">{</span>
+        <span class="n">Entry</span> <span class="n">top</span><span class="p">;</span>
+
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">Push</span><span class="p">(</span><span class="kt">object</span> <span class="n">data</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">top</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Entry</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">public</span> <span class="kt">object</span> <span class="nf">Pop</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">top</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">();</span>
+            <span class="kt">object</span> <span class="n">result</span> <span class="p">=</span> <span class="n">top</span><span class="p">.</span><span class="n">data</span><span class="p">;</span>
+            <span class="n">top</span> <span class="p">=</span> <span class="n">top</span><span class="p">.</span><span class="n">next</span><span class="p">;</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">class</span> <span class="nc">Entry</span>
+        <span class="p">{</span>
+            <span class="k">public</span> <span class="n">Entry</span> <span class="n">next</span><span class="p">;</span>
+            <span class="k">public</span> <span class="kt">object</span> <span class="n">data</span><span class="p">;</span>
+
+            <span class="k">public</span> <span class="nf">Entry</span><span class="p">(</span><span class="n">Entry</span> <span class="n">next</span><span class="p">,</span> <span class="kt">object</span> <span class="n">data</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">this</span><span class="p">.</span><span class="n">next</span> <span class="p">=</span> <span class="n">next</span><span class="p">;</span>
+                <span class="k">this</span><span class="p">.</span><span class="n">data</span> <span class="p">=</span> <span class="n">data</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>declares a class named <code class="prettyprint">Stack</code> in a namespace called <code class="prettyprint">Acme.Collections</code>. The fully qualified name of this class is <code class="prettyprint">Acme.Collections.Stack</code>. The class contains several members: a field named <code class="prettyprint">top</code>, two methods named <code class="prettyprint">Push</code> and <code class="prettyprint">Pop</code>, and a nested class named <code class="prettyprint">Entry</code>. The <code class="prettyprint">Entry</code> class further contains three members: a field named <code class="prettyprint">next</code>, a field named <code class="prettyprint">data</code>, and a constructor. Assuming that the source code of the example is stored in the file <code class="prettyprint">acme.cs</code>, the command line</p>
+<pre class="highlight shell"><code>csc /t:library acme.cs
+</code></pre>
+<p>compiles the example as a library (code without a <code class="prettyprint">Main</code> entry point) and produces an assembly named <code class="prettyprint">acme.dll</code>.</p>
+
+<p>Assemblies contain executable code in the form of <strong><em>Intermediate Language</em></strong> (IL) instructions, and symbolic information in the form of <strong><em>metadata</em></strong>. Before it is executed, the IL code in an assembly is automatically converted to processor-specific code by the Just-In-Time (JIT) compiler of .NET Common Language Runtime.</p>
+
+<p>Because an assembly is a self-describing unit of functionality containing both code and metadata, there is no need for <code class="prettyprint">#include</code> directives and header files in C#. The public types and members contained in a particular assembly are made available in a C# program simply by referencing that assembly when compiling the program. For example, this program uses the <code class="prettyprint">Acme.Collections.Stack</code> class from the <code class="prettyprint">acme.dll</code> assembly:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Acme.Collections</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Stack</span> <span class="n">s</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Stack</span><span class="p">();</span>
+        <span class="n">s</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+        <span class="n">s</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="m">10</span><span class="p">);</span>
+        <span class="n">s</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="m">100</span><span class="p">);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="nf">Pop</span><span class="p">());</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="nf">Pop</span><span class="p">());</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="nf">Pop</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>If the program is stored in the file <code class="prettyprint">test.cs</code>, when <code class="prettyprint">test.cs</code> is compiled, the <code class="prettyprint">acme.dll</code> assembly can be referenced using the compiler&rsquo;s <code class="prettyprint">/r</code> option:</p>
+<pre class="highlight shell"><code>csc /r:acme.dll test.cs
+</code></pre>
+<p>This creates an executable assembly named <code class="prettyprint">test.exe</code>, which, when run, produces the output:</p>
+<pre class="highlight shell"><code>100
+10
+1
+</code></pre>
+<p>C# permits the source text of a program to be stored in several source files. When a multi-file C# program is compiled, all of the source files are processed together, and the source files can freely reference each other—conceptually, it is as if all the source files were concatenated into one large file before being processed. Forward declarations are never needed in C# because, with very few exceptions, declaration order is insignificant. C# does not limit a source file to declaring only one public type nor does it require the name of the source file to match a type declared in the source file.</p>
+
+<h2 id="types-and-variables">Types and variables</h2>
+
+<p>There are two kinds of types in C#: <strong><em>value types</em></strong> and <strong><em>reference types</em></strong>. Variables of value types directly contain their data whereas variables of reference types store references to their data, the latter being known as objects. With reference types, it is possible for two variables to reference the same object and thus possible for operations on one variable to affect the object referenced by the other variable. With value types, the variables each have their own copy of the data, and it is not possible for operations on one to affect the other (except in the case of <code class="prettyprint">ref</code> and <code class="prettyprint">out</code> parameter variables).</p>
+
+<p>C#&rsquo;s value types are further divided into <strong><em>simple types</em></strong>, <strong><em>enum types</em></strong>, <strong><em>struct types</em></strong>, and <strong><em>nullable types</em></strong>, and C#&rsquo;s reference types are further divided into <strong><em>class types</em></strong>, <strong><em>interface types</em></strong>, <strong><em>array types</em></strong>, and <strong><em>delegate types</em></strong>.</p>
+
+<p>The following table provides an overview of C#&rsquo;s type system.</p>
+
+<table><thead>
+<tr>
+<th><strong>Category</strong></th>
+<th></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Value types</td>
+<td>Simple types</td>
+<td>Signed integral: <code class="prettyprint">sbyte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">int</code>, <code class="prettyprint">long</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Unsigned integral: <code class="prettyprint">byte</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">ulong</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Unicode characters: <code class="prettyprint">char</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>IEEE floating point: <code class="prettyprint">float</code>, <code class="prettyprint">double</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>High-precision decimal: <code class="prettyprint">decimal</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Boolean: <code class="prettyprint">bool</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Enum types</td>
+<td>User-defined types of the form <code class="prettyprint">enum E {...}</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Struct types</td>
+<td>User-defined types of the form <code class="prettyprint">struct S {...}</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Nullable types</td>
+<td>Extensions of all other value types with a <code class="prettyprint">null</code> value</td>
+</tr>
+<tr>
+<td>Reference types</td>
+<td>Class types</td>
+<td>Ultimate base class of all other types: <code class="prettyprint">object</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Unicode strings: <code class="prettyprint">string</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>User-defined types of the form <code class="prettyprint">class C {...}</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Interface types</td>
+<td>User-defined types of the form <code class="prettyprint">interface I {...}</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Array types</td>
+<td>Single- and multi-dimensional, for example, <code class="prettyprint">int[]</code> and <code class="prettyprint">int[,]</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Delegate types</td>
+<td>User-defined types of the form e.g. <code class="prettyprint">delegate int  D(...)</code></td>
+</tr>
+</tbody></table>
+
+<p>The eight integral types provide support for 8-bit, 16-bit, 32-bit, and 64-bit values in signed or unsigned form.</p>
+
+<p>The two floating point types, <code class="prettyprint">float</code> and <code class="prettyprint">double</code>, are represented using the 32-bit single-precision and 64-bit double-precision IEEE 754 formats.</p>
+
+<p>The <code class="prettyprint">decimal</code> type is a 128-bit data type suitable for financial and monetary calculations.</p>
+
+<p>C#&rsquo;s <code class="prettyprint">bool</code> type is used to represent boolean values—values that are either <code class="prettyprint">true</code> or <code class="prettyprint">false</code>.</p>
+
+<p>Character and string processing in C# uses Unicode encoding. The <code class="prettyprint">char</code> type represents a UTF-16 code unit, and the <code class="prettyprint">string</code> type represents a sequence of UTF-16 code units.</p>
+
+<p>The following table summarizes C#&rsquo;s numeric types.</p>
+
+<table><thead>
+<tr>
+<th><strong>Category</strong></th>
+<th><strong>Bits</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Range/Precision</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Signed integral</td>
+<td>8</td>
+<td><code class="prettyprint">sbyte</code></td>
+<td>-128&hellip;127</td>
+</tr>
+<tr>
+<td></td>
+<td>16</td>
+<td><code class="prettyprint">short</code></td>
+<td>-32,768&hellip;32,767</td>
+</tr>
+<tr>
+<td></td>
+<td>32</td>
+<td><code class="prettyprint">int</code></td>
+<td>-2,147,483,648&hellip;2,147,483,647</td>
+</tr>
+<tr>
+<td></td>
+<td>64</td>
+<td><code class="prettyprint">long</code></td>
+<td>-9,223,372,036,854,775,808&hellip;9,223,372,036,854,775,807</td>
+</tr>
+<tr>
+<td>Unsigned integral</td>
+<td>8</td>
+<td><code class="prettyprint">byte</code></td>
+<td>0&hellip;255</td>
+</tr>
+<tr>
+<td></td>
+<td>16</td>
+<td><code class="prettyprint">ushort</code></td>
+<td>0&hellip;65,535</td>
+</tr>
+<tr>
+<td></td>
+<td>32</td>
+<td><code class="prettyprint">uint</code></td>
+<td>0&hellip;4,294,967,295</td>
+</tr>
+<tr>
+<td></td>
+<td>64</td>
+<td><code class="prettyprint">ulong</code></td>
+<td>0&hellip;18,446,744,073,709,551,615</td>
+</tr>
+<tr>
+<td>Floating point</td>
+<td>32</td>
+<td><code class="prettyprint">float</code></td>
+<td>1.5 × 10^−45 to 3.4 × 10^38, 7-digit precision</td>
+</tr>
+<tr>
+<td></td>
+<td>64</td>
+<td><code class="prettyprint">double</code></td>
+<td>5.0 × 10^−324 to 1.7 × 10^308, 15-digit precision</td>
+</tr>
+<tr>
+<td>Decimal</td>
+<td>128</td>
+<td><code class="prettyprint">decimal</code></td>
+<td>1.0 × 10^−28 to 7.9 × 10^28, 28-digit precision</td>
+</tr>
+</tbody></table>
+
+<p>C# programs use <strong><em>type declarations</em></strong> to create new types. A type declaration specifies the name and the members of the new type. Five of C#&rsquo;s categories of types are user-definable: class types, struct types, interface types, enum types, and delegate types.</p>
+
+<p>A class type defines a data structure that contains data members (fields) and function members (methods, properties, and others). Class types support single inheritance and polymorphism, mechanisms whereby derived classes can extend and specialize base classes.</p>
+
+<p>A struct type is similar to a class type in that it represents a structure with data members and function members. However, unlike classes, structs are value types and do not require heap allocation. Struct types do not support user-specified inheritance, and all struct types implicitly inherit from type <code class="prettyprint">object</code>.</p>
+
+<p>An interface type defines a contract as a named set of public function members. A class or struct that implements an interface must provide implementations of the interface&rsquo;s function members. An interface may inherit from multiple base interfaces, and a class or struct may implement multiple interfaces.</p>
+
+<p>A delegate type represents references to methods with a particular parameter list and return type. Delegates make it possible to treat methods as entities that can be assigned to variables and passed as parameters. Delegates are similar to the concept of function pointers found in some other languages, but unlike function pointers, delegates are object-oriented and type-safe.</p>
+
+<p>Class, struct, interface and delegate types all support generics, whereby they can be parameterized with other types.</p>
+
+<p>An enum type is a distinct type with named constants. Every enum type has an underlying type, which must be one of the eight integral types. The set of values of an enum type is the same as the set of values of the underlying type.</p>
+
+<p>C# supports single- and multi-dimensional arrays of any type. Unlike the types listed above, array types do not have to be declared before they can be used. Instead, array types are constructed by following a type name with square brackets. For example, <code class="prettyprint">int[]</code> is a single-dimensional array of <code class="prettyprint">int</code>, <code class="prettyprint">int[,]</code> is a two-dimensional array of <code class="prettyprint">int</code>, and <code class="prettyprint">int[][]</code> is a single-dimensional array of single-dimensional arrays of <code class="prettyprint">int</code>.</p>
+
+<p>Nullable types also do not have to be declared before they can be used. For each non-nullable value type <code class="prettyprint">T</code> there is a corresponding nullable type <code class="prettyprint">T?</code>, which can hold an additional value <code class="prettyprint">null</code>. For instance, <code class="prettyprint">int?</code> is a type that can hold any 32 bit integer or the value <code class="prettyprint">null</code>.</p>
+
+<p>C#&rsquo;s type system is unified such that a value of any type can be treated as an object. Every type in C# directly or indirectly derives from the <code class="prettyprint">object</code> class type, and <code class="prettyprint">object</code> is the ultimate base class of all types. Values of reference types are treated as objects simply by viewing the values as type <code class="prettyprint">object</code>. Values of value types are treated as objects by performing <strong><em>boxing</em></strong> and <strong><em>unboxing</em></strong> operations. In the following example, an <code class="prettyprint">int</code> value is converted to <code class="prettyprint">object</code> and back again to <code class="prettyprint">int</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">123</span><span class="p">;</span>
+        <span class="kt">object</span> <span class="n">o</span> <span class="p">=</span> <span class="n">i</span><span class="p">;</span>          <span class="c1">// Boxing</span>
+        <span class="kt">int</span> <span class="n">j</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">o</span><span class="p">;</span>        <span class="c1">// Unboxing</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>When a value of a value type is converted to type <code class="prettyprint">object</code>, an object instance, also called a &ldquo;box,&rdquo; is allocated to hold the value, and the value is copied into that box. Conversely, when an <code class="prettyprint">object</code> reference is cast to a value type, a check is made that the referenced object is a box of the correct value type, and, if the check succeeds, the value in the box is copied out.</p>
+
+<p>C#&rsquo;s unified type system effectively means that value types can become objects &ldquo;on demand.&rdquo; Because of the unification, general-purpose libraries that use type <code class="prettyprint">object</code> can be used with both reference types and value types.</p>
+
+<p>There are several kinds of <strong><em>variables</em></strong> in C#, including fields, array elements, local variables, and parameters. Variables represent storage locations, and every variable has a type that determines what values can be stored in the variable, as shown by the following table.</p>
+
+<table><thead>
+<tr>
+<th><strong>Type of Variable</strong></th>
+<th><strong>Possible Contents</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Non-nullable value type</td>
+<td>A value of that exact type</td>
+</tr>
+<tr>
+<td>Nullable value type</td>
+<td>A null value or a value of that exact type</td>
+</tr>
+<tr>
+<td><code class="prettyprint">object</code></td>
+<td>A null reference, a reference to an object of any reference type, or a reference to a boxed value of any value type</td>
+</tr>
+<tr>
+<td>Class type</td>
+<td>A null reference, a reference to an instance of that class type, or a reference to an instance of a class derived from that class type</td>
+</tr>
+<tr>
+<td>Interface type</td>
+<td>A null reference, a reference to an instance of a class type that implements that interface type, or a reference to a boxed value of a value type that implements that interface type</td>
+</tr>
+<tr>
+<td>Array type</td>
+<td>A null reference, a reference to an instance of that array type, or a reference to an instance of a compatible array type</td>
+</tr>
+<tr>
+<td>Delegate type</td>
+<td>A null reference or a reference to an instance of that delegate type</td>
+</tr>
+</tbody></table>
+
+<h2 id="expressions">Expressions</h2>
+
+<p><strong><em>Expressions</em></strong> are constructed from <strong><em>operands</em></strong> and <strong><em>operators</em></strong>. The operators of an expression indicate which operations to apply to the operands. Examples of operators include <code class="prettyprint">+</code>, <code class="prettyprint">-</code>, <code class="prettyprint">*</code>, <code class="prettyprint">/</code>, and <code class="prettyprint">new</code>. Examples of operands include literals, fields, local variables, and expressions.</p>
+
+<p>When an expression contains multiple operators, the <strong><em>precedence</em></strong> of the operators controls the order in which the individual operators are evaluated. For example, the expression <code class="prettyprint">x + y * z</code> is evaluated as <code class="prettyprint">x + (y * z)</code> because the <code class="prettyprint">*</code> operator has higher precedence than the <code class="prettyprint">+</code> operator.</p>
+
+<p>Most operators can be <strong><em>overloaded</em></strong>. Operator overloading permits user-defined operator implementations to be specified for operations where one or both of the operands are of a user-defined class or struct type.</p>
+
+<p>The following table summarizes C#&rsquo;s operators, listing the operator categories in order of precedence from highest to lowest. Operators in the same category have equal precedence.</p>
+
+<table><thead>
+<tr>
+<th><strong>Category</strong></th>
+<th><strong>Expression</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Primary</td>
+<td><code class="prettyprint">x.m</code></td>
+<td>Member access</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x(...)</code></td>
+<td>Method and delegate invocation</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x[...]</code></td>
+<td>Array and indexer access</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x++</code></td>
+<td>Post-increment</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x--</code></td>
+<td>Post-decrement</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">new T(...)</code></td>
+<td>Object and delegate creation</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">new T(...){...}</code></td>
+<td>Object creation with initializer</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">new {...}</code></td>
+<td>Anonymous object initializer</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">new T[...]</code></td>
+<td>Array creation</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">typeof(T)</code></td>
+<td>Obtain <code class="prettyprint">System.Type</code> object for <code class="prettyprint">T</code></td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">checked(x)</code></td>
+<td>Evaluate expression in checked context</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">unchecked(x)</code></td>
+<td>Evaluate expression in unchecked context</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">default(T)</code></td>
+<td>Obtain default value of type <code class="prettyprint">T</code></td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">delegate {...}</code></td>
+<td>Anonymous function (anonymous method)</td>
+</tr>
+<tr>
+<td>Unary</td>
+<td><code class="prettyprint">+x</code></td>
+<td>Identity</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">-x</code></td>
+<td>Negation</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">!x</code></td>
+<td>Logical negation</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">~x</code></td>
+<td>Bitwise negation</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">++x</code></td>
+<td>Pre-increment</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">--x</code></td>
+<td>Pre-decrement</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">(T)x</code></td>
+<td>Explicitly convert <code class="prettyprint">x</code> to type <code class="prettyprint">T</code></td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">await x</code></td>
+<td>Asynchronously wait for <code class="prettyprint">x</code> to complete</td>
+</tr>
+<tr>
+<td>Multiplicative</td>
+<td><code class="prettyprint">x * y</code></td>
+<td>Multiplication</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x / y</code></td>
+<td>Division</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x % y</code></td>
+<td>Remainder</td>
+</tr>
+<tr>
+<td>Additive</td>
+<td><code class="prettyprint">x + y</code></td>
+<td>Addition, string concatenation, delegate combination</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x - y</code></td>
+<td>Subtraction, delegate removal</td>
+</tr>
+<tr>
+<td>Shift</td>
+<td><code class="prettyprint">x &lt;&lt; y</code></td>
+<td>Shift left</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x &gt;&gt; y</code></td>
+<td>Shift right</td>
+</tr>
+<tr>
+<td>Relational and type testing</td>
+<td><code class="prettyprint">x &lt; y</code></td>
+<td>Less than</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x &gt; y</code></td>
+<td>Greater than</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x &lt;= y</code></td>
+<td>Less than or equal</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x &gt;= y</code></td>
+<td>Greater than or equal</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x is T</code></td>
+<td>Return <code class="prettyprint">true</code> if <code class="prettyprint">x</code> is a <code class="prettyprint">T</code>, <code class="prettyprint">false</code> otherwise</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x as T</code></td>
+<td>Return <code class="prettyprint">x</code> typed as <code class="prettyprint">T</code>, or <code class="prettyprint">null</code> if <code class="prettyprint">x</code> is not a <code class="prettyprint">T</code></td>
+</tr>
+<tr>
+<td>Equality</td>
+<td><code class="prettyprint">x == y</code></td>
+<td>Equal</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x != y</code></td>
+<td>Not equal</td>
+</tr>
+<tr>
+<td>Logical AND</td>
+<td><code class="prettyprint">x &amp; y</code></td>
+<td>Integer bitwise AND, boolean logical AND</td>
+</tr>
+<tr>
+<td>Logical XOR</td>
+<td><code class="prettyprint">x ^ y</code></td>
+<td>Integer bitwise XOR, boolean logical XOR</td>
+</tr>
+<tr>
+<td>Logical OR</td>
+<td>`x</td>
+<td>y`</td>
+</tr>
+<tr>
+<td>Conditional AND</td>
+<td><code class="prettyprint">x &amp;&amp; y</code></td>
+<td>Evaluates <code class="prettyprint">y</code> only if <code class="prettyprint">x</code> is <code class="prettyprint">true</code></td>
+</tr>
+<tr>
+<td>Conditional OR</td>
+<td>`x</td>
+<td></td>
+</tr>
+<tr>
+<td>Null coalescing</td>
+<td><code class="prettyprint">X ?? y</code></td>
+<td>Evaluates to <code class="prettyprint">y</code> if <code class="prettyprint">x</code> is <code class="prettyprint">null</code>, to <code class="prettyprint">x</code> otherwise</td>
+</tr>
+<tr>
+<td>Conditional</td>
+<td><code class="prettyprint">x ? y : z</code></td>
+<td>Evaluates <code class="prettyprint">y</code> if <code class="prettyprint">x</code> is <code class="prettyprint">true</code>, <code class="prettyprint">z</code> if <code class="prettyprint">x</code> is <code class="prettyprint">false</code></td>
+</tr>
+<tr>
+<td>Assignment or anonymous function</td>
+<td><code class="prettyprint">x = y</code></td>
+<td>Assignment</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">x op= y</code></td>
+<td>Compound assignment; supported operators are <code class="prettyprint">*=</code> <code class="prettyprint">/=</code> <code class="prettyprint">%=</code> <code class="prettyprint">+=</code> <code class="prettyprint">-=</code> <code class="prettyprint">&lt;&lt;=</code> <code class="prettyprint">&gt;&gt;=</code> <code class="prettyprint">&amp;=</code> <code class="prettyprint">^=</code> `</td>
+</tr>
+<tr>
+<td></td>
+<td><code class="prettyprint">(T x) =&gt; y</code></td>
+<td>Anonymous function (lambda expression)</td>
+</tr>
+</tbody></table>
+
+<h2 id="statements">Statements</h2>
+
+<p>The actions of a program are expressed using <strong><em>statements</em></strong>. C# supports several different kinds of statements, a number of which are defined in terms of embedded statements.</p>
+
+<p>A <strong><em>block</em></strong> permits multiple statements to be written in contexts where a single statement is allowed. A block consists of a list of statements written between the delimiters <code class="prettyprint">{</code> and <code class="prettyprint">}</code>.</p>
+
+<p><strong><em>Declaration statements</em></strong> are used to declare local variables and constants.</p>
+
+<p><strong><em>Expression statements</em></strong> are used to evaluate expressions. Expressions that can be used as statements include method invocations, object allocations using the <code class="prettyprint">new</code> operator, assignments using <code class="prettyprint">=</code> and the compound assignment operators, increment and decrement operations using the <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators and await expressions.</p>
+
+<p><strong><em>Selection statements</em></strong> are used to select one of a number of possible statements for execution based on the value of some expression. In this group are the <code class="prettyprint">if</code> and <code class="prettyprint">switch</code> statements.</p>
+
+<p><strong><em>Iteration statements</em></strong> are used to repeatedly execute an embedded statement. In this group are the <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, and <code class="prettyprint">foreach</code> statements.</p>
+
+<p><strong><em>Jump statements</em></strong> are used to transfer control. In this group are the <code class="prettyprint">break</code>, <code class="prettyprint">continue</code>, <code class="prettyprint">goto</code>, <code class="prettyprint">throw</code>, <code class="prettyprint">return</code>, and <code class="prettyprint">yield</code> statements.</p>
+
+<p>The <code class="prettyprint">try</code>&hellip;<code class="prettyprint">catch</code> statement is used to catch exceptions that occur during execution of a block, and the <code class="prettyprint">try</code>&hellip;<code class="prettyprint">finally</code> statement is used to specify finalization code that is always executed, whether an exception occurred or not.</p>
+
+<p>The <code class="prettyprint">checked</code> and <code class="prettyprint">unchecked</code> statements are used to control the overflow checking context for integral-type arithmetic operations and conversions.</p>
+
+<p>The <code class="prettyprint">lock</code> statement is used to obtain the mutual-exclusion lock for a given object, execute a statement, and then release the lock.</p>
+
+<p>The <code class="prettyprint">using</code> statement is used to obtain a resource, execute a statement, and then dispose of that resource.</p>
+
+<p>Below are examples of each kind of statement</p>
+
+<p><strong>Local variable declarations</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+   <span class="kt">int</span> <span class="n">a</span><span class="p">;</span>
+   <span class="kt">int</span> <span class="n">b</span> <span class="p">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">c</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+   <span class="n">a</span> <span class="p">=</span> <span class="m">1</span><span class="p">;</span>
+   <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">a</span> <span class="p">+</span> <span class="n">b</span> <span class="p">+</span> <span class="n">c</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong>Local constant declaration</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">pi</span> <span class="p">=</span> <span class="m">3.1415927f</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">r</span> <span class="p">=</span> <span class="m">25</span><span class="p">;</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">pi</span> <span class="p">*</span> <span class="n">r</span> <span class="p">*</span> <span class="n">r</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong>Expression statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+    <span class="n">i</span> <span class="p">=</span> <span class="m">123</span><span class="p">;</span>                <span class="c1">// Expression statement</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>   <span class="c1">// Expression statement</span>
+    <span class="n">i</span><span class="p">++;</span>                    <span class="c1">// Expression statement</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>   <span class="c1">// Expression statement</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">if</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">Length</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"No arguments"</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"One or more arguments"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">switch</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">n</span> <span class="p">=</span> <span class="n">args</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="m">0</span><span class="p">:</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"No arguments"</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="m">1</span><span class="p">:</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"One argument"</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="k">default</span><span class="p">:</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"{0} arguments"</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">while</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="p">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="n">Length</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="n">i</span><span class="p">++;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">do</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="n">s</span><span class="p">;</span>
+    <span class="k">do</span> <span class="p">{</span>
+        <span class="n">s</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="nf">ReadLine</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">s</span> <span class="p">!=</span> <span class="k">null</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">for</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">foreach</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="kt">string</span> <span class="n">s</span> <span class="k">in</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">break</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="k">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">string</span> <span class="n">s</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="nf">ReadLine</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">continue</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="nf">StartsWith</span><span class="p">(</span><span class="s">"/"</span><span class="p">))</span> <span class="k">continue</span><span class="p">;</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">goto</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+    <span class="k">goto</span> <span class="n">check</span><span class="p">;</span>
+    <span class="n">loop</span><span class="p">:</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">++]);</span>
+    <span class="n">check</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="p">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="n">Length</span><span class="p">)</span> <span class="k">goto</span> <span class="n">loop</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">return</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="kt">int</span> <span class="nf">Add</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="p">+</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">Add</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">));</span>
+    <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">yield</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="nf">Range</span><span class="p">(</span><span class="kt">int</span> <span class="k">from</span><span class="p">,</span> <span class="kt">int</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="k">from</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">to</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+        <span class="k">yield</span> <span class="k">return</span> <span class="n">i</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">yield</span> <span class="k">break</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span> <span class="k">in</span> <span class="nf">Range</span><span class="p">(-</span><span class="m">10</span><span class="p">,</span><span class="m">10</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">throw</code> and <code class="prettyprint">try</code> statements</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="kt">double</span> <span class="nf">Divide</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">,</span> <span class="kt">double</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">y</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">DivideByZeroException</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="p">/</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">Length</span> <span class="p">!=</span> <span class="m">2</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Two numbers required"</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="kt">double</span> <span class="n">x</span> <span class="p">=</span> <span class="kt">double</span><span class="p">.</span><span class="nf">Parse</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">0</span><span class="p">]);</span>
+        <span class="kt">double</span> <span class="n">y</span> <span class="p">=</span> <span class="kt">double</span><span class="p">.</span><span class="nf">Parse</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">1</span><span class="p">]);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">Divide</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">));</span>
+    <span class="p">}</span>
+    <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">finally</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Good bye!"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">checked</code> and <code class="prettyprint">unchecked</code> statements</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="kt">int</span><span class="p">.</span><span class="n">MaxValue</span><span class="p">;</span>
+    <span class="k">checked</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">i</span> <span class="p">+</span> <span class="m">1</span><span class="p">);</span>        <span class="c1">// Exception</span>
+    <span class="p">}</span>
+    <span class="k">unchecked</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">i</span> <span class="p">+</span> <span class="m">1</span><span class="p">);</span>        <span class="c1">// Overflow</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">lock</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Account</span>
+<span class="p">{</span>
+    <span class="kt">decimal</span> <span class="n">balance</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Withdraw</span><span class="p">(</span><span class="kt">decimal</span> <span class="n">amount</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">lock</span> <span class="p">(</span><span class="k">this</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">amount</span> <span class="p">&gt;</span> <span class="n">balance</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Insufficient funds"</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="n">balance</span> <span class="p">-=</span> <span class="n">amount</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><strong><code class="prettyprint">using</code> statement</strong></p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="p">(</span><span class="n">TextWriter</span> <span class="n">w</span> <span class="p">=</span> <span class="n">File</span><span class="p">.</span><span class="nf">CreateText</span><span class="p">(</span><span class="s">"test.txt"</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">w</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Line one"</span><span class="p">);</span>
+        <span class="n">w</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Line two"</span><span class="p">);</span>
+        <span class="n">w</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Line three"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h2 id="classes-and-objects">Classes and objects</h2>
+
+<p><strong><em>Classes</em></strong> are the most fundamental of C#&rsquo;s types. A class is a data structure that combines state (fields) and actions (methods and other function members) in a single unit. A class provides a definition for dynamically created <strong><em>instances</em></strong> of the class, also known as <strong><em>objects</em></strong>. Classes support <strong><em>inheritance</em></strong> and <strong><em>polymorphism</em></strong>, mechanisms whereby <strong><em>derived classes</em></strong> can extend and specialize <strong><em>base classes</em></strong>.</p>
+
+<p>New classes are created using class declarations. A class declaration starts with a header that specifies the attributes and modifiers of the class, the name of the class, the base class (if given), and the interfaces implemented by the class. The header is followed by the class body, which consists of a list of member declarations written between the delimiters <code class="prettyprint">{</code> and <code class="prettyprint">}</code>.</p>
+
+<p>The following is a declaration of a simple class named <code class="prettyprint">Point</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Point</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">x</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">y</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Instances of classes are created using the <code class="prettyprint">new</code> operator, which allocates memory for a new instance, invokes a constructor to initialize the instance, and returns a reference to the instance. The following statements create two <code class="prettyprint">Point</code> objects and store references to those objects in two variables:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Point</span> <span class="n">p1</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Point</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
+<span class="n">Point</span> <span class="n">p2</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Point</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="m">20</span><span class="p">);</span>
+</code></pre>
+<p>The memory occupied by an object is automatically reclaimed when the object is no longer in use. It is neither necessary nor possible to explicitly deallocate objects in C#.</p>
+
+<h3 id="members">Members</h3>
+
+<p>The members of a class are either <strong><em>static members</em></strong> or <strong><em>instance members</em></strong>. Static members belong to classes, and instance members belong to objects (instances of classes).</p>
+
+<p>The following table provides an overview of the kinds of members a class can contain.</p>
+
+<table><thead>
+<tr>
+<th><strong>Member</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Constants</td>
+<td>Constant values associated with the class</td>
+</tr>
+<tr>
+<td>Fields</td>
+<td>Variables of the class</td>
+</tr>
+<tr>
+<td>Methods</td>
+<td>Computations and actions that can be performed by the class</td>
+</tr>
+<tr>
+<td>Properties</td>
+<td>Actions associated with reading and writing named properties of the class</td>
+</tr>
+<tr>
+<td>Indexers</td>
+<td>Actions associated with indexing instances of the class like an array</td>
+</tr>
+<tr>
+<td>Events</td>
+<td>Notifications that can be generated by the class</td>
+</tr>
+<tr>
+<td>Operators</td>
+<td>Conversions and expression operators supported by the class</td>
+</tr>
+<tr>
+<td>Constructors</td>
+<td>Actions required to initialize instances of the class or the class itself</td>
+</tr>
+<tr>
+<td>Destructors</td>
+<td>Actions to perform before instances of the class are permanently discarded</td>
+</tr>
+<tr>
+<td>Types</td>
+<td>Nested types declared by the class</td>
+</tr>
+</tbody></table>
+
+<h3 id="accessibility">Accessibility</h3>
+
+<p>Each member of a class has an associated accessibility, which controls the regions of program text that are able to access the member. There are five possible forms of accessibility. These are summarized in the following table.</p>
+
+<table><thead>
+<tr>
+<th><strong>Accessibility</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">public</code></td>
+<td>Access not limited</td>
+</tr>
+<tr>
+<td><code class="prettyprint">protected</code></td>
+<td>Access limited to this class or classes derived from this class</td>
+</tr>
+<tr>
+<td><code class="prettyprint">internal</code></td>
+<td>Access limited to this program</td>
+</tr>
+<tr>
+<td><code class="prettyprint">protected internal</code></td>
+<td>Access limited to this program or classes derived from this class</td>
+</tr>
+<tr>
+<td><code class="prettyprint">private</code></td>
+<td>Access limited to this class</td>
+</tr>
+</tbody></table>
+
+<h3 id="type-parameters">Type parameters</h3>
+
+<p>A class definition may specify a set of type parameters by following the class name with angle brackets enclosing a list of type parameter names. The type parameters can the be used in the body of the class declarations to define the members of the class. In the following example, the type parameters of <code class="prettyprint">Pair</code> are <code class="prettyprint">TFirst</code> and <code class="prettyprint">TSecond</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Pair</span><span class="p">&lt;</span><span class="n">TFirst</span><span class="p">,</span><span class="n">TSecond</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="n">TFirst</span> <span class="n">First</span><span class="p">;</span>
+    <span class="k">public</span> <span class="n">TSecond</span> <span class="n">Second</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<p>A class type that is declared to take type parameters is called a generic class type. Struct, interface and delegate types can also be generic.</p>
+
+<p>When the generic class is used, type arguments must be provided for each of the type parameters:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Pair</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">pair</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Pair</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">string</span><span class="p">&gt;</span> <span class="p">{</span> <span class="n">First</span> <span class="p">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">Second</span> <span class="p">=</span> <span class="s">"two"</span> <span class="p">};</span>
+<span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="n">pair</span><span class="p">.</span><span class="n">First</span><span class="p">;</span>     <span class="c1">// TFirst is int</span>
+<span class="kt">string</span> <span class="n">s</span> <span class="p">=</span> <span class="n">pair</span><span class="p">.</span><span class="n">Second</span><span class="p">;</span> <span class="c1">// TSecond is string</span>
+</code></pre>
+<p>A generic type with type arguments provided, like <code class="prettyprint">Pair&lt;int,string&gt;
+</code> above, is called a constructed type.</p>
+
+<h3 id="base-classes">Base classes</h3>
+
+<p>A class declaration may specify a base class by following the class name and type parameters with a colon and the name of the base class. Omitting a base class specification is the same as deriving from type <code class="prettyprint">object</code>. In the following example, the base class of <code class="prettyprint">Point3D</code> is <code class="prettyprint">Point</code>, and the base class of <code class="prettyprint">Point</code> is <code class="prettyprint">object</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Point</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">x</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">y</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Point3D</span><span class="p">:</span> <span class="n">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">z</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Point3D</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="kt">int</span> <span class="n">z</span><span class="p">):</span> <span class="k">base</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">z</span> <span class="p">=</span> <span class="n">z</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>A class inherits the members of its base class. Inheritance means that a class implicitly contains all members of its base class, except for the instance and static constructors, and the destructors of the base class. A derived class can add new members to those it inherits, but it cannot remove the definition of an inherited member. In the previous example, <code class="prettyprint">Point3D</code> inherits the <code class="prettyprint">x</code> and <code class="prettyprint">y</code> fields from <code class="prettyprint">Point</code>, and every <code class="prettyprint">Point3D</code> instance contains three fields, <code class="prettyprint">x</code>, <code class="prettyprint">y</code>, and <code class="prettyprint">z</code>.</p>
+
+<p>An implicit conversion exists from a class type to any of its base class types. Therefore, a variable of a class type can reference an instance of that class or an instance of any derived class. For example, given the previous class declarations, a variable of type <code class="prettyprint">Point</code> can reference either a <code class="prettyprint">Point</code> or a <code class="prettyprint">Point3D</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Point</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Point</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="m">20</span><span class="p">);</span>
+<span class="n">Point</span> <span class="n">b</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Point3D</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="m">20</span><span class="p">,</span> <span class="m">30</span><span class="p">);</span>
+</code></pre>
+<h3 id="fields">Fields</h3>
+
+<p>A field is a variable that is associated with a class or with an instance of a class.</p>
+
+<p>A field declared with the <code class="prettyprint">static</code> modifier defines a <strong><em>static field</em></strong>. A static field identifies exactly one storage location. No matter how many instances of a class are created, there is only ever one copy of a static field.</p>
+
+<p>A field declared without the <code class="prettyprint">static</code> modifier defines an <strong><em>instance field</em></strong>. Every instance of a class contains a separate copy of all the instance fields of that class.</p>
+
+<p>In the following example, each instance of the <code class="prettyprint">Color</code> class has a separate copy of the <code class="prettyprint">r</code>, <code class="prettyprint">g</code>, and <code class="prettyprint">b</code> instance fields, but there is only one copy of the <code class="prettyprint">Black</code>, <code class="prettyprint">White</code>, <code class="prettyprint">Red</code>, <code class="prettyprint">Green</code>, and <code class="prettyprint">Blue</code> static fields:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Color</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">Color</span> <span class="n">Black</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Color</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">Color</span> <span class="n">White</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Color</span><span class="p">(</span><span class="m">255</span><span class="p">,</span> <span class="m">255</span><span class="p">,</span> <span class="m">255</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">Color</span> <span class="n">Red</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Color</span><span class="p">(</span><span class="m">255</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">Color</span> <span class="n">Green</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Color</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="m">255</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">Color</span> <span class="n">Blue</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Color</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">255</span><span class="p">);</span>
+    <span class="k">private</span> <span class="kt">byte</span> <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Color</span><span class="p">(</span><span class="kt">byte</span> <span class="n">r</span><span class="p">,</span> <span class="kt">byte</span> <span class="n">g</span><span class="p">,</span> <span class="kt">byte</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">r</span> <span class="p">=</span> <span class="n">r</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">g</span> <span class="p">=</span> <span class="n">g</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">b</span> <span class="p">=</span> <span class="n">b</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>As shown in the previous example, <strong><em>read-only fields</em></strong> may be declared with a <code class="prettyprint">readonly</code> modifier. Assignment to a <code class="prettyprint">readonly</code> field can only occur as part of the field&rsquo;s declaration or in a constructor in the same class.</p>
+
+<h3 id="methods">Methods</h3>
+
+<p>A <strong><em>method</em></strong> is a member that implements a computation or action that can be performed by an object or class. <strong><em>Static methods</em></strong> are accessed through the class. <strong><em>Instance methods</em></strong> are accessed through instances of the class.</p>
+
+<p>Methods have a (possibly empty) list of <strong><em>parameters</em></strong>, which represent values or variable references passed to the method, and a <strong><em>return type</em></strong>, which specifies the type of the value computed and returned by the method. A method&rsquo;s return type is <code class="prettyprint">void</code> if it does not return a value.</p>
+
+<p>Like types, methods may also have a set of type parameters, for which type arguments must be specified when the method is called. Unlike types, the type arguments can often be inferred from the arguments of a method call and need not be explicitly given.</p>
+
+<p>The <strong><em>signature</em></strong> of a method must be unique in the class in which the method is declared. The signature of a method consists of the name of the method, the number of type parameters and the number, modifiers, and types of its parameters. The signature of a method does not include the return type.</p>
+
+<h4 id="parameters">Parameters</h4>
+
+<p>Parameters are used to pass values or variable references to methods. The parameters of a method get their actual values from the <strong><em>arguments</em></strong> that are specified when the method is invoked. There are four kinds of parameters: value parameters, reference parameters, output parameters, and parameter arrays.</p>
+
+<p>A <strong><em>value parameter</em></strong> is used for input parameter passing. A value parameter corresponds to a local variable that gets its initial value from the argument that was passed for the parameter. Modifications to a value parameter do not affect the argument that was passed for the parameter.</p>
+
+<p>Value parameters can be optional, by specifying a default value so that corresponding arguments can be omitted.</p>
+
+<p>A <strong><em>reference parameter</em></strong> is used for both input and output parameter passing. The argument passed for a reference parameter must be a variable, and during execution of the method, the reference parameter represents the same storage location as the argument variable. A reference parameter is declared with the <code class="prettyprint">ref</code> modifier. The following example shows the use of <code class="prettyprint">ref</code> parameters.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Swap</span><span class="p">(</span><span class="k">ref</span> <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="k">ref</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">temp</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+        <span class="n">x</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
+        <span class="n">y</span> <span class="p">=</span> <span class="n">temp</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">1</span><span class="p">,</span> <span class="n">j</span> <span class="p">=</span> <span class="m">2</span><span class="p">;</span>
+        <span class="nf">Swap</span><span class="p">(</span><span class="k">ref</span> <span class="n">i</span><span class="p">,</span> <span class="k">ref</span> <span class="n">j</span><span class="p">);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"{0} {1}"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>            <span class="c1">// Outputs "2 1"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>An <strong><em>output parameter</em></strong> is used for output parameter passing. An output parameter is similar to a reference parameter except that the initial value of the caller-provided argument is unimportant. An output parameter is declared with the <code class="prettyprint">out</code> modifier. The following example shows the use of <code class="prettyprint">out</code> parameters.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Divide</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="k">out</span> <span class="kt">int</span> <span class="n">result</span><span class="p">,</span> <span class="k">out</span> <span class="kt">int</span> <span class="n">remainder</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">result</span> <span class="p">=</span> <span class="n">x</span> <span class="p">/</span> <span class="n">y</span><span class="p">;</span>
+        <span class="n">remainder</span> <span class="p">=</span> <span class="n">x</span> <span class="p">%</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">res</span><span class="p">,</span> <span class="n">rem</span><span class="p">;</span>
+        <span class="nf">Divide</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="k">out</span> <span class="n">res</span><span class="p">,</span> <span class="k">out</span> <span class="n">rem</span><span class="p">);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"{0} {1}"</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rem</span><span class="p">);</span>    <span class="c1">// Outputs "3 1"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>A <strong><em>parameter array</em></strong> permits a variable number of arguments to be passed to a method. A parameter array is declared with the <code class="prettyprint">params</code> modifier. Only the last parameter of a method can be a parameter array, and the type of a parameter array must be a single-dimensional array type. The <code class="prettyprint">Write</code> and <code class="prettyprint">WriteLine</code> methods of the <code class="prettyprint">System.Console</code> class are good examples of parameter array usage. They are declared as follows.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Console</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Write</span><span class="p">(</span><span class="kt">string</span> <span class="n">fmt</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">WriteLine</span><span class="p">(</span><span class="kt">string</span> <span class="n">fmt</span><span class="p">,</span> <span class="k">params</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre>
+<p>Within a method that uses a parameter array, the parameter array behaves exactly like a regular parameter of an array type. However, in an invocation of a method with a parameter array, it is possible to pass either a single argument of the parameter array type or any number of arguments of the element type of the parameter array. In the latter case, an array instance is automatically created and initialized with the given arguments. This example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"x={0} y={1} z={2}"</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">);</span>
+</code></pre>
+<p>is equivalent to writing the following.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">string</span> <span class="n">s</span> <span class="p">=</span> <span class="s">"x={0} y={1} z={2}"</span><span class="p">;</span>
+<span class="kt">object</span><span class="p">[]</span> <span class="n">args</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">object</span><span class="p">[</span><span class="m">3</span><span class="p">];</span>
+<span class="n">args</span><span class="p">[</span><span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+<span class="n">args</span><span class="p">[</span><span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
+<span class="n">args</span><span class="p">[</span><span class="m">2</span><span class="p">]</span> <span class="p">=</span> <span class="n">z</span><span class="p">;</span>
+<span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+</code></pre>
+<h4 id="method-body-and-local-variables">Method body and local variables</h4>
+
+<p>A method&rsquo;s body specifies the statements to execute when the method is invoked.</p>
+
+<p>A method body can declare variables that are specific to the invocation of the method. Such variables are called <strong><em>local variables</em></strong>. A local variable declaration specifies a type name, a variable name, and possibly an initial value. The following example declares a local variable <code class="prettyprint">i</code> with an initial value of zero and a local variable <code class="prettyprint">j</code> with no initial value.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Squares</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">j</span><span class="p">;</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="p">&lt;</span> <span class="m">10</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">j</span> <span class="p">=</span> <span class="n">i</span> <span class="p">*</span> <span class="n">i</span><span class="p">;</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"{0} x {0} = {1}"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+            <span class="n">i</span> <span class="p">=</span> <span class="n">i</span> <span class="p">+</span> <span class="m">1</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>C# requires a local variable to be <strong><em>definitely assigned</em></strong> before its value can be obtained. For example, if the declaration of the previous <code class="prettyprint">i</code> did not include an initial value, the compiler would report an error for the subsequent usages of <code class="prettyprint">i</code> because <code class="prettyprint">i</code> would not be definitely assigned at those points in the program.</p>
+
+<p>A method can use <code class="prettyprint">return</code> statements to return control to its caller. In a method returning <code class="prettyprint">void</code>, <code class="prettyprint">return</code> statements cannot specify an expression. In a method returning non-<code class="prettyprint">void</code>, <code class="prettyprint">return</code> statements must include an expression that computes the return value.</p>
+
+<h4 id="static-and-instance-methods">Static and instance methods</h4>
+
+<p>A method declared with a <code class="prettyprint">static</code> modifier is a <strong><em>static method</em></strong>. A static method does not operate on a specific instance and can only directly access static members.</p>
+
+<p>A method declared without a <code class="prettyprint">static</code> modifier is an <strong><em>instance method</em></strong>. An instance method operates on a specific instance and can access both static and instance members. The instance on which an instance method was invoked can be explicitly accessed as <code class="prettyprint">this</code>. It is an error to refer to <code class="prettyprint">this</code> in a static method.</p>
+
+<p>The following <code class="prettyprint">Entity</code> class has both static and instance members.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Entity</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">int</span> <span class="n">nextSerialNo</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">serialNo</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Entity</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">serialNo</span> <span class="p">=</span> <span class="n">nextSerialNo</span><span class="p">++;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">int</span> <span class="nf">GetSerialNo</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">serialNo</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">GetNextSerialNo</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">nextSerialNo</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">SetNextSerialNo</span><span class="p">(</span><span class="kt">int</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">nextSerialNo</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Each <code class="prettyprint">Entity</code> instance contains a serial number (and presumably some other information that is not shown here). The <code class="prettyprint">Entity</code> constructor (which is like an instance method) initializes the new instance with the next available serial number. Because the constructor is an instance member, it is permitted to access both the <code class="prettyprint">serialNo</code> instance field and the <code class="prettyprint">nextSerialNo</code> static field.</p>
+
+<p>The <code class="prettyprint">GetNextSerialNo</code> and <code class="prettyprint">SetNextSerialNo</code> static methods can access the <code class="prettyprint">nextSerialNo</code> static field, but it would be an error for them to directly access the <code class="prettyprint">serialNo</code> instance field.</p>
+
+<p>The following example shows the use of the <code class="prettyprint">Entity</code> class.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Entity</span><span class="p">.</span><span class="nf">SetNextSerialNo</span><span class="p">(</span><span class="m">1000</span><span class="p">);</span>
+        <span class="n">Entity</span> <span class="n">e1</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Entity</span><span class="p">();</span>
+        <span class="n">Entity</span> <span class="n">e2</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Entity</span><span class="p">();</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">e1</span><span class="p">.</span><span class="nf">GetSerialNo</span><span class="p">());</span>           <span class="c1">// Outputs "1000"</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">e2</span><span class="p">.</span><span class="nf">GetSerialNo</span><span class="p">());</span>           <span class="c1">// Outputs "1001"</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">Entity</span><span class="p">.</span><span class="nf">GetNextSerialNo</span><span class="p">());</span>   <span class="c1">// Outputs "1002"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Note that the <code class="prettyprint">SetNextSerialNo</code> and <code class="prettyprint">GetNextSerialNo</code> static methods are invoked on the class whereas the <code class="prettyprint">GetSerialNo</code> instance method is invoked on instances of the class.</p>
+
+<h4 id="virtual-override-and-abstract-methods">Virtual, override, and abstract methods</h4>
+
+<p>When an instance method declaration includes a <code class="prettyprint">virtual</code> modifier, the method is said to be a <strong><em>virtual method</em></strong>. When no <code class="prettyprint">virtual</code> modifier is present, the method is said to be a <strong><em>non-virtual method</em></strong>.</p>
+
+<p>When a virtual method is invoked, the <strong><em>run-time type</em></strong> of the instance for which that invocation takes place determines the actual method implementation to invoke. In a nonvirtual method invocation, the <strong><em>compile-time type</em></strong> of the instance is the determining factor.</p>
+
+<p>A virtual method can be <strong><em>overridden</em></strong> in a derived class. When an instance method declaration includes an <code class="prettyprint">override</code> modifier, the method overrides an inherited virtual method with the same signature. Whereas a virtual method declaration introduces a new method, an override method declaration specializes an existing inherited virtual method by providing a new implementation of that method.</p>
+
+<p>An <strong><em>abstract</em></strong> method is a virtual method with no implementation. An abstract method is declared with the <code class="prettyprint">abstract</code> modifier and is permitted only in a class that is also declared <code class="prettyprint">abstract</code>. An abstract method must be overridden in every non-abstract derived class.</p>
+
+<p>The following example declares an abstract class, <code class="prettyprint">Expression</code>, which represents an expression tree node, and three derived classes, <code class="prettyprint">Constant</code>, <code class="prettyprint">VariableReference</code>, and <code class="prettyprint">Operation</code>, which implement expression tree nodes for constants, variable references, and arithmetic operations. (This is similar to, but not to be confused with the expression tree types introduced in <a href="types.md#expression-tree-types">Expression tree types</a>).</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Collections</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">Expression</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">abstract</span> <span class="kt">double</span> <span class="nf">Evaluate</span><span class="p">(</span><span class="n">Hashtable</span> <span class="n">vars</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Constant</span><span class="p">:</span> <span class="n">Expression</span>
+<span class="p">{</span>
+    <span class="kt">double</span> <span class="k">value</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Constant</span><span class="p">(</span><span class="kt">double</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="k">value</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">double</span> <span class="nf">Evaluate</span><span class="p">(</span><span class="n">Hashtable</span> <span class="n">vars</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">VariableReference</span><span class="p">:</span> <span class="n">Expression</span>
+<span class="p">{</span>
+    <span class="kt">string</span> <span class="n">name</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">VariableReference</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">name</span> <span class="p">=</span> <span class="n">name</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">double</span> <span class="nf">Evaluate</span><span class="p">(</span><span class="n">Hashtable</span> <span class="n">vars</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">object</span> <span class="k">value</span> <span class="p">=</span> <span class="n">vars</span><span class="p">[</span><span class="n">name</span><span class="p">];</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Unknown variable: "</span> <span class="p">+</span> <span class="n">name</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">Convert</span><span class="p">.</span><span class="nf">ToDouble</span><span class="p">(</span><span class="k">value</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Operation</span><span class="p">:</span> <span class="n">Expression</span>
+<span class="p">{</span>
+    <span class="n">Expression</span> <span class="n">left</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">op</span><span class="p">;</span>
+    <span class="n">Expression</span> <span class="n">right</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Operation</span><span class="p">(</span><span class="n">Expression</span> <span class="n">left</span><span class="p">,</span> <span class="kt">char</span> <span class="n">op</span><span class="p">,</span> <span class="n">Expression</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">left</span> <span class="p">=</span> <span class="n">left</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">op</span> <span class="p">=</span> <span class="n">op</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">right</span> <span class="p">=</span> <span class="n">right</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">double</span> <span class="nf">Evaluate</span><span class="p">(</span><span class="n">Hashtable</span> <span class="n">vars</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">double</span> <span class="n">x</span> <span class="p">=</span> <span class="n">left</span><span class="p">.</span><span class="nf">Evaluate</span><span class="p">(</span><span class="n">vars</span><span class="p">);</span>
+        <span class="kt">double</span> <span class="n">y</span> <span class="p">=</span> <span class="n">right</span><span class="p">.</span><span class="nf">Evaluate</span><span class="p">(</span><span class="n">vars</span><span class="p">);</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="sc">'+'</span><span class="p">:</span> <span class="k">return</span> <span class="n">x</span> <span class="p">+</span> <span class="n">y</span><span class="p">;</span>
+            <span class="k">case</span> <span class="sc">'-'</span><span class="p">:</span> <span class="k">return</span> <span class="n">x</span> <span class="p">-</span> <span class="n">y</span><span class="p">;</span>
+            <span class="k">case</span> <span class="sc">'*'</span><span class="p">:</span> <span class="k">return</span> <span class="n">x</span> <span class="p">*</span> <span class="n">y</span><span class="p">;</span>
+            <span class="k">case</span> <span class="sc">'/'</span><span class="p">:</span> <span class="k">return</span> <span class="n">x</span> <span class="p">/</span> <span class="n">y</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="p">(</span><span class="s">"Unknown operator"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The previous four classes can be used to model arithmetic expressions. For example, using instances of these classes, the expression <code class="prettyprint">x + 3</code> can be represented as follows.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Expression</span> <span class="n">e</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Operation</span><span class="p">(</span>
+    <span class="k">new</span> <span class="nf">VariableReference</span><span class="p">(</span><span class="s">"x"</span><span class="p">),</span>
+    <span class="sc">'+'</span><span class="p">,</span>
+    <span class="k">new</span> <span class="nf">Constant</span><span class="p">(</span><span class="m">3</span><span class="p">));</span>
+</code></pre>
+<p>The <code class="prettyprint">Evaluate</code> method of an <code class="prettyprint">Expression</code> instance is invoked to evaluate the given expression and produce a <code class="prettyprint">double</code> value. The method takes as an argument a <code class="prettyprint">Hashtable</code> that contains variable names (as keys of the entries) and values (as values of the entries). The <code class="prettyprint">Evaluate</code> method is a virtual abstract method, meaning that non-abstract derived classes must override it to provide an actual implementation.</p>
+
+<p>A <code class="prettyprint">Constant</code>&rsquo;s implementation of <code class="prettyprint">Evaluate</code> simply returns the stored constant. A <code class="prettyprint">VariableReference</code>&rsquo;s implementation looks up the variable name in the hashtable and returns the resulting value. An <code class="prettyprint">Operation</code>&rsquo;s implementation first evaluates the left and right operands (by recursively invoking their <code class="prettyprint">Evaluate</code> methods) and then performs the given arithmetic operation.</p>
+
+<p>The following program uses the <code class="prettyprint">Expression</code> classes to evaluate the expression <code class="prettyprint">x * (y + 2)</code> for different values of <code class="prettyprint">x</code> and <code class="prettyprint">y</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Collections</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Expression</span> <span class="n">e</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Operation</span><span class="p">(</span>
+            <span class="k">new</span> <span class="nf">VariableReference</span><span class="p">(</span><span class="s">"x"</span><span class="p">),</span>
+            <span class="sc">'*'</span><span class="p">,</span>
+            <span class="k">new</span> <span class="nf">Operation</span><span class="p">(</span>
+                <span class="k">new</span> <span class="nf">VariableReference</span><span class="p">(</span><span class="s">"y"</span><span class="p">),</span>
+                <span class="sc">'+'</span><span class="p">,</span>
+                <span class="k">new</span> <span class="nf">Constant</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">);</span>
+        <span class="n">Hashtable</span> <span class="n">vars</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Hashtable</span><span class="p">();</span>
+        <span class="n">vars</span><span class="p">[</span><span class="s">"x"</span><span class="p">]</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+        <span class="n">vars</span><span class="p">[</span><span class="s">"y"</span><span class="p">]</span> <span class="p">=</span> <span class="m">5</span><span class="p">;</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="nf">Evaluate</span><span class="p">(</span><span class="n">vars</span><span class="p">));</span>        <span class="c1">// Outputs "21"</span>
+        <span class="n">vars</span><span class="p">[</span><span class="s">"x"</span><span class="p">]</span> <span class="p">=</span> <span class="m">1.5</span><span class="p">;</span>
+        <span class="n">vars</span><span class="p">[</span><span class="s">"y"</span><span class="p">]</span> <span class="p">=</span> <span class="m">9</span><span class="p">;</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="nf">Evaluate</span><span class="p">(</span><span class="n">vars</span><span class="p">));</span>        <span class="c1">// Outputs "16.5"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h4 id="method-overloading">Method overloading</h4>
+
+<p>Method <strong><em>overloading</em></strong> permits multiple methods in the same class to have the same name as long as they have unique signatures. When compiling an invocation of an overloaded method, the compiler uses <strong><em>overload resolution</em></strong> to determine the specific method to invoke. Overload resolution finds the one method that best matches the arguments or reports an error if no single best match can be found. The following example shows overload resolution in effect. The comment for each invocation in the <code class="prettyprint">Main</code> method shows which method is actually invoked.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"F()"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">object</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"F(object)"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"F(int)"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"F(double)"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="n">F</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"F&lt;T&gt;(T)"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">,</span> <span class="kt">double</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"F(double, double)"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">F</span><span class="p">();</span>                 <span class="c1">// Invokes F()</span>
+        <span class="nf">F</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>                <span class="c1">// Invokes F(int)</span>
+        <span class="nf">F</span><span class="p">(</span><span class="m">1.0</span><span class="p">);</span>              <span class="c1">// Invokes F(double)</span>
+        <span class="nf">F</span><span class="p">(</span><span class="s">"abc"</span><span class="p">);</span>            <span class="c1">// Invokes F(object)</span>
+        <span class="nf">F</span><span class="p">((</span><span class="kt">double</span><span class="p">)</span><span class="m">1</span><span class="p">);</span>        <span class="c1">// Invokes F(double)</span>
+        <span class="nf">F</span><span class="p">((</span><span class="kt">object</span><span class="p">)</span><span class="m">1</span><span class="p">);</span>        <span class="c1">// Invokes F(object)</span>
+        <span class="n">F</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;(</span><span class="m">1</span><span class="p">);</span>           <span class="c1">// Invokes F&lt;T&gt;(T)</span>
+        <span class="nf">F</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">);</span>             <span class="c1">// Invokes F(double, double)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>As shown by the example, a particular method can always be selected by explicitly casting the arguments to the exact parameter types and/or explicitly supplying type arguments.</p>
+
+<h3 id="other-function-members">Other function members</h3>
+
+<p>Members that contain executable code are collectively known as the <strong><em>function members</em></strong> of a class. The preceding section describes methods, which are the primary kind of function members. This section describes the other kinds of function members supported by C#: constructors, properties, indexers, events, operators, and destructors.</p>
+
+<p>The following code shows a generic class called <code class="prettyprint">List&lt;T&gt;</code>, which implements a growable list of objects. The class contains several examples of the most common kinds of function members.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">{</span>
+    <span class="c1">// Constant...</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">defaultCapacity</span> <span class="p">=</span> <span class="m">4</span><span class="p">;</span>
+
+    <span class="c1">// Fields...</span>
+    <span class="n">T</span><span class="p">[]</span> <span class="n">items</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">count</span><span class="p">;</span>
+
+    <span class="c1">// Constructors...</span>
+    <span class="k">public</span> <span class="nf">List</span><span class="p">(</span><span class="kt">int</span> <span class="n">capacity</span> <span class="p">=</span> <span class="n">defaultCapacity</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">items</span> <span class="p">=</span> <span class="k">new</span> <span class="n">T</span><span class="p">[</span><span class="n">capacity</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Properties...</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Count</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">count</span><span class="p">;</span> <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Capacity</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="n">items</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">set</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">&lt;</span> <span class="n">count</span><span class="p">)</span> <span class="k">value</span> <span class="p">=</span> <span class="n">count</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">!=</span> <span class="n">items</span><span class="p">.</span><span class="n">Length</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">T</span><span class="p">[]</span> <span class="n">newItems</span> <span class="p">=</span> <span class="k">new</span> <span class="n">T</span><span class="p">[</span><span class="k">value</span><span class="p">];</span>
+                <span class="n">Array</span><span class="p">.</span><span class="nf">Copy</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">newItems</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+                <span class="n">items</span> <span class="p">=</span> <span class="n">newItems</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Indexer...</span>
+    <span class="k">public</span> <span class="n">T</span> <span class="k">this</span><span class="p">[</span><span class="kt">int</span> <span class="n">index</span><span class="p">]</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="n">items</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+        <span class="p">}</span>
+        <span class="k">set</span> <span class="p">{</span>
+            <span class="n">items</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+            <span class="nf">OnChanged</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Methods...</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Add</span><span class="p">(</span><span class="n">T</span> <span class="n">item</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="p">==</span> <span class="n">Capacity</span><span class="p">)</span> <span class="n">Capacity</span> <span class="p">=</span> <span class="n">count</span> <span class="p">*</span> <span class="m">2</span><span class="p">;</span>
+        <span class="n">items</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="p">=</span> <span class="n">item</span><span class="p">;</span>
+        <span class="n">count</span><span class="p">++;</span>
+        <span class="nf">OnChanged</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">protected</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">OnChanged</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">Changed</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="nf">Changed</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">EventArgs</span><span class="p">.</span><span class="n">Empty</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">Equals</span><span class="p">(</span><span class="kt">object</span> <span class="n">other</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">Equals</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">other</span> <span class="k">as</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;);</span>
+    <span class="p">}</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="nf">Equals</span><span class="p">(</span><span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">a</span><span class="p">,</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">return</span> <span class="n">b</span> <span class="p">==</span> <span class="k">null</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="p">==</span> <span class="k">null</span> <span class="p">||</span> <span class="n">a</span><span class="p">.</span><span class="n">count</span> <span class="p">!=</span> <span class="n">b</span><span class="p">.</span><span class="n">count</span><span class="p">)</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">a</span><span class="p">.</span><span class="n">count</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="kt">object</span><span class="p">.</span><span class="nf">Equals</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">.</span><span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="p">{</span>
+                <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Event...</span>
+    <span class="k">public</span> <span class="k">event</span> <span class="n">EventHandler</span> <span class="n">Changed</span><span class="p">;</span>
+
+    <span class="c1">// Operators...</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">==(</span><span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">a</span><span class="p">,</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">Equals</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">!=(</span><span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">a</span><span class="p">,</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">!</span><span class="nf">Equals</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h4 id="constructors">Constructors</h4>
+
+<p>C# supports both instance and static constructors. An <strong><em>instance constructor</em></strong> is a member that implements the actions required to initialize an instance of a class. A <strong><em>static constructor</em></strong> is a member that implements the actions required to initialize a class itself when it is first loaded.</p>
+
+<p>A constructor is declared like a method with no return type and the same name as the containing class. If a constructor declaration includes a <code class="prettyprint">static</code> modifier, it declares a static constructor. Otherwise, it declares an instance constructor.</p>
+
+<p>Instance constructors can be overloaded. For example, the <code class="prettyprint">List&lt;T&gt;
+</code> class declares two instance constructors, one with no parameters and one that takes an <code class="prettyprint">int</code> parameter. Instance constructors are invoked using the <code class="prettyprint">new</code> operator. The following statements allocate two <code class="prettyprint">List&lt;string&gt;
+</code> instances using each of the constructors of the <code class="prettyprint">List</code> class.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">list1</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">list2</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;(</span><span class="m">10</span><span class="p">);</span>
+</code></pre>
+<p>Unlike other members, instance constructors are not inherited, and a class has no instance constructors other than those actually declared in the class. If no instance constructor is supplied for a class, then an empty one with no parameters is automatically provided.</p>
+
+<h4 id="properties">Properties</h4>
+
+<p><strong><em>Properties</em></strong> are a natural extension of fields. Both are named members with associated types, and the syntax for accessing fields and properties is the same. However, unlike fields, properties do not denote storage locations. Instead, properties have <strong><em>accessors</em></strong> that specify the statements to be executed when their values are read or written.</p>
+
+<p>A property is declared like a field, except that the declaration ends with a <code class="prettyprint">get</code> accessor and/or a <code class="prettyprint">set</code> accessor written between the delimiters <code class="prettyprint">{</code> and <code class="prettyprint">}</code> instead of ending in a semicolon. A property that has both a <code class="prettyprint">get</code> accessor and a <code class="prettyprint">set</code> accessor is a <strong><em>read-write property</em></strong>, a property that has only a <code class="prettyprint">get</code> accessor is a <strong><em>read-only property</em></strong>, and a property that has only a <code class="prettyprint">set</code> accessor is a <strong><em>write-only property</em></strong>.</p>
+
+<p>A <code class="prettyprint">get</code> accessor corresponds to a parameterless method with a return value of the property type. Except as the target of an assignment, when a property is referenced in an expression, the <code class="prettyprint">get</code> accessor of the property is invoked to compute the value of the property.</p>
+
+<p>A <code class="prettyprint">set</code> accessor corresponds to a method with a single parameter named <code class="prettyprint">value</code> and no return type. When a property is referenced as the target of an assignment or as the operand of <code class="prettyprint">++</code> or <code class="prettyprint">--</code>, the <code class="prettyprint">set</code> accessor is invoked with an argument that provides the new value.</p>
+
+<p>The <code class="prettyprint">List&lt;T&gt;
+</code> class declares two properties, <code class="prettyprint">Count</code> and <code class="prettyprint">Capacity</code>, which are read-only and read-write, respectively. The following is an example of use of these properties.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">names</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
+<span class="n">names</span><span class="p">.</span><span class="n">Capacity</span> <span class="p">=</span> <span class="m">100</span><span class="p">;</span>            <span class="c1">// Invokes set accessor</span>
+<span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="n">names</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span>             <span class="c1">// Invokes get accessor</span>
+<span class="kt">int</span> <span class="n">j</span> <span class="p">=</span> <span class="n">names</span><span class="p">.</span><span class="n">Capacity</span><span class="p">;</span>          <span class="c1">// Invokes get accessor</span>
+</code></pre>
+<p>Similar to fields and methods, C# supports both instance properties and static properties. Static properties are declared with the <code class="prettyprint">static</code> modifier, and instance properties are declared without it.</p>
+
+<p>The accessor(s) of a property can be virtual. When a property declaration includes a <code class="prettyprint">virtual</code>, <code class="prettyprint">abstract</code>, or <code class="prettyprint">override</code> modifier, it applies to the accessor(s) of the property.</p>
+
+<h4 id="indexers">Indexers</h4>
+
+<p>An <strong><em>indexer</em></strong> is a member that enables objects to be indexed in the same way as an array. An indexer is declared like a property except that the name of the member is <code class="prettyprint">this</code> followed by a parameter list written between the delimiters <code class="prettyprint">[</code> and <code class="prettyprint">]</code>. The parameters are available in the accessor(s) of the indexer. Similar to properties, indexers can be read-write, read-only, and write-only, and the accessor(s) of an indexer can be virtual.</p>
+
+<p>The <code class="prettyprint">List</code> class declares a single read-write indexer that takes an <code class="prettyprint">int</code> parameter. The indexer makes it possible to index <code class="prettyprint">List</code> instances with <code class="prettyprint">int</code> values. For example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">names</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
+<span class="n">names</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"Liz"</span><span class="p">);</span>
+<span class="n">names</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"Martha"</span><span class="p">);</span>
+<span class="n">names</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"Beth"</span><span class="p">);</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">names</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="n">s</span> <span class="p">=</span> <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="n">s</span><span class="p">.</span><span class="nf">ToUpper</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+<p>Indexers can be overloaded, meaning that a class can declare multiple indexers as long as the number or types of their parameters differ.</p>
+
+<h4 id="events">Events</h4>
+
+<p>An <strong><em>event</em></strong> is a member that enables a class or object to provide notifications. An event is declared like a field except that the declaration includes an <code class="prettyprint">event</code> keyword and the type must be a delegate type.</p>
+
+<p>Within a class that declares an event member, the event behaves just like a field of a delegate type (provided the event is not abstract and does not declare accessors). The field stores a reference to a delegate that represents the event handlers that have been added to the event. If no event handles are present, the field is <code class="prettyprint">null</code>.</p>
+
+<p>The <code class="prettyprint">List&lt;T&gt;
+</code> class declares a single event member called <code class="prettyprint">Changed</code>, which indicates that a new item has been added to the list. The <code class="prettyprint">Changed</code> event is raised by the <code class="prettyprint">OnChanged</code> virtual method, which first checks whether the event is <code class="prettyprint">null</code> (meaning that no handlers are present). The notion of raising an event is precisely equivalent to invoking the delegate represented by the event—thus, there are no special language constructs for raising events.</p>
+
+<p>Clients react to events through <strong><em>event handlers</em></strong>. Event handlers are attached using the <code class="prettyprint">+=</code> operator and removed using the <code class="prettyprint">-=</code> operator. The following example attaches an event handler to the <code class="prettyprint">Changed</code> event of a <code class="prettyprint">List&lt;string&gt;
+</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">int</span> <span class="n">changeCount</span><span class="p">;</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">ListChanged</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">changeCount</span><span class="p">++;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">names</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
+        <span class="n">names</span><span class="p">.</span><span class="n">Changed</span> <span class="p">+=</span> <span class="k">new</span> <span class="nf">EventHandler</span><span class="p">(</span><span class="n">ListChanged</span><span class="p">);</span>
+        <span class="n">names</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"Liz"</span><span class="p">);</span>
+        <span class="n">names</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"Martha"</span><span class="p">);</span>
+        <span class="n">names</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"Beth"</span><span class="p">);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">changeCount</span><span class="p">);</span>        <span class="c1">// Outputs "3"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>For advanced scenarios where control of the underlying storage of an event is desired, an event declaration can explicitly provide <code class="prettyprint">add</code> and <code class="prettyprint">remove</code> accessors, which are somewhat similar to the <code class="prettyprint">set</code> accessor of a property.</p>
+
+<h4 id="operators">Operators</h4>
+
+<p>An <strong><em>operator</em></strong> is a member that defines the meaning of applying a particular expression operator to instances of a class. Three kinds of operators can be defined: unary operators, binary operators, and conversion operators. All operators must be declared as <code class="prettyprint">public</code> and <code class="prettyprint">static</code>.</p>
+
+<p>The <code class="prettyprint">List&lt;T&gt;
+</code> class declares two operators, <code class="prettyprint">operator==</code> and <code class="prettyprint">operator!=</code>, and thus gives new meaning to expressions that apply those operators to <code class="prettyprint">List</code> instances. Specifically, the operators define equality of two <code class="prettyprint">List&lt;T&gt;
+</code> instances as comparing each of the contained objects using their <code class="prettyprint">Equals</code> methods. The following example uses the <code class="prettyprint">==</code> operator to compare two <code class="prettyprint">List&lt;int&gt;
+</code> instances.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">List</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
+        <span class="n">a</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+        <span class="n">a</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="m">2</span><span class="p">);</span>
+        <span class="n">List</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="n">b</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
+        <span class="n">b</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+        <span class="n">b</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="m">2</span><span class="p">);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">a</span> <span class="p">==</span> <span class="n">b</span><span class="p">);</span>        <span class="c1">// Outputs "True"</span>
+        <span class="n">b</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="m">3</span><span class="p">);</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">a</span> <span class="p">==</span> <span class="n">b</span><span class="p">);</span>        <span class="c1">// Outputs "False"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The first <code class="prettyprint">Console.WriteLine</code> outputs <code class="prettyprint">True</code> because the two lists contain the same number of objects with the same values in the same order. Had <code class="prettyprint">List&lt;T&gt;
+</code> not defined <code class="prettyprint">operator==</code>, the first <code class="prettyprint">Console.WriteLine</code> would have output <code class="prettyprint">False</code> because <code class="prettyprint">a</code> and <code class="prettyprint">b</code> reference different <code class="prettyprint">List&lt;int&gt;
+</code> instances.</p>
+
+<h4 id="destructors">Destructors</h4>
+
+<p>A <strong><em>destructor</em></strong> is a member that implements the actions required to destruct an instance of a class. Destructors cannot have parameters, they cannot have accessibility modifiers, and they cannot be invoked explicitly. The destructor for an instance is invoked automatically during garbage collection.</p>
+
+<p>The garbage collector is allowed wide latitude in deciding when to collect objects and run destructors. Specifically, the timing of destructor invocations is not deterministic, and destructors may be executed on any thread. For these and other reasons, classes should implement destructors only when no other solutions are feasible.</p>
+
+<p>The <code class="prettyprint">using</code> statement provides a better approach to object destruction.</p>
+
+<h2 id="structs">Structs</h2>
+
+<p>Like classes, <strong><em>structs</em></strong> are data structures that can contain data members and function members, but unlike classes, structs are value types and do not require heap allocation. A variable of a struct type directly stores the data of the struct, whereas a variable of a class type stores a reference to a dynamically allocated object. Struct types do not support user-specified inheritance, and all struct types implicitly inherit from type <code class="prettyprint">object</code>.</p>
+
+<p>Structs are particularly useful for small data structures that have value semantics. Complex numbers, points in a coordinate system, or key-value pairs in a dictionary are all good examples of structs. The use of structs rather than classes for small data structures can make a large difference in the number of memory allocations an application performs. For example, the following program creates and initializes an array of 100 points. With <code class="prettyprint">Point</code> implemented as a class, 101 separate objects are instantiated—one for the array and one each for the 100 elements.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Point</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">x</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">y</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Point</span><span class="p">[]</span> <span class="n">points</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Point</span><span class="p">[</span><span class="m">100</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">100</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Point</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>An alternative is to make <code class="prettyprint">Point</code> a struct.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">struct</span> <span class="nc">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Point</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">x</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">y</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Now, only one object is instantiated—the one for the array—and the <code class="prettyprint">Point</code> instances are stored in-line in the array.</p>
+
+<p>Struct constructors are invoked with the <code class="prettyprint">new</code> operator, but that does not imply that memory is being allocated. Instead of dynamically allocating an object and returning a reference to it, a struct constructor simply returns the struct value itself (typically in a temporary location on the stack), and this value is then copied as necessary.</p>
+
+<p>With classes, it is possible for two variables to reference the same object and thus possible for operations on one variable to affect the object referenced by the other variable. With structs, the variables each have their own copy of the data, and it is not possible for operations on one to affect the other. For example, the output produced by the following code fragment depends on whether <code class="prettyprint">Point</code> is a class or a struct.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Point</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Point</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="m">10</span><span class="p">);</span>
+<span class="n">Point</span> <span class="n">b</span> <span class="p">=</span> <span class="n">a</span><span class="p">;</span>
+<span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="p">=</span> <span class="m">20</span><span class="p">;</span>
+<span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+</code></pre>
+<p>If <code class="prettyprint">Point</code> is a class, the output is <code class="prettyprint">20</code> because <code class="prettyprint">a</code> and <code class="prettyprint">b</code> reference the same object. If <code class="prettyprint">Point</code> is a struct, the output is <code class="prettyprint">10</code> because the assignment of <code class="prettyprint">a</code> to <code class="prettyprint">b</code> creates a copy of the value, and this copy is unaffected by the subsequent assignment to <code class="prettyprint">a.x</code>.</p>
+
+<p>The previous example highlights two of the limitations of structs. First, copying an entire struct is typically less efficient than copying an object reference, so assignment and value parameter passing can be more expensive with structs than with reference types. Second, except for <code class="prettyprint">ref</code> and <code class="prettyprint">out</code> parameters, it is not possible to create references to structs, which rules out their usage in a number of situations.</p>
+
+<h2 id="arrays">Arrays</h2>
+
+<p>An <strong><em>array</em></strong> is a data structure that contains a number of variables that are accessed through computed indices. The variables contained in an array, also called the <strong><em>elements</em></strong> of the array, are all of the same type, and this type is called the <strong><em>element type</em></strong> of the array.</p>
+
+<p>Array types are reference types, and the declaration of an array variable simply sets aside space for a reference to an array instance. Actual array instances are created dynamically at run-time using the <code class="prettyprint">new</code> operator. The <code class="prettyprint">new</code> operation specifies the <strong><em>length</em></strong> of the new array instance, which is then fixed for the lifetime of the instance. The indices of the elements of an array range from <code class="prettyprint">0</code> to <code class="prettyprint">Length - 1</code>. The <code class="prettyprint">new</code> operator automatically initializes the elements of an array to their default value, which, for example, is zero for all numeric types and <code class="prettyprint">null</code> for all reference types.</p>
+
+<p>The following example creates an array of <code class="prettyprint">int</code> elements, initializes the array, and prints out the contents of the array.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">10</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="n">i</span> <span class="p">*</span> <span class="n">i</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"a[{0}] = {1}"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>This example creates and operates on a <strong><em>single-dimensional array</em></strong>. C# also supports <strong><em>multi-dimensional arrays</em></strong>. The number of dimensions of an array type, also known as the <strong><em>rank</em></strong> of the array type, is one plus the number of commas written between the square brackets of the array type. The following example allocates a one-dimensional, a two-dimensional, and a three-dimensional array.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span><span class="p">[]</span> <span class="n">a1</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">10</span><span class="p">];</span>
+<span class="kt">int</span><span class="p">[,]</span> <span class="n">a2</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">10</span><span class="p">,</span> <span class="m">5</span><span class="p">];</span>
+<span class="kt">int</span><span class="p">[,,]</span> <span class="n">a3</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">10</span><span class="p">,</span> <span class="m">5</span><span class="p">,</span> <span class="m">2</span><span class="p">];</span>
+</code></pre>
+<p>The <code class="prettyprint">a1</code> array contains 10 elements, the <code class="prettyprint">a2</code> array contains 50 (10 × 5) elements, and the <code class="prettyprint">a3</code> array contains 100 (10 × 5 × 2) elements.</p>
+
+<p>The element type of an array can be any type, including an array type. An array with elements of an array type is sometimes called a <strong><em>jagged array</em></strong> because the lengths of the element arrays do not all have to be the same. The following example allocates an array of arrays of <code class="prettyprint">int</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span><span class="p">[][]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">3</span><span class="p">][];</span>
+<span class="n">a</span><span class="p">[</span><span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">10</span><span class="p">];</span>
+<span class="n">a</span><span class="p">[</span><span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">5</span><span class="p">];</span>
+<span class="n">a</span><span class="p">[</span><span class="m">2</span><span class="p">]</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">20</span><span class="p">];</span>
+</code></pre>
+<p>The first line creates an array with three elements, each of type <code class="prettyprint">int[]</code> and each with an initial value of <code class="prettyprint">null</code>. The subsequent lines then initialize the three elements with references to individual array instances of varying lengths.</p>
+
+<p>The <code class="prettyprint">new</code> operator permits the initial values of the array elements to be specified using an <strong><em>array initializer</em></strong>, which is a list of expressions written between the delimiters <code class="prettyprint">{</code> and <code class="prettyprint">}</code>. The following example allocates and initializes an <code class="prettyprint">int[]</code> with three elements.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[]</span> <span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">};</span>
+</code></pre>
+<p>Note that the length of the array is inferred from the number of expressions between <code class="prettyprint">{</code> and <code class="prettyprint">}</code>. Local variable and field declarations can be shortened further such that the array type does not have to be restated.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">};</span>
+</code></pre>
+<p>Both of the previous examples are equivalent to the following:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span><span class="p">[]</span> <span class="n">t</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">3</span><span class="p">];</span>
+<span class="n">t</span><span class="p">[</span><span class="m">0</span><span class="p">]</span> <span class="p">=</span> <span class="m">1</span><span class="p">;</span>
+<span class="n">t</span><span class="p">[</span><span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">2</span><span class="p">;</span>
+<span class="n">t</span><span class="p">[</span><span class="m">2</span><span class="p">]</span> <span class="p">=</span> <span class="m">3</span><span class="p">;</span>
+<span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="n">t</span><span class="p">;</span>
+</code></pre>
+<h2 id="interfaces">Interfaces</h2>
+
+<p>An <strong><em>interface</em></strong> defines a contract that can be implemented by classes and structs. An interface can contain methods, properties, events, and indexers. An interface does not provide implementations of the members it defines—it merely specifies the members that must be supplied by classes or structs that implement the interface.</p>
+
+<p>Interfaces may employ <strong><em>multiple inheritance</em></strong>. In the following example, the interface <code class="prettyprint">IComboBox</code> inherits from both <code class="prettyprint">ITextBox</code> and <code class="prettyprint">IListBox</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">interface</span> <span class="n">IControl</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">Paint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">interface</span> <span class="n">ITextBox</span><span class="p">:</span> <span class="n">IControl</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">SetText</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">interface</span> <span class="n">IListBox</span><span class="p">:</span> <span class="n">IControl</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">SetItems</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">items</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">interface</span> <span class="n">IComboBox</span><span class="p">:</span> <span class="n">ITextBox</span><span class="p">,</span> <span class="n">IListBox</span> <span class="p">{}</span>
+</code></pre>
+<p>Classes and structs can implement multiple interfaces. In the following example, the class <code class="prettyprint">EditBox</code> implements both <code class="prettyprint">IControl</code> and <code class="prettyprint">IDataBound</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">interface</span> <span class="n">IDataBound</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">Bind</span><span class="p">(</span><span class="n">Binder</span> <span class="n">b</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">EditBox</span><span class="p">:</span> <span class="n">IControl</span><span class="p">,</span> <span class="n">IDataBound</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Paint</span><span class="p">()</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Bind</span><span class="p">(</span><span class="n">Binder</span> <span class="n">b</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+</code></pre>
+<p>When a class or struct implements a particular interface, instances of that class or struct can be implicitly converted to that interface type. For example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">EditBox</span> <span class="n">editBox</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">EditBox</span><span class="p">();</span>
+<span class="n">IControl</span> <span class="n">control</span> <span class="p">=</span> <span class="n">editBox</span><span class="p">;</span>
+<span class="n">IDataBound</span> <span class="n">dataBound</span> <span class="p">=</span> <span class="n">editBox</span><span class="p">;</span>
+</code></pre>
+<p>In cases where an instance is not statically known to implement a particular interface, dynamic type casts can be used. For example, the following statements use dynamic type casts to obtain an object&rsquo;s <code class="prettyprint">IControl</code> and <code class="prettyprint">IDataBound</code> interface implementations. Because the actual type of the object is <code class="prettyprint">EditBox</code>, the casts succeed.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">object</span> <span class="n">obj</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">EditBox</span><span class="p">();</span>
+<span class="n">IControl</span> <span class="n">control</span> <span class="p">=</span> <span class="p">(</span><span class="n">IControl</span><span class="p">)</span><span class="n">obj</span><span class="p">;</span>
+<span class="n">IDataBound</span> <span class="n">dataBound</span> <span class="p">=</span> <span class="p">(</span><span class="n">IDataBound</span><span class="p">)</span><span class="n">obj</span><span class="p">;</span>
+</code></pre>
+<p>In the previous <code class="prettyprint">EditBox</code> class, the <code class="prettyprint">Paint</code> method from the <code class="prettyprint">IControl</code> interface and the <code class="prettyprint">Bind</code> method from the <code class="prettyprint">IDataBound</code> interface are implemented using <code class="prettyprint">public</code> members. C# also supports <strong><em>explicit interface member implementations</em></strong>, using which the class or struct can avoid making the members <code class="prettyprint">public</code>. An explicit interface member implementation is written using the fully qualified interface member name. For example, the <code class="prettyprint">EditBox</code> class could implement the <code class="prettyprint">IControl.Paint</code> and <code class="prettyprint">IDataBound.Bind</code> methods using explicit interface member implementations as follows.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">EditBox</span><span class="p">:</span> <span class="n">IControl</span><span class="p">,</span> <span class="n">IDataBound</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="n">IControl</span><span class="p">.</span><span class="nf">Paint</span><span class="p">()</span> <span class="p">{...}</span>
+    <span class="k">void</span> <span class="n">IDataBound</span><span class="p">.</span><span class="nf">Bind</span><span class="p">(</span><span class="n">Binder</span> <span class="n">b</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Explicit interface members can only be accessed via the interface type. For example, the implementation of <code class="prettyprint">IControl.Paint</code> provided by the previous <code class="prettyprint">EditBox</code> class can only be invoked by first converting the <code class="prettyprint">EditBox</code> reference to the <code class="prettyprint">IControl</code> interface type.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">EditBox</span> <span class="n">editBox</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">EditBox</span><span class="p">();</span>
+<span class="n">editBox</span><span class="p">.</span><span class="nf">Paint</span><span class="p">();</span>                        <span class="c1">// Error, no such method</span>
+<span class="n">IControl</span> <span class="n">control</span> <span class="p">=</span> <span class="n">editBox</span><span class="p">;</span>
+<span class="n">control</span><span class="p">.</span><span class="nf">Paint</span><span class="p">();</span>                        <span class="c1">// Ok</span>
+</code></pre>
+<h2 id="enums">Enums</h2>
+
+<p>An <strong><em>enum type</em></strong> is a distinct value type with a set of named constants. The following example declares and uses an enum type named <code class="prettyprint">Color</code> with three constant values, <code class="prettyprint">Red</code>, <code class="prettyprint">Green</code>, and <code class="prettyprint">Blue</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">enum</span> <span class="n">Color</span>
+<span class="p">{</span>
+    <span class="n">Red</span><span class="p">,</span>
+    <span class="n">Green</span><span class="p">,</span>
+    <span class="n">Blue</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">PrintColor</span><span class="p">(</span><span class="n">Color</span> <span class="n">color</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="n">Color</span><span class="p">.</span><span class="n">Red</span><span class="p">:</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Red"</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">Color</span><span class="p">.</span><span class="n">Green</span><span class="p">:</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Green"</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">Color</span><span class="p">.</span><span class="n">Blue</span><span class="p">:</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Blue"</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">default</span><span class="p">:</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Unknown color"</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Color</span> <span class="n">c</span> <span class="p">=</span> <span class="n">Color</span><span class="p">.</span><span class="n">Red</span><span class="p">;</span>
+        <span class="nf">PrintColor</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+        <span class="nf">PrintColor</span><span class="p">(</span><span class="n">Color</span><span class="p">.</span><span class="n">Blue</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Each enum type has a corresponding integral type called the <strong><em>underlying type</em></strong> of the enum type. An enum type that does not explicitly declare an underlying type has an underlying type of <code class="prettyprint">int</code>. An enum type&rsquo;s storage format and range of possible values are determined by its underlying type. The set of values that an enum type can take on is not limited by its enum members. In particular, any value of the underlying type of an enum can be cast to the enum type and is a distinct valid value of that enum type.</p>
+
+<p>The following example declares an enum type named <code class="prettyprint">Alignment</code> with an underlying type of <code class="prettyprint">sbyte</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">enum</span> <span class="n">Alignment</span><span class="p">:</span> <span class="kt">sbyte</span>
+<span class="p">{</span>
+    <span class="n">Left</span> <span class="p">=</span> <span class="p">-</span><span class="m">1</span><span class="p">,</span>
+    <span class="n">Center</span> <span class="p">=</span> <span class="m">0</span><span class="p">,</span>
+    <span class="n">Right</span> <span class="p">=</span> <span class="m">1</span>
+<span class="p">}</span>
+</code></pre>
+<p>As shown by the previous example, an enum member declaration can include a constant expression that specifies the value of the member. The constant value for each enum member must be in the range of the underlying type of the enum. When an enum member declaration does not explicitly specify a value, the member is given the value zero (if it is the first member in the enum type) or the value of the textually preceding enum member plus one.</p>
+
+<p>Enum values can be converted to integral values and vice versa using type casts. For example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">Color</span><span class="p">.</span><span class="n">Blue</span><span class="p">;</span>        <span class="c1">// int i = 2;</span>
+<span class="n">Color</span> <span class="n">c</span> <span class="p">=</span> <span class="p">(</span><span class="n">Color</span><span class="p">)</span><span class="m">2</span><span class="p">;</span>             <span class="c1">// Color c = Color.Blue;</span>
+</code></pre>
+<p>The default value of any enum type is the integral value zero converted to the enum type. In cases where variables are automatically initialized to a default value, this is the value given to variables of enum types. In order for the default value of an enum type to be easily available, the literal <code class="prettyprint">0</code> implicitly converts to any enum type. Thus, the following is permitted.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">Color</span> <span class="n">c</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
+</code></pre>
+<h2 id="delegates">Delegates</h2>
+
+<p>A <strong><em>delegate type</em></strong> represents references to methods with a particular parameter list and return type. Delegates make it possible to treat methods as entities that can be assigned to variables and passed as parameters. Delegates are similar to the concept of function pointers found in some other languages, but unlike function pointers, delegates are object-oriented and type-safe.</p>
+
+<p>The following example declares and uses a delegate type named <code class="prettyprint">Function</code>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">delegate</span> <span class="kt">double</span> <span class="nf">Function</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">Multiplier</span>
+<span class="p">{</span>
+    <span class="kt">double</span> <span class="n">factor</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">Multiplier</span><span class="p">(</span><span class="kt">double</span> <span class="n">factor</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">factor</span> <span class="p">=</span> <span class="n">factor</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">double</span> <span class="nf">Multiply</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="p">*</span> <span class="n">factor</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">double</span> <span class="nf">Square</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="p">*</span> <span class="n">x</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="kt">double</span><span class="p">[]</span> <span class="nf">Apply</span><span class="p">(</span><span class="kt">double</span><span class="p">[]</span> <span class="n">a</span><span class="p">,</span> <span class="n">Function</span> <span class="n">f</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">double</span><span class="p">[]</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">double</span><span class="p">[</span><span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="nf">f</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">double</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="p">{</span><span class="m">0.0</span><span class="p">,</span> <span class="m">0.5</span><span class="p">,</span> <span class="m">1.0</span><span class="p">};</span>
+        <span class="kt">double</span><span class="p">[]</span> <span class="n">squares</span> <span class="p">=</span> <span class="nf">Apply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Square</span><span class="p">);</span>
+        <span class="kt">double</span><span class="p">[]</span> <span class="n">sines</span> <span class="p">=</span> <span class="nf">Apply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Math</span><span class="p">.</span><span class="n">Sin</span><span class="p">);</span>
+        <span class="n">Multiplier</span> <span class="n">m</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Multiplier</span><span class="p">(</span><span class="m">2.0</span><span class="p">);</span>
+        <span class="kt">double</span><span class="p">[]</span> <span class="n">doubles</span> <span class="p">=</span>  <span class="nf">Apply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">m</span><span class="p">.</span><span class="n">Multiply</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>An instance of the <code class="prettyprint">Function</code> delegate type can reference any method that takes a <code class="prettyprint">double</code> argument and returns a <code class="prettyprint">double</code> value. The <code class="prettyprint">Apply</code> method applies a given <code class="prettyprint">Function</code> to the elements of a <code class="prettyprint">double[]</code>, returning a <code class="prettyprint">double[]</code> with the results. In the <code class="prettyprint">Main</code> method, <code class="prettyprint">Apply</code> is used to apply three different functions to a <code class="prettyprint">double[]</code>.</p>
+
+<p>A delegate can reference either a static method (such as <code class="prettyprint">Square</code> or <code class="prettyprint">Math.Sin</code> in the previous example) or an instance method (such as <code class="prettyprint">m.Multiply</code> in the previous example). A delegate that references an instance method also references a particular object, and when the instance method is invoked through the delegate, that object becomes <code class="prettyprint">this</code> in the invocation.</p>
+
+<p>Delegates can also be created using anonymous functions, which are &ldquo;inline methods&rdquo; that are created on the fly. Anonymous functions can see the local variables of the sourrounding methods. Thus, the multiplier example above can be written more easily without using a <code class="prettyprint">Multiplier</code> class:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">double</span><span class="p">[]</span> <span class="n">doubles</span> <span class="p">=</span>  <span class="nf">Apply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">*</span> <span class="m">2.0</span><span class="p">);</span>
+</code></pre>
+<p>An interesting and useful property of a delegate is that it does not know or care about the class of the method it references; all that matters is that the referenced method has the same parameters and return type as the delegate.</p>
+
+<h2 id="attributes">Attributes</h2>
+
+<p>Types, members, and other entities in a C# program support modifiers that control certain aspects of their behavior. For example, the accessibility of a method is controlled using the <code class="prettyprint">public</code>, <code class="prettyprint">protected</code>, <code class="prettyprint">internal</code>, and <code class="prettyprint">private</code> modifiers. C# generalizes this capability such that user-defined types of declarative information can be attached to program entities and retrieved at run-time. Programs specify this additional declarative information by defining and using <strong><em>attributes</em></strong>.</p>
+
+<p>The following example declares a <code class="prettyprint">HelpAttribute</code> attribute that can be placed on program entities to provide links to their associated documentation.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">HelpAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{</span>
+    <span class="kt">string</span> <span class="n">url</span><span class="p">;</span>
+    <span class="kt">string</span> <span class="n">topic</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">HelpAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">url</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">url</span> <span class="p">=</span> <span class="n">url</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Url</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">url</span><span class="p">;</span> <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Topic</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">topic</span><span class="p">;</span> <span class="p">}</span>
+        <span class="k">set</span> <span class="p">{</span> <span class="n">topic</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>All attribute classes derive from the <code class="prettyprint">System.Attribute</code> base class provided by the .NET Framework. Attributes can be applied by giving their name, along with any arguments, inside square brackets just before the associated declaration. If an attribute&rsquo;s name ends in <code class="prettyprint">Attribute</code>, that part of the name can be omitted when the attribute is referenced. For example, the <code class="prettyprint">HelpAttribute</code> attribute can be used as follows.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[Help("http://msdn.microsoft.com/.../MyClass.htm")]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Widget</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">Help</span><span class="p">(</span><span class="s">"http://msdn.microsoft.com/.../MyClass.htm"</span><span class="p">,</span> <span class="n">Topic</span> <span class="p">=</span> <span class="s">"Display"</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Display</span><span class="p">(</span><span class="kt">string</span> <span class="n">text</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre>
+<p>This example attaches a <code class="prettyprint">HelpAttribute</code> to the <code class="prettyprint">Widget</code> class and another <code class="prettyprint">HelpAttribute</code> to the <code class="prettyprint">Display</code> method in the class. The public constructors of an attribute class control the information that must be provided when the attribute is attached to a program entity. Additional information can be provided by referencing public read-write properties of the attribute class (such as the reference to the <code class="prettyprint">Topic</code> property previously).</p>
+
+<p>The following example shows how attribute information for a given program entity can be retrieved at run-time using reflection.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Reflection</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">ShowHelp</span><span class="p">(</span><span class="n">MemberInfo</span> <span class="n">member</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">HelpAttribute</span> <span class="n">a</span> <span class="p">=</span> <span class="n">Attribute</span><span class="p">.</span><span class="nf">GetCustomAttribute</span><span class="p">(</span><span class="n">member</span><span class="p">,</span>
+            <span class="k">typeof</span><span class="p">(</span><span class="n">HelpAttribute</span><span class="p">))</span> <span class="k">as</span> <span class="n">HelpAttribute</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"No help for {0}"</span><span class="p">,</span> <span class="n">member</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Help for {0}:"</span><span class="p">,</span> <span class="n">member</span><span class="p">);</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"  Url={0}, Topic={1}"</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">Url</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">Topic</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">ShowHelp</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">Widget</span><span class="p">));</span>
+        <span class="nf">ShowHelp</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">Widget</span><span class="p">).</span><span class="nf">GetMethod</span><span class="p">(</span><span class="s">"Display"</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>When a particular attribute is requested through reflection, the constructor for the attribute class is invoked with the information provided in the program source, and the resulting attribute instance is returned. If additional information was provided through properties, those properties are set to the given values before the attribute instance is returned.</p>

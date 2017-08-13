@@ -1,0 +1,581 @@
+<h1 id="namespaces">Namespaces</h1>
+
+<p>C# programs are organized using namespaces. Namespaces are used both as an &ldquo;internal&rdquo; organization system for a program, and as an &ldquo;external&rdquo; organization system—a way of presenting program elements that are exposed to other programs.</p>
+
+<p>Using directives (<a href="namespaces.md#using-directives">Using directives</a>) are provided to facilitate the use of namespaces.</p>
+
+<h2 id="compilation-units">Compilation units</h2>
+
+<p>A <em>compilation_unit</em> defines the overall structure of a source file. A compilation unit consists of zero or more <em>using_directive*s followed by zero or more *global_attributes</em> followed by zero or more *namespace_member_declaration*s.</p>
+<pre class="highlight plaintext"><code>compilation_unit
+    : extern_alias_directive* using_directive* global_attributes? namespace_member_declaration*
+    ;
+</code></pre>
+<p>A C# program consists of one or more compilation units, each contained in a separate source file. When a C# program is compiled, all of the compilation units are processed together. Thus, compilation units can depend on each other, possibly in a circular fashion.</p>
+
+<p>The <em>using_directive*s of a compilation unit affect the *global_attributes</em> and *namespace_member_declaration*s of that compilation unit, but have no effect on other compilation units.</p>
+
+<p>The <em>global_attributes</em> (<a href="attributes.md#attributes">Attributes</a>) of a compilation unit permit the specification of attributes for the target assembly and module. Assemblies and modules act as physical containers for types. An assembly may consist of several physically separate modules.</p>
+
+<p>The *namespace_member_declaration*s of each compilation unit of a program contribute members to a single declaration space called the global namespace. For example:</p>
+
+<p>File <code class="prettyprint">A.cs</code>:
+<code class="prettyprint">csharp
+class A {}
+</code></p>
+
+<p>File <code class="prettyprint">B.cs</code>:
+<code class="prettyprint">csharp
+class B {}
+</code></p>
+
+<p>The two compilation units contribute to the single global namespace, in this case declaring two classes with the fully qualified names <code class="prettyprint">A</code> and <code class="prettyprint">B</code>. Because the two compilation units contribute to the same declaration space, it would have been an error if each contained a declaration of a member with the same name.</p>
+
+<h2 id="namespace-declarations">Namespace declarations</h2>
+
+<p>A <em>namespace_declaration</em> consists of the keyword <code class="prettyprint">namespace</code>, followed by a namespace name and body, optionally followed by a semicolon.</p>
+<pre class="highlight plaintext"><code>namespace_declaration
+    : 'namespace' qualified_identifier namespace_body ';'?
+    ;
+
+qualified_identifier
+    : identifier ('.' identifier)*
+    ;
+
+namespace_body
+    : '{' extern_alias_directive* using_directive* namespace_member_declaration* '}'
+    ;
+</code></pre>
+<p>A <em>namespace_declaration</em> may occur as a top-level declaration in a <em>compilation_unit</em> or as a member declaration within another <em>namespace_declaration</em>. When a <em>namespace_declaration</em> occurs as a top-level declaration in a <em>compilation_unit</em>, the namespace becomes a member of the global namespace. When a <em>namespace_declaration</em> occurs within another <em>namespace_declaration</em>, the inner namespace becomes a member of the outer namespace. In either case, the name of a namespace must be unique within the containing namespace.</p>
+
+<p>Namespaces are implicitly <code class="prettyprint">public</code> and the declaration of a namespace cannot include any access modifiers.</p>
+
+<p>Within a <em>namespace_body</em>, the optional *using_directive*s import the names of other namespaces, types and members, allowing them to be referenced directly instead of through qualified names. The optional *namespace_member_declaration*s contribute members to the declaration space of the namespace. Note that all *using_directive*s must appear before any member declarations.</p>
+
+<p>The <em>qualified_identifier</em> of a <em>namespace_declaration</em> may be a single identifier or a sequence of identifiers separated by &ldquo;<code class="prettyprint">.</code>&rdquo; tokens. The latter form permits a program to define a nested namespace without lexically nesting several namespace declarations. For example,</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">N1.N2</span>
+<span class="p">{</span>
+    <span class="k">class</span> <span class="nc">A</span> <span class="p">{}</span>
+
+    <span class="k">class</span> <span class="nc">B</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre>
+<p>is semantically equivalent to
+&ldquo;`csharp
+namespace N1
+{
+    namespace N2
+    {
+        class A {}</p>
+
+<p>class B {}
+    }
+}
+&rdquo;`</p>
+
+<p>Namespaces are open-ended, and two namespace declarations with the same fully qualified name contribute to the same declaration space (<a href="basic-concepts.md#declarations">Declarations</a>). In the example
+&ldquo;`csharp
+namespace N1.N2
+{
+    class A {}
+}</p>
+
+<p>namespace N1.N2
+{
+    class B {}
+}
+&rdquo;<code class="prettyprint">
+the two namespace declarations above contribute to the same declaration space, in this case declaring two classes with the fully qualified names</code>N1.N2.A<code class="prettyprint">and</code>N1.N2.B`. Because the two declarations contribute to the same declaration space, it would have been an error if each contained a declaration of a member with the same name.</p>
+
+<h2 id="extern-aliases">Extern aliases</h2>
+
+<p>An <em>extern_alias_directive</em> introduces an identifier that serves as an alias for a namespace. The specification of the aliased namespace is external to the source code of the program and applies also to nested namespaces of the aliased namespace.</p>
+<pre class="highlight plaintext"><code>extern_alias_directive
+    : 'extern' 'alias' identifier ';'
+    ;
+</code></pre>
+<p>The scope of an <em>extern_alias_directive</em> extends over the <em>using_directive*s, *global_attributes</em> and *namespace_member_declaration*s of its immediately containing compilation unit or namespace body.</p>
+
+<p>Within a compilation unit or namespace body that contains an <em>extern_alias_directive</em>, the identifier introduced by the <em>extern_alias_directive</em> can be used to reference the aliased namespace. It is a compile-time error for the <em>identifier</em> to be the word <code class="prettyprint">global</code>.</p>
+
+<p>An <em>extern_alias_directive</em> makes an alias available within a particular compilation unit or namespace body, but it does not contribute any new members to the underlying declaration space. In other words, an <em>extern_alias_directive</em> is not transitive, but, rather, affects only the compilation unit or namespace body in which it occurs.</p>
+
+<p>The following program declares and uses two extern aliases, <code class="prettyprint">X</code> and <code class="prettyprint">Y</code>, each of which represent the root of a distinct namespace hierarchy:
+&ldquo;`csharp
+extern alias X;
+extern alias Y;</p>
+
+<p>class Test
+{
+    X::N.A a;
+    X::N.B b1;
+    Y::N.B b2;
+    Y::N.C c;
+}
+&rdquo;`</p>
+
+<p>The program declares the existence of the extern aliases <code class="prettyprint">X</code> and <code class="prettyprint">Y</code>, but the actual definitions of the aliases are external to the program. The identically named <code class="prettyprint">N.B</code> classes can now be referenced as <code class="prettyprint">X.N.B</code> and <code class="prettyprint">Y.N.B</code>, or, using the namespace alias qualifier, <code class="prettyprint">X::N.B</code> and <code class="prettyprint">Y::N.B</code>. An error occurs if a program declares an extern alias for which no external definition is provided.</p>
+
+<h2 id="using-directives">Using directives</h2>
+
+<p><strong><em>Using directives</em></strong> facilitate the use of namespaces and types defined in other namespaces. Using directives impact the name resolution process of *namespace_or_type_name*s (<a href="basic-concepts.md#namespace-and-type-names">Namespace and type names</a>) and *simple_name*s (<a href="expressions.md#simple-names">Simple names</a>), but unlike declarations, using directives do not contribute new members to the underlying declaration spaces of the compilation units or namespaces within which they are used.</p>
+<pre class="highlight plaintext"><code>using_directive
+    : using_alias_directive
+    | using_namespace_directive
+    | using_static_directive
+    ;
+</code></pre>
+<p>A <em>using_alias_directive</em> (<a href="namespaces.md#using-alias-directives">Using alias directives</a>) introduces an alias for a namespace or type.</p>
+
+<p>A <em>using_namespace_directive</em> (<a href="namespaces.md#using-namespace-directives">Using namespace directives</a>) imports the type members of a namespace.</p>
+
+<p>A <em>using_static_directive</em> (<a href="namespaces.md#using-static-directives">Using static directives</a>) imports the nested types and static members of a type.</p>
+
+<p>The scope of a <em>using_directive</em> extends over the <em>namespace_member_declaration*s of its immediately containing compilation unit or namespace body. The scope of a *using_directive</em> specifically does not include its peer *using_directive*s. Thus, peer *using_directive*s do not affect each other, and the order in which they are written is insignificant.</p>
+
+<h3 id="using-alias-directives">Using alias directives</h3>
+
+<p>A <em>using_alias_directive</em> introduces an identifier that serves as an alias for a namespace or type within the immediately enclosing compilation unit or namespace body.</p>
+<pre class="highlight plaintext"><code>using_alias_directive
+    : 'using' identifier '=' namespace_or_type_name ';'
+    ;
+</code></pre>
+<p>Within member declarations in a compilation unit or namespace body that contains a <em>using_alias_directive</em>, the identifier introduced by the <em>using_alias_directive</em> can be used to reference the given namespace or type. For example:
+&ldquo;`csharp
+namespace N1.N2
+{
+    class A {}
+}</p>
+
+<p>namespace N3
+{
+    using A = N1.N2.A;</p>
+
+<p>class B: A {}
+}
+&rdquo;`</p>
+
+<p>Above, within member declarations in the <code class="prettyprint">N3</code> namespace, <code class="prettyprint">A</code> is an alias for <code class="prettyprint">N1.N2.A</code>, and thus class <code class="prettyprint">N3.B</code> derives from class <code class="prettyprint">N1.N2.A</code>. The same effect can be obtained by creating an alias <code class="prettyprint">R</code> for <code class="prettyprint">N1.N2</code> and then referencing <code class="prettyprint">R.A</code>:
+&ldquo;`csharp
+namespace N3
+{
+    using R = N1.N2;</p>
+
+<p>class B: R.A {}
+}
+&rdquo;`</p>
+
+<p>The <em>identifier</em> of a <em>using_alias_directive</em> must be unique within the declaration space of the compilation unit or namespace that immediately contains the <em>using_alias_directive</em>. For example:
+&ldquo;`csharp
+namespace N3
+{
+    class A {}
+}</p>
+
+<p>namespace N3
+{
+    using A = N1.N2.A;        // Error, A already exists
+}
+&rdquo;`</p>
+
+<p>Above, <code class="prettyprint">N3</code> already contains a member <code class="prettyprint">A</code>, so it is a compile-time error for a <em>using_alias_directive</em> to use that identifier. Likewise, it is a compile-time error for two or more *using_alias_directive*s in the same compilation unit or namespace body to declare aliases by the same name.</p>
+
+<p>A <em>using_alias_directive</em> makes an alias available within a particular compilation unit or namespace body, but it does not contribute any new members to the underlying declaration space. In other words, a <em>using_alias_directive</em> is not transitive but rather affects only the compilation unit or namespace body in which it occurs. In the example
+&ldquo;`csharp
+namespace N3
+{
+    using R = N1.N2;
+}</p>
+
+<p>namespace N3
+{
+    class B: R.A {}            // Error, R unknown
+}
+<code class="prettyprint">
+the scope of the *using_alias_directive* that introduces `R` only extends to member declarations in the namespace body in which it is contained, so `R` is unknown in the second namespace declaration. However, placing the *using_alias_directive* in the containing compilation unit causes the alias to become available within both namespace declarations:
+</code>csharp
+using R = N1.N2;</p>
+
+<p>namespace N3
+{
+    class B: R.A {}
+}</p>
+
+<p>namespace N3
+{
+    class C: R.A {}
+}
+&rdquo;`</p>
+
+<p>Just like regular members, names introduced by *using_alias_directive*s are hidden by similarly named members in nested scopes. In the example
+&ldquo;`csharp
+using R = N1.N2;</p>
+
+<p>namespace N3
+{
+    class R {}</p>
+
+<p>class B: R.A {}        // Error, R has no member A
+}
+&rdquo;<code class="prettyprint">
+the reference to</code>R.A<code class="prettyprint">in the declaration of</code>B<code class="prettyprint">causes a compile-time error because</code>R<code class="prettyprint">refers to</code>N3.R<code class="prettyprint">, not</code>N1.N2`.</p>
+
+<p>The order in which <em>using_alias_directive*s are written has no significance, and resolution of the *namespace_or_type_name</em> referenced by a <em>using_alias_directive</em> is not affected by the <em>using_alias_directive</em> itself or by other <em>using_directive*s in the immediately containing compilation unit or namespace body. In other words, the *namespace_or_type_name</em> of a <em>using_alias_directive</em> is resolved as if the immediately containing compilation unit or namespace body had no <em>using_directive*s. A *using_alias_directive</em> may however be affected by *extern_alias_directive*s in the immediately containing compilation unit or namespace body. In the example
+&ldquo;`csharp
+namespace N1.N2 {}</p>
+
+<p>namespace N3
+{
+    extern alias E;</p>
+
+<p>using R1 = E.N;        // OK</p>
+
+<p>using R2 = N1;         // OK</p>
+
+<p>using R3 = N1.N2;      // OK</p>
+
+<p>using R4 = R2.N2;      // Error, R2 unknown
+}
+&rdquo;<code class="prettyprint">
+the last *using_alias_directive* results in a compile-time error because it is not affected by the first *using_alias_directive*. The first *using_alias_directive* does not result in an error since the scope of the extern alias</code>E` includes the <em>using_alias_directive</em>.</p>
+
+<p>A <em>using_alias_directive</em> can create an alias for any namespace or type, including the namespace within which it appears and any namespace or type nested within that namespace.</p>
+
+<p>Accessing a namespace or type through an alias yields exactly the same result as accessing that namespace or type through its declared name. For example, given
+&ldquo;`csharp
+namespace N1.N2
+{
+    class A {}
+}</p>
+
+<p>namespace N3
+{
+    using R1 = N1;
+    using R2 = N1.N2;</p>
+
+<p>class B
+    {
+        N1.N2.A a;            // refers to N1.N2.A
+        R1.N2.A b;            // refers to N1.N2.A
+        R2.A c;               // refers to N1.N2.A
+    }
+}
+&rdquo;<code class="prettyprint">
+the names</code>N1.N2.A<code class="prettyprint">,</code>R1.N2.A<code class="prettyprint">, and</code>R2.A<code class="prettyprint">are equivalent and all refer to the class whose fully qualified name is</code>N1.N2.A`.</p>
+
+<p>Using aliases can name a closed constructed type, but cannot name an unbound generic type declaration without supplying type arguments. For example:
+&ldquo;`csharp
+namespace N1
+{
+    class A<T>
+    {
+        class B {}
+    }
+}</p>
+
+<p>namespace N2
+{
+    using W = N1.A;          // Error, cannot name unbound generic type</p>
+
+<p>using X = N1.A.B;        // Error, cannot name unbound generic type</p>
+
+<p>using Y = N1.A<int>;     // Ok, can name closed constructed type</p>
+
+<p>using Z<T> = N1.A<T>;    // Error, using alias cannot have type parameters
+}
+&rdquo;`</p>
+
+<h3 id="using-namespace-directives">Using namespace directives</h3>
+
+<p>A <em>using_namespace_directive</em> imports the types contained in a namespace into the immediately enclosing compilation unit or namespace body, enabling the identifier of each type to be used without qualification.</p>
+<pre class="highlight plaintext"><code>using_namespace_directive
+    : 'using' namespace_name ';'
+    ;
+</code></pre>
+<p>Within member declarations in a compilation unit or namespace body that contains a <em>using_namespace_directive</em>, the types contained in the given namespace can be referenced directly. For example:
+&ldquo;`csharp
+namespace N1.N2
+{
+    class A {}
+}</p>
+
+<p>namespace N3
+{
+    using N1.N2;</p>
+
+<p>class B: A {}
+}
+&rdquo;`</p>
+
+<p>Above, within member declarations in the <code class="prettyprint">N3</code> namespace, the type members of <code class="prettyprint">N1.N2</code> are directly available, and thus class <code class="prettyprint">N3.B</code> derives from class <code class="prettyprint">N1.N2.A</code>.</p>
+
+<p>A <em>using_namespace_directive</em> imports the types contained in the given namespace, but specifically does not import nested namespaces. In the example
+&ldquo;`csharp
+namespace N1.N2
+{
+    class A {}
+}</p>
+
+<p>namespace N3
+{
+    using N1;</p>
+
+<p>class B: N2.A {}        // Error, N2 unknown
+}
+&rdquo;<code class="prettyprint">
+the *using_namespace_directive* imports the types contained in</code>N1<code class="prettyprint">, but not the namespaces nested in</code>N1<code class="prettyprint">. Thus, the reference to</code>N2.A<code class="prettyprint">in the declaration of</code>B<code class="prettyprint">results in a compile-time error because no members named</code>N2` are in scope.</p>
+
+<p>Unlike a <em>using_alias_directive</em>, a <em>using_namespace_directive</em> may import types whose identifiers are already defined within the enclosing compilation unit or namespace body. In effect, names imported by a <em>using_namespace_directive</em> are hidden by similarly named members in the enclosing compilation unit or namespace body. For example:
+&ldquo;`csharp
+namespace N1.N2
+{
+    class A {}</p>
+
+<p>class B {}
+}</p>
+
+<p>namespace N3
+{
+    using N1.N2;</p>
+
+<p>class A {}
+}
+&rdquo;`</p>
+
+<p>Here, within member declarations in the <code class="prettyprint">N3</code> namespace, <code class="prettyprint">A</code> refers to <code class="prettyprint">N3.A</code> rather than <code class="prettyprint">N1.N2.A</code>.</p>
+
+<p>When more than one namespace or type imported by <em>using_namespace_directive*s or *using_static_directive*s in the same compilation unit or namespace body contain types by the same name, references to that name as a *type_name</em> are considered ambiguous. In the example
+&ldquo;`csharp
+namespace N1
+{
+    class A {}
+}</p>
+
+<p>namespace N2
+{
+    class A {}
+}</p>
+
+<p>namespace N3
+{
+    using N1;</p>
+
+<p>using N2;</p>
+
+<p>class B: A {}                // Error, A is ambiguous
+}
+<code class="prettyprint">
+both `N1` and `N2` contain a member `A`, and because `N3` imports both, referencing `A` in `N3` is a compile-time error. In this situation, the conflict can be resolved either through qualification of references to `A`, or by introducing a *using_alias_directive* that picks a particular `A`. For example:
+</code>csharp
+namespace N3
+{
+    using N1;</p>
+
+<p>using N2;</p>
+
+<p>using A = N1.A;</p>
+
+<p>class B: A {}                // A means N1.A
+}
+&rdquo;`</p>
+
+<p>Furthermore, when more than one namespace or type imported by <em>using_namespace_directive*s or *using_static_directive*s in the same compilation unit or namespace body contain types or members by the same name, references to that name as a *simple_name</em> are considered ambiguous. In the example
+&ldquo;`csharp
+namespace N1
+{
+    class A {}
+}</p>
+
+<p>class C
+{
+    public static int A
+}</p>
+
+<p>namespace N2
+{
+    using N1;
+    using static C;</p>
+
+<p>class B
+    {
+        void M() 
+        { 
+            A a = new A();   // Ok, A is unambiguous as a type-name
+            A.Equals(2);     // Error, A is ambiguous as a simple-name
+    }
+}
+&rdquo;<code class="prettyprint">
+</code>N1<code class="prettyprint">contains a type member</code>A<code class="prettyprint">, and</code>C<code class="prettyprint">contains a static method</code>A<code class="prettyprint">, and because</code>N2<code class="prettyprint">imports both, referencing</code>A` as a <em>simple_name</em> is ambiguous and a compile-time error. </p>
+
+<p>Like a <em>using_alias_directive</em>, a <em>using_namespace_directive</em> does not contribute any new members to the underlying declaration space of the compilation unit or namespace, but rather affects only the compilation unit or namespace body in which it appears.</p>
+
+<p>The <em>namespace_name</em> referenced by a <em>using_namespace_directive</em> is resolved in the same way as the <em>namespace_or_type_name</em> referenced by a <em>using_alias_directive</em>. Thus, *using_namespace_directive*s in the same compilation unit or namespace body do not affect each other and can be written in any order.</p>
+
+<h3 id="using-static-directives">Using static directives</h3>
+
+<p>A <em>using_static_directive</em> imports the nested types and static members contained directly in a type declaration into the immediately enclosing compilation unit or namespace body, enabling the identifier of each member and type to be used without qualification.</p>
+<pre class="highlight plaintext"><code>using_static_directive
+    : 'using' 'static' type_name ';'
+    ;
+</code></pre>
+<p>Within member declarations in a compilation unit or namespace body that contains a <em>using_static_directive</em>, the accessible nested types and static members (except extension methods) contained directly in the declaration of the given type can be referenced directly. For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">N1</span>
+<span class="p">{</span>
+    <span class="k">class</span> <span class="nc">A</span> 
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="k">class</span> <span class="nc">B</span><span class="p">{}</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="n">B</span> <span class="nf">M</span><span class="p">(){</span> <span class="k">return</span> <span class="k">new</span> <span class="nf">B</span><span class="p">();</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">namespace</span> <span class="nn">N2</span>
+<span class="p">{</span>
+    <span class="k">using</span> <span class="nn">static</span> <span class="n">N1</span><span class="p">.</span><span class="n">A</span><span class="p">;</span>
+    <span class="k">class</span> <span class="nc">C</span>
+    <span class="p">{</span>
+        <span class="k">void</span> <span class="nf">N</span><span class="p">()</span> <span class="p">{</span> <span class="n">B</span> <span class="n">b</span> <span class="p">=</span> <span class="nf">M</span><span class="p">();</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Above, within member declarations in the <code class="prettyprint">N2</code> namespace, the static members and nested types of <code class="prettyprint">N1.A</code> are directly available, and thus the method <code class="prettyprint">N</code> is able to reference both the <code class="prettyprint">B</code> and <code class="prettyprint">M</code> members of <code class="prettyprint">N1.A</code>.</p>
+
+<p>A <em>using_static_directive</em> specifically does not import extension methods directly as static methods, but makes them available for extension method invocation (<a href="expressions.md#extension-method-invocations">Extension method invocations</a>). In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">N1</span> 
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">class</span> <span class="nc">A</span> 
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M</span><span class="p">(</span><span class="k">this</span> <span class="kt">string</span> <span class="n">s</span><span class="p">){}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">namespace</span> <span class="nn">N2</span>
+<span class="p">{</span>
+    <span class="k">using</span> <span class="nn">static</span> <span class="n">N1</span><span class="p">.</span><span class="n">A</span><span class="p">;</span>
+
+    <span class="k">class</span> <span class="nc">B</span>
+    <span class="p">{</span>
+        <span class="k">void</span> <span class="nf">N</span><span class="p">()</span> 
+        <span class="p">{</span>
+            <span class="nf">M</span><span class="p">(</span><span class="s">"A"</span><span class="p">);</span>      <span class="c1">// Error, M unknown</span>
+            <span class="s">"B"</span><span class="p">.</span><span class="nf">M</span><span class="p">();</span>     <span class="c1">// Ok, M known as extension method</span>
+            <span class="n">N1</span><span class="p">.</span><span class="n">A</span><span class="p">.</span><span class="nf">M</span><span class="p">(</span><span class="s">"C"</span><span class="p">);</span> <span class="c1">// Ok, fully qualified</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>the <em>using_static_directive</em> imports the extension method <code class="prettyprint">M</code> contained in <code class="prettyprint">N1.A</code>, but only as an extension method. Thus, the first reference to <code class="prettyprint">M</code> in the body of <code class="prettyprint">B.N</code> results in a compile-time error because no members named <code class="prettyprint">M</code> are in scope.</p>
+
+<p>A <em>using_static_directive</em> only imports members and types declared directly in the given type, not members and types declared in base classes.</p>
+
+<p>TODO: Example</p>
+
+<p>Ambiguities between multiple <em>using_namespace_directives</em> and <em>using_static_directives</em> are discussed in <a href="namespaces.md#using-namespace-directives">Using namespace directives</a>.</p>
+
+<h2 id="namespace-members">Namespace members</h2>
+
+<p>A <em>namespace_member_declaration</em> is either a <em>namespace_declaration</em> (<a href="namespaces.md#namespace-declarations">Namespace declarations</a>) or a <em>type_declaration</em> (<a href="namespaces.md#type-declarations">Type declarations</a>).</p>
+<pre class="highlight plaintext"><code>namespace_member_declaration
+    : namespace_declaration
+    | type_declaration
+    ;
+</code></pre>
+<p>A compilation unit or a namespace body can contain *namespace_member_declaration*s, and such declarations contribute new members to the underlying declaration space of the containing compilation unit or namespace body.</p>
+
+<h2 id="type-declarations">Type declarations</h2>
+
+<p>A <em>type_declaration</em> is a <em>class_declaration</em> (<a href="classes.md#class-declarations">Class declarations</a>), a <em>struct_declaration</em> (<a href="structs.md#struct-declarations">Struct declarations</a>), an <em>interface_declaration</em> (<a href="interfaces.md#interface-declarations">Interface declarations</a>), an <em>enum_declaration</em> (<a href="enums.md#enum-declarations">Enum declarations</a>), or a <em>delegate_declaration</em> (<a href="delegates.md#delegate-declarations">Delegate declarations</a>).</p>
+<pre class="highlight plaintext"><code>type_declaration
+    : class_declaration
+    | struct_declaration
+    | interface_declaration
+    | enum_declaration
+    | delegate_declaration
+    ;
+</code></pre>
+<p>A <em>type_declaration</em> can occur as a top-level declaration in a compilation unit or as a member declaration within a namespace, class, or struct.</p>
+
+<p>When a type declaration for a type <code class="prettyprint">T</code> occurs as a top-level declaration in a compilation unit, the fully qualified name of the newly declared type is simply <code class="prettyprint">T</code>. When a type declaration for a type <code class="prettyprint">T</code> occurs within a namespace, class, or struct, the fully qualified name of the newly declared type is <code class="prettyprint">N.T</code>, where <code class="prettyprint">N</code> is the fully qualified name of the containing namespace, class, or struct.</p>
+
+<p>A type declared within a class or struct is called a nested type (<a href="classes.md#nested-types">Nested types</a>).</p>
+
+<p>The permitted access modifiers and the default access for a type declaration depend on the context in which the declaration takes place (<a href="basic-concepts.md#declared-accessibility">Declared accessibility</a>):</p>
+
+<ul>
+<li> Types declared in compilation units or namespaces can have <code class="prettyprint">public</code> or <code class="prettyprint">internal</code> access. The default is <code class="prettyprint">internal</code> access.</li>
+<li> Types declared in classes can have <code class="prettyprint">public</code>, <code class="prettyprint">protected internal</code>, <code class="prettyprint">protected</code>, <code class="prettyprint">internal</code>, or <code class="prettyprint">private</code> access. The default is <code class="prettyprint">private</code> access.</li>
+<li> Types declared in structs can have <code class="prettyprint">public</code>, <code class="prettyprint">internal</code>, or <code class="prettyprint">private</code> access. The default is <code class="prettyprint">private</code> access.</li>
+</ul>
+
+<h2 id="namespace-alias-qualifiers">Namespace alias qualifiers</h2>
+
+<p>The <strong><em>namespace alias qualifier</em></strong> <code class="prettyprint">::</code> makes it possible to guarantee that type name lookups are unaffected by the introduction of new types and members. The namespace alias qualifier always appears between two identifiers referred to as the left-hand and right-hand identifiers. Unlike the regular <code class="prettyprint">.</code> qualifier, the left-hand identifier of the <code class="prettyprint">::</code> qualifier is looked up only as an extern or using alias.</p>
+
+<p>A <em>qualified_alias_member</em> is defined as follows:</p>
+<pre class="highlight plaintext"><code>qualified_alias_member
+    : identifier '::' identifier type_argument_list?
+    ;
+</code></pre>
+<p>A <em>qualified_alias_member</em> can be used as a <em>namespace_or_type_name</em> (<a href="basic-concepts.md#namespace-and-type-names">Namespace and type names</a>) or as the left operand in a <em>member_access</em> (<a href="expressions.md#member-access">Member access</a>).</p>
+
+<p>A <em>qualified_alias_member</em> has one of two forms:</p>
+
+<ul>
+<li> <code class="prettyprint">N::I&lt;A1, ..., Ak&gt;</code>, where <code class="prettyprint">N</code> and <code class="prettyprint">I</code> represent identifiers, and <code class="prettyprint">&lt;A1, ..., Ak&gt;</code> is a type argument list. (<code class="prettyprint">K</code> is always at least one.)</li>
+<li> <code class="prettyprint">N::I</code>, where <code class="prettyprint">N</code> and <code class="prettyprint">I</code> represent identifiers. (In this case, <code class="prettyprint">K</code> is considered to be zero.)</li>
+</ul>
+
+<p>Using this notation, the meaning of a <em>qualified_alias_member</em> is determined as follows:</p>
+
+<ul>
+<li><p>If <code class="prettyprint">N</code> is the identifier <code class="prettyprint">global</code>, then the global namespace is searched for <code class="prettyprint">I</code>:</p>
+
+<ul>
+<li>If the global namespace contains a namespace named <code class="prettyprint">I</code> and <code class="prettyprint">K</code> is zero, then the <em>qualified_alias_member</em> refers to that namespace.</li>
+<li>Otherwise, if the global namespace contains a non-generic type named <code class="prettyprint">I</code> and <code class="prettyprint">K</code> is zero, then the <em>qualified_alias_member</em> refers to that type.</li>
+<li>Otherwise, if the global namespace contains a type named <code class="prettyprint">I</code> that has <code class="prettyprint">K</code> type parameters, then the <em>qualified_alias_member</em> refers to that type constructed with the given type arguments.</li>
+<li>Otherwise, the <em>qualified_alias_member</em> is undefined and a compile-time error occurs.</li>
+</ul></li>
+<li><p>Otherwise, starting with the namespace declaration (<a href="namespaces.md#namespace-declarations">Namespace declarations</a>) immediately containing the <em>qualified_alias_member</em> (if any), continuing with each enclosing namespace declaration (if any), and ending with the compilation unit containing the <em>qualified_alias_member</em>, the following steps are evaluated until an entity is located:</p>
+
+<ul>
+<li>If the namespace declaration or compilation unit contains a <em>using_alias_directive</em> that associates <code class="prettyprint">N</code> with a type, then the <em>qualified_alias_member</em> is undefined and a compile-time error occurs.</li>
+<li>Otherwise, if the namespace declaration or compilation unit contains an <em>extern_alias_directive</em> or <em>using_alias_directive</em> that associates <code class="prettyprint">N</code> with a namespace, then:
+
+<ul>
+<li>If the namespace associated with <code class="prettyprint">N</code> contains a namespace named <code class="prettyprint">I</code> and <code class="prettyprint">K</code> is zero, then the <em>qualified_alias_member</em> refers to that namespace.</li>
+<li>Otherwise, if the namespace associated with <code class="prettyprint">N</code> contains a non-generic type named <code class="prettyprint">I</code> and <code class="prettyprint">K</code> is zero, then the <em>qualified_alias_member</em> refers to that type.</li>
+<li>Otherwise, if the namespace associated with <code class="prettyprint">N</code> contains a type named <code class="prettyprint">I</code> that has <code class="prettyprint">K</code> type parameters, then the <em>qualified_alias_member</em> refers to that type constructed with the given type arguments.</li>
+<li>Otherwise, the <em>qualified_alias_member</em> is undefined and a compile-time error occurs.</li>
+</ul></li>
+</ul></li>
+<li><p>Otherwise, the <em>qualified_alias_member</em> is undefined and a compile-time error occurs.</p></li>
+</ul>
+
+<p>Note that using the namespace alias qualifier with an alias that references a type causes a compile-time error. Also note that if the identifier <code class="prettyprint">N</code> is <code class="prettyprint">global</code>, then lookup is performed in the global namespace, even if there is a using alias associating <code class="prettyprint">global</code> with a type or namespace.</p>
+
+<h3 id="uniqueness-of-aliases">Uniqueness of aliases</h3>
+
+<p>Each compilation unit and namespace body has a separate declaration space for extern aliases and using aliases. Thus, while the name of an extern alias or using alias must be unique within the set of extern aliases and using aliases declared in the immediately containing compilation unit or namespace body, an alias is permitted to have the same name as a type or namespace as long as it is used only with the <code class="prettyprint">::</code> qualifier.</p>
+
+<p>In the example
+&ldquo;`csharp
+namespace N
+{
+    public class A {}</p>
+
+<p>public class B {}
+}</p>
+
+<p>namespace N
+{
+    using A = System.IO;</p>
+
+<p>class X
+    {
+        A.Stream s1;            // Error, A is ambiguous</p>
+
+<p>A::Stream s2;           // Ok
+    }
+}
+&rdquo;<code class="prettyprint">
+the name</code>A<code class="prettyprint">has two possible meanings in the second namespace body because both the class</code>A<code class="prettyprint">and the using alias</code>A<code class="prettyprint">are in scope. For this reason, use of</code>A<code class="prettyprint">in the qualified name</code>A.Stream<code class="prettyprint">is ambiguous and causes a compile-time error to occur. However, use of</code>A<code class="prettyprint">with the</code>::<code class="prettyprint">qualifier is not an error because</code>A` is looked up only as a namespace alias.</p>

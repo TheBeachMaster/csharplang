@@ -1,0 +1,989 @@
+<h1 id="interfaces">Interfaces</h1>
+
+<p>An interface defines a contract. A class or struct that implements an interface must adhere to its contract. An interface may inherit from multiple base interfaces, and a class or struct may implement multiple interfaces.</p>
+
+<p>Interfaces can contain methods, properties, events, and indexers. The interface itself does not provide implementations for the members that it defines. The interface merely specifies the members that must be supplied by classes or structs that implement the interface.</p>
+
+<h2 id="interface-declarations">Interface declarations</h2>
+
+<p>An <em>interface_declaration</em> is a <em>type_declaration</em> (<a href="namespaces.md#type-declarations">Type declarations</a>) that declares a new interface type.</p>
+<pre class="highlight plaintext"><code>interface_declaration
+    : attributes? interface_modifier* 'partial'? 'interface'
+      identifier variant_type_parameter_list? interface_base?
+      type_parameter_constraints_clause* interface_body ';'?
+    ;
+</code></pre>
+<p>An <em>interface_declaration</em> consists of an optional set of <em>attributes</em> (<a href="attributes.md#attributes">Attributes</a>), followed by an optional set of <em>interface_modifier*s (<a href="interfaces.md#interface-modifiers">Interface modifiers</a>), followed by an optional <code class="prettyprint">partial</code> modifier, followed by the keyword <code class="prettyprint">interface</code> and an *identifier</em> that names the interface, followed by an optional <em>variant_type_parameter_list</em> specification (<a href="interfaces.md#variant-type-parameter-lists">Variant type parameter lists</a>), followed by an optional <em>interface_base</em> specification (<a href="interfaces.md#base-interfaces">Base interfaces</a>), followed by an optional <em>type_parameter_constraints_clause*s specification (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>), followed by an *interface_body</em> (<a href="interfaces.md#interface-body">Interface body</a>), optionally followed by a semicolon.</p>
+
+<h3 id="interface-modifiers">Interface modifiers</h3>
+
+<p>An <em>interface_declaration</em> may optionally include a sequence of interface modifiers:</p>
+<pre class="highlight plaintext"><code>interface_modifier
+    : 'new'
+    | 'public'
+    | 'protected'
+    | 'internal'
+    | 'private'
+    | interface_modifier_unsafe
+    ;
+</code></pre>
+<p>It is a compile-time error for the same modifier to appear multiple times in an interface declaration.</p>
+
+<p>The <code class="prettyprint">new</code> modifier is only permitted on interfaces defined within a class. It specifies that the interface hides an inherited member by the same name, as described in <a href="classes.md#the-new-modifier">The new modifier</a>.</p>
+
+<p>The <code class="prettyprint">public</code>, <code class="prettyprint">protected</code>, <code class="prettyprint">internal</code>, and <code class="prettyprint">private</code> modifiers control the accessibility of the interface. Depending on the context in which the interface declaration occurs, only some of these modifiers may be permitted (<a href="basic-concepts.md#declared-accessibility">Declared accessibility</a>).</p>
+
+<h3 id="partial-modifier">Partial modifier</h3>
+
+<p>The <code class="prettyprint">partial</code> modifier indicates that this <em>interface_declaration</em> is a partial type declaration. Multiple partial interface declarations with the same name within an enclosing namespace or type declaration combine to form one interface declaration, following the rules specified in <a href="classes.md#partial-types">Partial types</a>.</p>
+
+<h3 id="variant-type-parameter-lists">Variant type parameter lists</h3>
+
+<p>Variant type parameter lists can only occur on interface and delegate types. The difference from ordinary <em>type_parameter_list*s is the optional *variance_annotation</em> on each type parameter.</p>
+<pre class="highlight plaintext"><code>variant_type_parameter_list
+    : '&lt;' variant_type_parameters '&gt;'
+    ;
+
+variant_type_parameters
+    : attributes? variance_annotation? type_parameter
+    | variant_type_parameters ',' attributes? variance_annotation? type_parameter
+    ;
+
+variance_annotation
+    : 'in'
+    | 'out'
+    ;
+</code></pre>
+<p>If the variance annotation is <code class="prettyprint">out</code>, the type parameter is said to be <strong><em>covariant</em></strong>. If the variance annotation is <code class="prettyprint">in</code>, the type parameter is said to be <strong><em>contravariant</em></strong>. If there is no variance annotation, the type parameter is said to be <strong><em>invariant</em></strong>.</p>
+
+<p>In the example
+<code class="prettyprint">csharp
+interface C&lt;out X, in Y, Z&gt; 
+{
+  X M(Y y);
+  Z P { get; set; }
+}
+</code>
+<code class="prettyprint">X</code> is covariant, <code class="prettyprint">Y</code> is contravariant and <code class="prettyprint">Z</code> is invariant.</p>
+
+<h4 id="variance-safety">Variance safety</h4>
+
+<p>The occurrence of variance annotations in the type parameter list of a type restricts the places where types can occur within the type declaration.</p>
+
+<p>A type <code class="prettyprint">T</code> is <strong><em>output-unsafe</em></strong> if one of the following holds:</p>
+
+<ul>
+<li> <code class="prettyprint">T</code> is a contravariant type parameter</li>
+<li> <code class="prettyprint">T</code> is an array type with an output-unsafe element type</li>
+<li> <code class="prettyprint">T</code> is an interface or delegate type <code class="prettyprint">S&lt;A1,...,Ak&gt;</code> constructed from a generic type <code class="prettyprint">S&lt;X1,...,Xk&gt;</code> where for at least one <code class="prettyprint">Ai</code> one of the following holds:
+
+<ul>
+<li><code class="prettyprint">Xi</code> is covariant or invariant and <code class="prettyprint">Ai</code> is output-unsafe.</li>
+<li><code class="prettyprint">Xi</code> is contravariant or invariant and <code class="prettyprint">Ai</code> is input-safe.</li>
+</ul></li>
+</ul>
+
+<p>A type <code class="prettyprint">T</code> is <strong><em>input-unsafe</em></strong> if one of the following holds:</p>
+
+<ul>
+<li> <code class="prettyprint">T</code> is a covariant type parameter</li>
+<li> <code class="prettyprint">T</code> is an array type with an input-unsafe element type</li>
+<li> <code class="prettyprint">T</code> is an interface or delegate type <code class="prettyprint">S&lt;A1,...,Ak&gt;</code> constructed from a generic type <code class="prettyprint">S&lt;X1,...,Xk&gt;</code> where for at least one <code class="prettyprint">Ai</code> one of the following holds:
+
+<ul>
+<li><code class="prettyprint">Xi</code> is covariant or invariant and <code class="prettyprint">Ai</code> is input-unsafe.</li>
+<li><code class="prettyprint">Xi</code> is contravariant or invariant and <code class="prettyprint">Ai</code> is output-unsafe.</li>
+</ul></li>
+</ul>
+
+<p>Intuitively, an output-unsafe type is prohibited in an output position, and an input-unsafe type is prohibited in an input position.</p>
+
+<p>A type is <strong><em>output-safe</em></strong> if it is not output-unsafe, and <strong><em>input-safe</em></strong> if it is not input-unsafe.</p>
+
+<h4 id="variance-conversion">Variance conversion</h4>
+
+<p>The purpose of variance annotations is to provide for more lenient (but still type safe) conversions to interface and delegate types. To this end the definitions of implicit (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) and explicit conversions (<a href="conversions.md#explicit-conversions">Explicit conversions</a>) make use of the notion of variance-convertibility, which is defined as follows:</p>
+
+<p>A type <code class="prettyprint">T&lt;A1,...,An&gt;</code> is variance-convertible to a type <code class="prettyprint">T&lt;B1,...,Bn&gt;</code> if <code class="prettyprint">T</code> is either an interface or a delegate type declared with the variant type parameters <code class="prettyprint">T&lt;X1,...,Xn&gt;</code>, and for each variant type parameter <code class="prettyprint">Xi</code> one of the following holds:</p>
+
+<ul>
+<li> <code class="prettyprint">Xi</code> is covariant and an implicit reference or identity conversion exists from <code class="prettyprint">Ai</code> to <code class="prettyprint">Bi</code></li>
+<li> <code class="prettyprint">Xi</code> is contravariant and an implicit reference or identity conversion exists from <code class="prettyprint">Bi</code> to <code class="prettyprint">Ai</code></li>
+<li> <code class="prettyprint">Xi</code> is invariant and an identity conversion exists from <code class="prettyprint">Ai</code> to <code class="prettyprint">Bi</code></li>
+</ul>
+
+<h3 id="base-interfaces">Base interfaces</h3>
+
+<p>An interface can inherit from zero or more interface types, which are called the <strong><em>explicit base interfaces</em></strong> of the interface. When an interface has one or more explicit base interfaces, then in the declaration of that interface, the interface identifier is followed by a colon and a comma separated list of base interface types.</p>
+<pre class="highlight plaintext"><code>interface_base
+    : ':' interface_type_list
+    ;
+</code></pre>
+<p>For a constructed interface type, the explicit base interfaces are formed by taking the explicit base interface declarations on the generic type declaration, and substituting, for each <em>type_parameter</em> in the base interface declaration, the corresponding <em>type_argument</em> of the constructed type.</p>
+
+<p>The explicit base interfaces of an interface must be at least as accessible as the interface itself (<a href="basic-concepts.md#accessibility-constraints">Accessibility constraints</a>). For example, it is a compile-time error to specify a <code class="prettyprint">private</code> or <code class="prettyprint">internal</code> interface in the <em>interface_base</em> of a <code class="prettyprint">public</code> interface.</p>
+
+<p>It is a compile-time error for an interface to directly or indirectly inherit from itself.</p>
+
+<p>The <strong><em>base interfaces</em></strong> of an interface are the explicit base interfaces and their base interfaces. In other words, the set of base interfaces is the complete transitive closure of the explicit base interfaces, their explicit base interfaces, and so on. An interface inherits all members of its base interfaces. In the example
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>interface ITextBox: IControl
+{
+    void SetText(string text);
+}</p>
+
+<p>interface IListBox: IControl
+{
+    void SetItems(string[] items);
+}</p>
+
+<p>interface IComboBox: ITextBox, IListBox {}
+&rdquo;<code class="prettyprint">
+the base interfaces of</code>IComboBox<code class="prettyprint">are</code>IControl<code class="prettyprint">,</code>ITextBox<code class="prettyprint">, and</code>IListBox`.</p>
+
+<p>In other words, the <code class="prettyprint">IComboBox</code> interface above inherits members <code class="prettyprint">SetText</code> and <code class="prettyprint">SetItems</code> as well as <code class="prettyprint">Paint</code>.</p>
+
+<p>Every base interface of an interface must be output-safe (<a href="interfaces.md#variance-safety">Variance safety</a>). A class or struct that implements an interface also implicitly implements all of the interface&rsquo;s base interfaces.</p>
+
+<h3 id="interface-body">Interface body</h3>
+
+<p>The <em>interface_body</em> of an interface defines the members of the interface.</p>
+<pre class="highlight plaintext"><code>interface_body
+    : '{' interface_member_declaration* '}'
+    ;
+</code></pre>
+<h2 id="interface-members">Interface members</h2>
+
+<p>The members of an interface are the members inherited from the base interfaces and the members declared by the interface itself.</p>
+<pre class="highlight plaintext"><code>interface_member_declaration
+    : interface_method_declaration
+    | interface_property_declaration
+    | interface_event_declaration
+    | interface_indexer_declaration
+    ;
+</code></pre>
+<p>An interface declaration may declare zero or more members. The members of an interface must be methods, properties, events, or indexers. An interface cannot contain constants, fields, operators, instance constructors, destructors, or types, nor can an interface contain static members of any kind.</p>
+
+<p>All interface members implicitly have public access. It is a compile-time error for interface member declarations to include any modifiers. In particular, interfaces members cannot be declared with the modifiers <code class="prettyprint">abstract</code>, <code class="prettyprint">public</code>, <code class="prettyprint">protected</code>, <code class="prettyprint">internal</code>, <code class="prettyprint">private</code>, <code class="prettyprint">virtual</code>, <code class="prettyprint">override</code>, or <code class="prettyprint">static</code>.</p>
+
+<p>The example
+&ldquo;`csharp
+public delegate void StringListEvent(IStringList sender);</p>
+
+<p>public interface IStringList
+{
+    void Add(string s);
+    int Count { get; }
+    event StringListEvent Changed;
+    string this[int index] { get; set; }
+}
+&rdquo;`
+declares an interface that contains one each of the possible kinds of members: A method, a property, an event, and an indexer.</p>
+
+<p>An <em>interface_declaration</em> creates a new declaration space (<a href="basic-concepts.md#declarations">Declarations</a>), and the <em>interface_member_declaration*s immediately contained by the *interface_declaration</em> introduce new members into this declaration space. The following rules apply to *interface_member_declaration*s:</p>
+
+<ul>
+<li> The name of a method must differ from the names of all properties and events declared in the same interface. In addition, the signature (<a href="basic-concepts.md#signatures-and-overloading">Signatures and overloading</a>) of a method must differ from the signatures of all other methods declared in the same interface, and two methods declared in the same interface may not have signatures that differ solely by <code class="prettyprint">ref</code> and <code class="prettyprint">out</code>.</li>
+<li> The name of a property or event must differ from the names of all other members declared in the same interface.</li>
+<li> The signature of an indexer must differ from the signatures of all other indexers declared in the same interface.</li>
+</ul>
+
+<p>The inherited members of an interface are specifically not part of the declaration space of the interface. Thus, an interface is allowed to declare a member with the same name or signature as an inherited member. When this occurs, the derived interface member is said to hide the base interface member. Hiding an inherited member is not considered an error, but it does cause the compiler to issue a warning. To suppress the warning, the declaration of the derived interface member must include a <code class="prettyprint">new</code> modifier to indicate that the derived member is intended to hide the base member. This topic is discussed further in <a href="basic-concepts.md#hiding-through-inheritance">Hiding through inheritance</a>.</p>
+
+<p>If a <code class="prettyprint">new</code> modifier is included in a declaration that doesn&rsquo;t hide an inherited member, a warning is issued to that effect. This warning is suppressed by removing the <code class="prettyprint">new</code> modifier.</p>
+
+<p>Note that the members in class <code class="prettyprint">object</code> are not, strictly speaking, members of any interface (<a href="interfaces.md#interface-members">Interface members</a>). However, the members in class <code class="prettyprint">object</code> are available via member lookup in any interface type (<a href="expressions.md#member-lookup">Member lookup</a>).</p>
+
+<h3 id="interface-methods">Interface methods</h3>
+
+<p>Interface methods are declared using *interface_method_declaration*s:</p>
+<pre class="highlight plaintext"><code>interface_method_declaration
+    : attributes? 'new'? return_type identifier type_parameter_list
+      '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
+    ;
+</code></pre>
+<p>The <em>attributes</em>, <em>return_type</em>, <em>identifier</em>, and <em>formal_parameter_list</em> of an interface method declaration have the same meaning as those of a method declaration in a class (<a href="classes.md#methods">Methods</a>). An interface method declaration is not permitted to specify a method body, and the declaration therefore always ends with a semicolon.</p>
+
+<p>Each formal parameter type of an interface method must be input-safe (<a href="interfaces.md#variance-safety">Variance safety</a>), and the return type must be either <code class="prettyprint">void</code> or output-safe. Furthermore, each class type constraint, interface type constraint and type parameter constraint on any type parameter of the method must be input-safe.</p>
+
+<p>These rules ensure that any covariant or contravariant usage of the interface remains typesafe. For example,
+<code class="prettyprint">csharp
+interface I&lt;out T&gt; { void M&lt;U&gt;() where U : T; }
+</code>
+is illegal because the usage of <code class="prettyprint">T</code> as a type parameter constraint on <code class="prettyprint">U</code> is not input-safe.</p>
+
+<p>Were this restriction not in place it would be possible to violate type safety in the following manner:
+<code class="prettyprint">csharp
+class B {}
+class D : B{}
+class E : B {}
+class C : I&lt;D&gt; { public void M&lt;U&gt;() {...} }
+...
+I&lt;B&gt; b = new C();
+b.M&lt;E&gt;();
+</code>
+This is actually a call to <code class="prettyprint">C.M&lt;E&gt;</code>. But that call requires that <code class="prettyprint">E</code> derive from <code class="prettyprint">D</code>, so type safety would be violated here.</p>
+
+<h3 id="interface-properties">Interface properties</h3>
+
+<p>Interface properties are declared using *interface_property_declaration*s:</p>
+<pre class="highlight plaintext"><code>interface_property_declaration
+    : attributes? 'new'? type identifier '{' interface_accessors '}'
+    ;
+
+interface_accessors
+    : attributes? 'get' ';'
+    | attributes? 'set' ';'
+    | attributes? 'get' ';' attributes? 'set' ';'
+    | attributes? 'set' ';' attributes? 'get' ';'
+    ;
+</code></pre>
+<p>The <em>attributes</em>, <em>type</em>, and <em>identifier</em> of an interface property declaration have the same meaning as those of a property declaration in a class (<a href="classes.md#properties">Properties</a>).</p>
+
+<p>The accessors of an interface property declaration correspond to the accessors of a class property declaration (<a href="classes.md#accessors">Accessors</a>), except that the accessor body must always be a semicolon. Thus, the accessors simply indicate whether the property is read-write, read-only, or write-only.</p>
+
+<p>The type of an interface property must be output-safe if there is a get accessor, and must be input-safe if there is a set accessor.</p>
+
+<h3 id="interface-events">Interface events</h3>
+
+<p>Interface events are declared using *interface_event_declaration*s:</p>
+<pre class="highlight plaintext"><code>interface_event_declaration
+    : attributes? 'new'? 'event' type identifier ';'
+    ;
+</code></pre>
+<p>The <em>attributes</em>, <em>type</em>, and <em>identifier</em> of an interface event declaration have the same meaning as those of an event declaration in a class (<a href="classes.md#events">Events</a>).</p>
+
+<p>The type of an interface event must be input-safe.</p>
+
+<h3 id="interface-indexers">Interface indexers</h3>
+
+<p>Interface indexers are declared using *interface_indexer_declaration*s:</p>
+<pre class="highlight plaintext"><code>interface_indexer_declaration
+    : attributes? 'new'? type 'this' '[' formal_parameter_list ']' '{' interface_accessors '}'
+    ;
+</code></pre>
+<p>The <em>attributes</em>, <em>type</em>, and <em>formal_parameter_list</em> of an interface indexer declaration have the same meaning as those of an indexer declaration in a class (<a href="classes.md#indexers">Indexers</a>).</p>
+
+<p>The accessors of an interface indexer declaration correspond to the accessors of a class indexer declaration (<a href="classes.md#indexers">Indexers</a>), except that the accessor body must always be a semicolon. Thus, the accessors simply indicate whether the indexer is read-write, read-only, or write-only.</p>
+
+<p>All the formal parameter types of an interface indexer must be input-safe . In addition, any <code class="prettyprint">out</code> or <code class="prettyprint">ref</code> formal parameter types must also be output-safe. Note that even <code class="prettyprint">out</code> parameters are required to be input-safe, due to a limitiation of the underlying execution platform.</p>
+
+<p>The type of an interface indexer must be output-safe if there is a get accessor, and must be input-safe if there is a set accessor.</p>
+
+<h3 id="interface-member-access">Interface member access</h3>
+
+<p>Interface members are accessed through member access (<a href="expressions.md#member-access">Member access</a>) and indexer access (<a href="expressions.md#indexer-access">Indexer access</a>) expressions of the form <code class="prettyprint">I.M</code> and <code class="prettyprint">I[A]</code>, where <code class="prettyprint">I</code> is an interface type, <code class="prettyprint">M</code> is a method, property, or event of that interface type, and <code class="prettyprint">A</code> is an indexer argument list.</p>
+
+<p>For interfaces that are strictly single-inheritance (each interface in the inheritance chain has exactly zero or one direct base interface), the effects of the member lookup (<a href="expressions.md#member-lookup">Member lookup</a>), method invocation (<a href="expressions.md#method-invocations">Method invocations</a>), and indexer access (<a href="expressions.md#indexer-access">Indexer access</a>) rules are exactly the same as for classes and structs: More derived members hide less derived members with the same name or signature. However, for multiple-inheritance interfaces, ambiguities can occur when two or more unrelated base interfaces declare members with the same name or signature. This section shows several examples of such situations. In all cases, explicit casts can be used to resolve the ambiguities.</p>
+
+<p>In the example
+&ldquo;`csharp
+interface IList
+{
+    int Count { get; set; }
+}</p>
+
+<p>interface ICounter
+{
+    void Count(int i);
+}</p>
+
+<p>interface IListCounter: IList, ICounter {}</p>
+
+<p>class C
+{
+    void Test(IListCounter x) {
+        x.Count(1);                  // Error
+        x.Count = 1;                 // Error
+        ((IList)x).Count = 1;        // Ok, invokes IList.Count.set
+        ((ICounter)x).Count(1);      // Ok, invokes ICounter.Count
+    }
+}
+&rdquo;<code class="prettyprint">
+the first two statements cause compile-time errors because the member lookup ([Member lookup](expressions.md#member-lookup)) of</code>Count<code class="prettyprint">in</code>IListCounter<code class="prettyprint">is ambiguous. As illustrated by the example, the ambiguity is resolved by casting</code>x` to the appropriate base interface type. Such casts have no run-time costs—they merely consist of viewing the instance as a less derived type at compile-time.</p>
+
+<p>In the example
+&ldquo;`csharp
+interface IInteger
+{
+    void Add(int i);
+}</p>
+
+<p>interface IDouble
+{
+    void Add(double d);
+}</p>
+
+<p>interface INumber: IInteger, IDouble {}</p>
+
+<p>class C
+{
+    void Test(INumber n) {
+        n.Add(1);                // Invokes IInteger.Add
+        n.Add(1.0);              // Only IDouble.Add is applicable
+        ((IInteger)n).Add(1);    // Only IInteger.Add is a candidate
+        ((IDouble)n).Add(1);     // Only IDouble.Add is a candidate
+    }
+}
+&rdquo;<code class="prettyprint">
+the invocation</code>n.Add(1)<code class="prettyprint">selects</code>IInteger.Add<code class="prettyprint">by applying the overload resolution rules of [Overload resolution](expressions.md#overload-resolution). Similarly the invocation</code>n.Add(1.0)<code class="prettyprint">selects</code>IDouble.Add`. When explicit casts are inserted, there is only one candidate method, and thus no ambiguity.</p>
+
+<p>In the example
+&ldquo;`csharp
+interface IBase
+{
+    void F(int i);
+}</p>
+
+<p>interface ILeft: IBase
+{
+    new void F(int i);
+}</p>
+
+<p>interface IRight: IBase
+{
+    void G();
+}</p>
+
+<p>interface IDerived: ILeft, IRight {}</p>
+
+<p>class A
+{
+    void Test(IDerived d) {
+        d.F(1);                 // Invokes ILeft.F
+        ((IBase)d).F(1);        // Invokes IBase.F
+        ((ILeft)d).F(1);        // Invokes ILeft.F
+        ((IRight)d).F(1);       // Invokes IBase.F
+    }
+}
+&rdquo;<code class="prettyprint">
+the</code>IBase.F<code class="prettyprint">member is hidden by the</code>ILeft.F<code class="prettyprint">member. The invocation</code>d.F(1)<code class="prettyprint">thus selects</code>ILeft.F<code class="prettyprint">, even though</code>IBase.F<code class="prettyprint">appears to not be hidden in the access path that leads through</code>IRight`.</p>
+
+<p>The intuitive rule for hiding in multiple-inheritance interfaces is simply this: If a member is hidden in any access path, it is hidden in all access paths. Because the access path from <code class="prettyprint">IDerived</code> to <code class="prettyprint">ILeft</code> to <code class="prettyprint">IBase</code> hides <code class="prettyprint">IBase.F</code>, the member is also hidden in the access path from <code class="prettyprint">IDerived</code> to <code class="prettyprint">IRight</code> to <code class="prettyprint">IBase</code>.</p>
+
+<h2 id="fully-qualified-interface-member-names">Fully qualified interface member names</h2>
+
+<p>An interface member is sometimes referred to by its <strong><em>fully qualified name</em></strong>. The fully qualified name of an interface member consists of the name of the interface in which the member is declared, followed by a dot, followed by the name of the member. The fully qualified name of a member references the interface in which the member is declared. For example, given the declarations
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>interface ITextBox: IControl
+{
+    void SetText(string text);
+}
+&rdquo;<code class="prettyprint">
+the fully qualified name of</code>Paint<code class="prettyprint">is</code>IControl.Paint<code class="prettyprint">and the fully qualified name of</code>SetText<code class="prettyprint">is</code>ITextBox.SetText`.</p>
+
+<p>In the example above, it is not possible to refer to <code class="prettyprint">Paint</code> as <code class="prettyprint">ITextBox.Paint</code>.</p>
+
+<p>When an interface is part of a namespace, the fully qualified name of an interface member includes the namespace name. For example
+<code class="prettyprint">csharp
+namespace System
+{
+    public interface ICloneable
+    {
+        object Clone();
+    }
+}
+</code></p>
+
+<p>Here, the fully qualified name of the <code class="prettyprint">Clone</code> method is <code class="prettyprint">System.ICloneable.Clone</code>.</p>
+
+<h2 id="interface-implementations">Interface implementations</h2>
+
+<p>Interfaces may be implemented by classes and structs. To indicate that a class or struct directly implements an interface, the interface identifier is included in the base class list of the class or struct. For example:
+&ldquo;`csharp
+interface ICloneable
+{
+    object Clone();
+}</p>
+
+<p>interface IComparable
+{
+    int CompareTo(object other);
+}</p>
+
+<p>class ListEntry: ICloneable, IComparable
+{
+    public object Clone() {&hellip;}
+    public int CompareTo(object other) {&hellip;}
+}
+&rdquo;`</p>
+
+<p>A class or struct that directly implements an interface also directly implements all of the interface&rsquo;s base interfaces implicitly. This is true even if the class or struct doesn&rsquo;t explicitly list all base interfaces in the base class list. For example:
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>interface ITextBox: IControl
+{
+    void SetText(string text);
+}</p>
+
+<p>class TextBox: ITextBox
+{
+    public void Paint() {&hellip;}
+    public void SetText(string text) {&hellip;}
+}
+&rdquo;`</p>
+
+<p>Here, class <code class="prettyprint">TextBox</code> implements both <code class="prettyprint">IControl</code> and <code class="prettyprint">ITextBox</code>.</p>
+
+<p>When a class <code class="prettyprint">C</code> directly implements an interface, all classes derived from C also implement the interface implicitly. The base interfaces specified in a class declaration can be constructed interface types (<a href="types.md#constructed-types">Constructed types</a>). A base interface cannot be a type parameter on its own, though it can involve the type parameters that are in scope. The following code illustrates how a class can implement and extend constructed types:
+&ldquo;`csharp
+class C<U,V> {}</p>
+
+<p>interface I1<V> {}</p>
+
+<p>class D: C<string,int>, I1<string> {}</p>
+
+<p>class E<T>: C<int,T>, I1<T> {}
+&rdquo;`</p>
+
+<p>The base interfaces of a generic class declaration must satisfy the uniqueness rule described in <a href="interfaces.md#uniqueness-of-implemented-interfaces">Uniqueness of implemented interfaces</a>.</p>
+
+<h3 id="explicit-interface-member-implementations">Explicit interface member implementations</h3>
+
+<p>For purposes of implementing interfaces, a class or struct may declare <strong><em>explicit interface member implementations</em></strong>. An explicit interface member implementation is a method, property, event, or indexer declaration that references a fully qualified interface member name. For example
+&ldquo;`csharp
+interface IList<T>
+{
+    T[] GetElements();
+}</p>
+
+<p>interface IDictionary<K,V>
+{
+    V this[K key];
+    void Add(K key, V value);
+}</p>
+
+<p>class List<T>: IList<T>, IDictionary<int,T>
+{
+    T[] IList<T>.GetElements() {&hellip;}
+    T IDictionary<int,T>.this[int index] {&hellip;}
+    void IDictionary<int,T>.Add(int index, T value) {&hellip;}
+}
+&rdquo;`</p>
+
+<p>Here <code class="prettyprint">IDictionary&lt;int,T&gt;.this</code> and <code class="prettyprint">IDictionary&lt;int,T&gt;.Add</code> are explicit interface member implementations.</p>
+
+<p>In some cases, the name of an interface member may not be appropriate for the implementing class, in which case the interface member may be implemented using explicit interface member implementation. A class implementing a file abstraction, for example, would likely implement a <code class="prettyprint">Close</code> member function that has the effect of releasing the file resource, and implement the <code class="prettyprint">Dispose</code> method of the <code class="prettyprint">IDisposable</code> interface using explicit interface member implementation:
+&ldquo;`csharp
+interface IDisposable
+{
+    void Dispose();
+}</p>
+
+<p>class MyFile: IDisposable
+{
+    void IDisposable.Dispose() {
+        Close();
+    }</p>
+
+<p>public void Close() {
+        // Do what&rsquo;s necessary to close the file
+        System.GC.SuppressFinalize(this);
+    }
+}
+&rdquo;`</p>
+
+<p>It is not possible to access an explicit interface member implementation through its fully qualified name in a method invocation, property access, or indexer access. An explicit interface member implementation can only be accessed through an interface instance, and is in that case referenced simply by its member name.</p>
+
+<p>It is a compile-time error for an explicit interface member implementation to include access modifiers, and it is a compile-time error to include the modifiers <code class="prettyprint">abstract</code>, <code class="prettyprint">virtual</code>, <code class="prettyprint">override</code>, or <code class="prettyprint">static</code>.</p>
+
+<p>Explicit interface member implementations have different accessibility characteristics than other members. Because explicit interface member implementations are never accessible through their fully qualified name in a method invocation or a property access, they are in a sense private. However, since they can be accessed through an interface instance, they are in a sense also public.</p>
+
+<p>Explicit interface member implementations serve two primary purposes:</p>
+
+<ul>
+<li> Because explicit interface member implementations are not accessible through class or struct instances, they allow interface implementations to be excluded from the public interface of a class or struct. This is particularly useful when a class or struct implements an internal interface that is of no interest to a consumer of that class or struct.</li>
+<li> Explicit interface member implementations allow disambiguation of interface members with the same signature. Without explicit interface member implementations it would be impossible for a class or struct to have different implementations of interface members with the same signature and return type, as would it be impossible for a class or struct to have any implementation at all of interface members with the same signature but with different return types.</li>
+</ul>
+
+<p>For an explicit interface member implementation to be valid, the class or struct must name an interface in its base class list that contains a member whose fully qualified name, type, and parameter types exactly match those of the explicit interface member implementation. Thus, in the following class
+<code class="prettyprint">csharp
+class Shape: ICloneable
+{
+    object ICloneable.Clone() {...}
+    int IComparable.CompareTo(object other) {...}    // invalid
+}
+</code>
+the declaration of <code class="prettyprint">IComparable.CompareTo</code> results in a compile-time error because <code class="prettyprint">IComparable</code> is not listed in the base class list of <code class="prettyprint">Shape</code> and is not a base interface of <code class="prettyprint">ICloneable</code>. Likewise, in the declarations
+&ldquo;`csharp
+class Shape: ICloneable
+{
+    object ICloneable.Clone() {&hellip;}
+}</p>
+
+<p>class Ellipse: Shape
+{
+    object ICloneable.Clone() {&hellip;}    // invalid
+}
+&rdquo;<code class="prettyprint">
+the declaration of</code>ICloneable.Clone<code class="prettyprint">in</code>Ellipse<code class="prettyprint">results in a compile-time error because</code>ICloneable<code class="prettyprint">is not explicitly listed in the base class list of</code>Ellipse`.</p>
+
+<p>The fully qualified name of an interface member must reference the interface in which the member was declared. Thus, in the declarations
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>interface ITextBox: IControl
+{
+    void SetText(string text);
+}</p>
+
+<p>class TextBox: ITextBox
+{
+    void IControl.Paint() {&hellip;}
+    void ITextBox.SetText(string text) {&hellip;}
+}
+&rdquo;<code class="prettyprint">
+the explicit interface member implementation of</code>Paint<code class="prettyprint">must be written as</code>IControl.Paint`.</p>
+
+<h3 id="uniqueness-of-implemented-interfaces">Uniqueness of implemented interfaces</h3>
+
+<p>The interfaces implemented by a generic type declaration must remain unique for all possible constructed types. Without this rule, it would be impossible to determine the correct method to call for certain constructed types. For example, suppose a generic class declaration were permitted to be written as follows:
+&ldquo;`csharp
+interface I<T>
+{
+    void F();
+}</p>
+
+<p>class X<U,V>: I<U>, I<V>                    // Error: I<U> and I<V> conflict
+{
+    void I<U>.F() {&hellip;}
+    void I<V>.F() {&hellip;}
+}
+&rdquo;`</p>
+
+<p>Were this permitted, it would be impossible to determine which code to execute in the following case:
+<code class="prettyprint">csharp
+I&lt;int&gt; x = new X&lt;int,int&gt;();
+x.F();
+</code></p>
+
+<p>To determine if the interface list of a generic type declaration is valid, the following steps are performed:</p>
+
+<ul>
+<li> Let <code class="prettyprint">L</code> be the list of interfaces directly specified in a generic class, struct, or interface declaration <code class="prettyprint">C</code>.</li>
+<li> Add to <code class="prettyprint">L</code> any base interfaces of the interfaces already in <code class="prettyprint">L</code>.</li>
+<li> Remove any duplicates from <code class="prettyprint">L</code>.</li>
+<li> If any possible constructed type created from <code class="prettyprint">C</code> would, after type arguments are substituted into <code class="prettyprint">L</code>, cause two interfaces in <code class="prettyprint">L</code> to be identical, then the declaration of <code class="prettyprint">C</code> is invalid. Constraint declarations are not considered when determining all possible constructed types.</li>
+</ul>
+
+<p>In the class declaration <code class="prettyprint">X</code> above, the interface list <code class="prettyprint">L</code> consists of <code class="prettyprint">I&lt;U&gt;</code> and <code class="prettyprint">I&lt;V&gt;</code>. The declaration is invalid because any constructed type with <code class="prettyprint">U</code> and <code class="prettyprint">V</code> being the same type would cause these two interfaces to be identical types.</p>
+
+<p>It is possible for interfaces specified at different inheritance levels to unify:
+&ldquo;`csharp
+interface I<T>
+{
+    void F();
+}</p>
+
+<p>class Base<U>: I<U>
+{
+    void I<U>.F() {&hellip;}
+}</p>
+
+<p>class Derived<U,V>: Base<U>, I<V>    // Ok
+{
+    void I<V>.F() {&hellip;}
+}
+&rdquo;`</p>
+
+<p>This code is valid even though <code class="prettyprint">Derived&lt;U,V&gt;</code> implements both <code class="prettyprint">I&lt;U&gt;</code> and <code class="prettyprint">I&lt;V&gt;</code>. The code
+<code class="prettyprint">csharp
+I&lt;int&gt; x = new Derived&lt;int,int&gt;();
+x.F();
+</code>
+invokes the method in <code class="prettyprint">Derived</code>, since <code class="prettyprint">Derived&lt;int,int&gt;</code> effectively re-implements <code class="prettyprint">I&lt;int&gt;</code> (<a href="interfaces.md#interface-re-implementation">Interface re-implementation</a>).</p>
+
+<h3 id="implementation-of-generic-methods">Implementation of generic methods</h3>
+
+<p>When a generic method implicitly implements an interface method, the constraints given for each method type parameter must be equivalent in both declarations (after any interface type parameters are replaced with the appropriate type arguments), where method type parameters are identified by ordinal positions, left to right.</p>
+
+<p>When a generic method explicitly implements an interface method, however, no constraints are allowed on the implementing method. Instead, the constraints are inherited from the interface method</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">interface</span> <span class="n">I</span><span class="p">&lt;</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="n">F</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span><span class="p">:</span> <span class="n">A</span><span class="p">;</span>
+    <span class="k">void</span> <span class="n">G</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span><span class="p">:</span> <span class="n">B</span><span class="p">;</span>
+    <span class="k">void</span> <span class="n">H</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span><span class="p">:</span> <span class="n">C</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">C</span><span class="p">:</span> <span class="n">I</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="kt">string</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="n">F</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="p">{...}</span>                    <span class="c1">// Ok</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="n">G</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span><span class="p">:</span> <span class="n">C</span> <span class="p">{...}</span>         <span class="c1">// Ok</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="n">H</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> <span class="k">where</span> <span class="n">T</span><span class="p">:</span> <span class="kt">string</span> <span class="p">{...}</span>    <span class="c1">// Error</span>
+<span class="p">}</span>
+</code></pre>
+<p>The method <code class="prettyprint">C.F&lt;T&gt;</code> implicitly implements <code class="prettyprint">I&lt;object,C,string&gt;.F&lt;T&gt;</code>. In this case, <code class="prettyprint">C.F&lt;T&gt;</code> is not required (nor permitted) to specify the constraint <code class="prettyprint">T:object</code> since <code class="prettyprint">object</code> is an implicit constraint on all type parameters. The method <code class="prettyprint">C.G&lt;T&gt;</code> implicitly implements <code class="prettyprint">I&lt;object,C,string&gt;.G&lt;T&gt;</code> because the constraints match those in the interface, after the interface type parameters are replaced with the corresponding type arguments. The constraint for method <code class="prettyprint">C.H&lt;T&gt;</code> is an error because sealed types (<code class="prettyprint">string</code> in this case) cannot be used as constraints. Omitting the constraint would also be an error since constraints of implicit interface method implementations are required to match. Thus, it is impossible to implicitly implement <code class="prettyprint">I&lt;object,C,string&gt;.H&lt;T&gt;</code>. This interface method can only be implemented using an explicit interface member implementation:
+&ldquo;`csharp
+class C: I<object,C,string>
+{
+    &hellip;</p>
+
+<p>public void H<U>(U u) where U: class {&hellip;}</p>
+
+<p>void I<object,C,string>.H<T>(T t) {
+        string s = t;    // Ok
+        H<T>(t);
+    }
+}
+&rdquo;`</p>
+
+<p>In this example, the explicit interface member implementation invokes a public method having strictly weaker constraints. Note that the assignment from <code class="prettyprint">t</code> to <code class="prettyprint">s</code> is valid since <code class="prettyprint">T</code> inherits a constraint of <code class="prettyprint">T:string</code>, even though this constraint is not expressible in source code.</p>
+
+<h3 id="interface-mapping">Interface mapping</h3>
+
+<p>A class or struct must provide implementations of all members of the interfaces that are listed in the base class list of the class or struct. The process of locating implementations of interface members in an implementing class or struct is known as <strong><em>interface mapping</em></strong>.</p>
+
+<p>Interface mapping for a class or struct <code class="prettyprint">C</code> locates an implementation for each member of each interface specified in the base class list of <code class="prettyprint">C</code>. The implementation of a particular interface member <code class="prettyprint">I.M</code>, where <code class="prettyprint">I</code> is the interface in which the member <code class="prettyprint">M</code> is declared, is determined by examining each class or struct <code class="prettyprint">S</code>, starting with <code class="prettyprint">C</code> and repeating for each successive base class of <code class="prettyprint">C</code>, until a match is located:</p>
+
+<ul>
+<li> If <code class="prettyprint">S</code> contains a declaration of an explicit interface member implementation that matches <code class="prettyprint">I</code> and <code class="prettyprint">M</code>, then this member is the implementation of <code class="prettyprint">I.M</code>.</li>
+<li> Otherwise, if <code class="prettyprint">S</code> contains a declaration of a non-static public member that matches <code class="prettyprint">M</code>, then this member is the implementation of <code class="prettyprint">I.M</code>. If more than one member matches, it is unspecified which member is the implementation of <code class="prettyprint">I.M</code>. This situation can only occur if <code class="prettyprint">S</code> is a constructed type where the two members as declared in the generic type have different signatures, but the type arguments make their signatures identical.</li>
+</ul>
+
+<p>A compile-time error occurs if implementations cannot be located for all members of all interfaces specified in the base class list of <code class="prettyprint">C</code>. Note that the members of an interface include those members that are inherited from base interfaces.</p>
+
+<p>For purposes of interface mapping, a class member <code class="prettyprint">A</code> matches an interface member <code class="prettyprint">B</code> when:</p>
+
+<ul>
+<li> <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are methods, and the name, type, and formal parameter lists of <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are identical.</li>
+<li> <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are properties, the name and type of <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are identical, and <code class="prettyprint">A</code> has the same accessors as <code class="prettyprint">B</code> (<code class="prettyprint">A</code> is permitted to have additional accessors if it is not an explicit interface member implementation).</li>
+<li> <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are events, and the name and type of <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are identical.</li>
+<li> <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are indexers, the type and formal parameter lists of <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are identical, and <code class="prettyprint">A</code> has the same accessors as <code class="prettyprint">B</code> (<code class="prettyprint">A</code> is permitted to have additional accessors if it is not an explicit interface member implementation).</li>
+</ul>
+
+<p>Notable implications of the interface mapping algorithm are:</p>
+
+<ul>
+<li> Explicit interface member implementations take precedence over other members in the same class or struct when determining the class or struct member that implements an interface member.</li>
+<li> Neither non-public nor static members participate in interface mapping.</li>
+</ul>
+
+<p>In the example
+&ldquo;`csharp
+interface ICloneable
+{
+    object Clone();
+}</p>
+
+<p>class C: ICloneable
+{
+    object ICloneable.Clone() {&hellip;}
+    public object Clone() {&hellip;}
+}
+&rdquo;<code class="prettyprint">
+the</code>ICloneable.Clone<code class="prettyprint">member of</code>C<code class="prettyprint">becomes the implementation of</code>Clone<code class="prettyprint">in</code>ICloneable` because explicit interface member implementations take precedence over other members.</p>
+
+<p>If a class or struct implements two or more interfaces containing a member with the same name, type, and parameter types, it is possible to map each of those interface members onto a single class or struct member. For example
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>interface IForm
+{
+    void Paint();
+}</p>
+
+<p>class Page: IControl, IForm
+{
+    public void Paint() {&hellip;}
+}
+&rdquo;`</p>
+
+<p>Here, the <code class="prettyprint">Paint</code> methods of both <code class="prettyprint">IControl</code> and <code class="prettyprint">IForm</code> are mapped onto the <code class="prettyprint">Paint</code> method in <code class="prettyprint">Page</code>. It is of course also possible to have separate explicit interface member implementations for the two methods.</p>
+
+<p>If a class or struct implements an interface that contains hidden members, then some members must necessarily be implemented through explicit interface member implementations. For example
+&ldquo;`csharp
+interface IBase
+{
+    int P { get; }
+}</p>
+
+<p>interface IDerived: IBase
+{
+    new int P();
+}
+&rdquo;`</p>
+
+<p>An implementation of this interface would require at least one explicit interface member implementation, and would take one of the following forms
+&ldquo;`csharp
+class C: IDerived
+{
+    int IBase.P { get {&hellip;} }
+    int IDerived.P() {&hellip;}
+}</p>
+
+<p>class C: IDerived
+{
+    public int P { get {&hellip;} }
+    int IDerived.P() {&hellip;}
+}</p>
+
+<p>class C: IDerived
+{
+    int IBase.P { get {&hellip;} }
+    public int P() {&hellip;}
+}
+&rdquo;`</p>
+
+<p>When a class implements multiple interfaces that have the same base interface, there can be only one implementation of the base interface. In the example
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>interface ITextBox: IControl
+{
+    void SetText(string text);
+}</p>
+
+<p>interface IListBox: IControl
+{
+    void SetItems(string[] items);
+}</p>
+
+<p>class ComboBox: IControl, ITextBox, IListBox
+{
+    void IControl.Paint() {&hellip;}
+    void ITextBox.SetText(string text) {&hellip;}
+    void IListBox.SetItems(string[] items) {&hellip;}
+}
+&rdquo;<code class="prettyprint">
+it is not possible to have separate implementations for the</code>IControl<code class="prettyprint">named in the base class list, the</code>IControl<code class="prettyprint">inherited by</code>ITextBox<code class="prettyprint">, and the</code>IControl<code class="prettyprint">inherited by</code>IListBox<code class="prettyprint">. Indeed, there is no notion of a separate identity for these interfaces. Rather, the implementations of</code>ITextBox<code class="prettyprint">and</code>IListBox<code class="prettyprint">share the same implementation of</code>IControl<code class="prettyprint">, and</code>ComboBox<code class="prettyprint">is simply considered to implement three interfaces,</code>IControl<code class="prettyprint">,</code>ITextBox<code class="prettyprint">, and</code>IListBox`.</p>
+
+<p>The members of a base class participate in interface mapping. In the example
+&ldquo;`csharp
+interface Interface1
+{
+    void F();
+}</p>
+
+<p>class Class1
+{
+    public void F() {}
+    public void G() {}
+}</p>
+
+<p>class Class2: Class1, Interface1
+{
+    new public void G() {}
+}
+&rdquo;<code class="prettyprint">
+the method</code>F<code class="prettyprint">in</code>Class1<code class="prettyprint">is used in</code>Class2<code class="prettyprint">&#39;s implementation of</code>Interface1`.</p>
+
+<h3 id="interface-implementation-inheritance">Interface implementation inheritance</h3>
+
+<p>A class inherits all interface implementations provided by its base classes.</p>
+
+<p>Without explicitly <strong><em>re-implementing</em></strong> an interface, a derived class cannot in any way alter the interface mappings it inherits from its base classes. For example, in the declarations
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>class Control: IControl
+{
+    public void Paint() {&hellip;}
+}</p>
+
+<p>class TextBox: Control
+{
+    new public void Paint() {&hellip;}
+}
+<code class="prettyprint">
+the `Paint` method in `TextBox` hides the `Paint` method in `Control`, but it does not alter the mapping of `Control.Paint` onto `IControl.Paint`, and calls to `Paint` through class instances and interface instances will have the following effects
+</code>csharp
+Control c = new Control();
+TextBox t = new TextBox();
+IControl ic = c;
+IControl it = t;
+c.Paint();            // invokes Control.Paint();
+t.Paint();            // invokes TextBox.Paint();
+ic.Paint();           // invokes Control.Paint();
+it.Paint();           // invokes Control.Paint();
+&rdquo;`</p>
+
+<p>However, when an interface method is mapped onto a virtual method in a class, it is possible for derived classes to override the virtual method and alter the implementation of the interface. For example, rewriting the declarations above to
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>class Control: IControl
+{
+    public virtual void Paint() {&hellip;}
+}</p>
+
+<p>class TextBox: Control
+{
+    public override void Paint() {&hellip;}
+}
+<code class="prettyprint">
+the following effects will now be observed
+</code>csharp
+Control c = new Control();
+TextBox t = new TextBox();
+IControl ic = c;
+IControl it = t;
+c.Paint();            // invokes Control.Paint();
+t.Paint();            // invokes TextBox.Paint();
+ic.Paint();           // invokes Control.Paint();
+it.Paint();           // invokes TextBox.Paint();
+&rdquo;`</p>
+
+<p>Since explicit interface member implementations cannot be declared virtual, it is not possible to override an explicit interface member implementation. However, it is perfectly valid for an explicit interface member implementation to call another method, and that other method can be declared virtual to allow derived classes to override it. For example
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>class Control: IControl
+{
+    void IControl.Paint() { PaintControl(); }
+    protected virtual void PaintControl() {&hellip;}
+}</p>
+
+<p>class TextBox: Control
+{
+    protected override void PaintControl() {&hellip;}
+}
+&rdquo;`</p>
+
+<p>Here, classes derived from <code class="prettyprint">Control</code> can specialize the implementation of <code class="prettyprint">IControl.Paint</code> by overriding the <code class="prettyprint">PaintControl</code> method.</p>
+
+<h3 id="interface-re-implementation">Interface re-implementation</h3>
+
+<p>A class that inherits an interface implementation is permitted to <strong><em>re-implement</em></strong> the interface by including it in the base class list.</p>
+
+<p>A re-implementation of an interface follows exactly the same interface mapping rules as an initial implementation of an interface. Thus, the inherited interface mapping has no effect whatsoever on the interface mapping established for the re-implementation of the interface. For example, in the declarations
+&ldquo;`csharp
+interface IControl
+{
+    void Paint();
+}</p>
+
+<p>class Control: IControl
+{
+    void IControl.Paint() {&hellip;}
+}</p>
+
+<p>class MyControl: Control, IControl
+{
+    public void Paint() {}
+}
+&rdquo;<code class="prettyprint">
+the fact that</code>Control<code class="prettyprint">maps</code>IControl.Paint<code class="prettyprint">onto</code>Control.IControl.Paint<code class="prettyprint">doesn&#39;t affect the re-implementation in</code>MyControl<code class="prettyprint">, which maps</code>IControl.Paint<code class="prettyprint">onto</code>MyControl.Paint`.</p>
+
+<p>Inherited public member declarations and inherited explicit interface member declarations participate in the interface mapping process for re-implemented interfaces. For example
+&ldquo;`csharp
+interface IMethods
+{
+    void F();
+    void G();
+    void H();
+    void I();
+}</p>
+
+<p>class Base: IMethods
+{
+    void IMethods.F() {}
+    void IMethods.G() {}
+    public void H() {}
+    public void I() {}
+}</p>
+
+<p>class Derived: Base, IMethods
+{
+    public void F() {}
+    void IMethods.H() {}
+}
+&rdquo;`</p>
+
+<p>Here, the implementation of <code class="prettyprint">IMethods</code> in <code class="prettyprint">Derived</code> maps the interface methods onto <code class="prettyprint">Derived.F</code>, <code class="prettyprint">Base.IMethods.G</code>, <code class="prettyprint">Derived.IMethods.H</code>, and <code class="prettyprint">Base.I</code>.</p>
+
+<p>When a class implements an interface, it implicitly also implements all of that interface&rsquo;s base interfaces. Likewise, a re-implementation of an interface is also implicitly a re-implementation of all of the interface&rsquo;s base interfaces. For example
+&ldquo;`csharp
+interface IBase
+{
+    void F();
+}</p>
+
+<p>interface IDerived: IBase
+{
+    void G();
+}</p>
+
+<p>class C: IDerived
+{
+    void IBase.F() {&hellip;}
+    void IDerived.G() {&hellip;}
+}</p>
+
+<p>class D: C, IDerived
+{
+    public void F() {&hellip;}
+    public void G() {&hellip;}
+}
+&rdquo;`</p>
+
+<p>Here, the re-implementation of <code class="prettyprint">IDerived</code> also re-implements <code class="prettyprint">IBase</code>, mapping <code class="prettyprint">IBase.F</code> onto <code class="prettyprint">D.F</code>.</p>
+
+<h3 id="abstract-classes-and-interfaces">Abstract classes and interfaces</h3>
+
+<p>Like a non-abstract class, an abstract class must provide implementations of all members of the interfaces that are listed in the base class list of the class. However, an abstract class is permitted to map interface methods onto abstract methods. For example
+&ldquo;`csharp
+interface IMethods
+{
+    void F();
+    void G();
+}</p>
+
+<p>abstract class C: IMethods
+{
+    public abstract void F();
+    public abstract void G();
+}
+&rdquo;`</p>
+
+<p>Here, the implementation of <code class="prettyprint">IMethods</code> maps <code class="prettyprint">F</code> and <code class="prettyprint">G</code> onto abstract methods, which must be overridden in non-abstract classes that derive from <code class="prettyprint">C</code>.</p>
+
+<p>Note that explicit interface member implementations cannot be abstract, but explicit interface member implementations are of course permitted to call abstract methods. For example
+&ldquo;`csharp
+interface IMethods
+{
+    void F();
+    void G();
+}</p>
+
+<p>abstract class C: IMethods
+{
+    void IMethods.F() { FF(); }
+    void IMethods.G() { GG(); }
+    protected abstract void FF();
+    protected abstract void GG();
+}
+&rdquo;`</p>
+
+<p>Here, non-abstract classes that derive from <code class="prettyprint">C</code> would be required to override <code class="prettyprint">FF</code> and <code class="prettyprint">GG</code>, thus providing the actual implementation of <code class="prettyprint">IMethods</code>.</p>

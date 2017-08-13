@@ -1,0 +1,765 @@
+<h1 id="attributes">Attributes</h1>
+
+<p>Much of the C# language enables the programmer to specify declarative information about the entities defined in the program. For example, the accessibility of a method in a class is specified by decorating it with the *method_modifier*s <code class="prettyprint">public</code>, <code class="prettyprint">protected</code>, <code class="prettyprint">internal</code>, and <code class="prettyprint">private</code>.</p>
+
+<p>C# enables programmers to invent new kinds of declarative information, called <strong><em>attributes</em></strong>. Programmers can then attach attributes to various program entities, and retrieve attribute information in a run-time environment. For instance, a framework might define a <code class="prettyprint">HelpAttribute</code> attribute that can be placed on certain program elements (such as classes and methods) to provide a mapping from those program elements to their documentation.</p>
+
+<p>Attributes are defined through the declaration of attribute classes (<a href="attributes.md#attribute-classes">Attribute classes</a>), which may have positional and named parameters (<a href="attributes.md#positional-and-named-parameters">Positional and named parameters</a>). Attributes are attached to entities in a C# program using attribute specifications (<a href="attributes.md#attribute-specification">Attribute specification</a>), and can be retrieved at run-time as attribute instances (<a href="attributes.md#attribute-instances">Attribute instances</a>).</p>
+
+<h2 id="attribute-classes">Attribute classes</h2>
+
+<p>A class that derives from the abstract class <code class="prettyprint">System.Attribute</code>, whether directly or indirectly, is an <strong><em>attribute class</em></strong>. The declaration of an attribute class defines a new kind of <strong><em>attribute</em></strong> that can be placed on a declaration. By convention, attribute classes are named with a suffix of <code class="prettyprint">Attribute</code>. Uses of an attribute may either include or omit this suffix.</p>
+
+<h3 id="attribute-usage">Attribute usage</h3>
+
+<p>The attribute <code class="prettyprint">AttributeUsage</code> (<a href="attributes.md#the-attributeusage-attribute">The AttributeUsage attribute</a>) is used to describe how an attribute class can be used.</p>
+
+<p><code class="prettyprint">AttributeUsage</code> has a positional parameter (<a href="attributes.md#positional-and-named-parameters">Positional and named parameters</a>) that enables an attribute class to specify the kinds of declarations on which it can be used. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">SimpleAttribute</span><span class="p">:</span> <span class="n">Attribute</span> 
+<span class="p">{</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre>
+<p>defines an attribute class named <code class="prettyprint">SimpleAttribute</code> that can be placed on *class_declaration*s and *interface_declaration*s only. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[Simple]</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{...}</span>
+
+<span class="na">[Simple]</span> <span class="k">interface</span> <span class="n">Interface1</span> <span class="p">{...}</span>
+</code></pre>
+<p>shows several uses of the <code class="prettyprint">Simple</code> attribute. Although this attribute is defined with the name <code class="prettyprint">SimpleAttribute</code>, when this attribute is used, the <code class="prettyprint">Attribute</code> suffix may be omitted, resulting in the short name <code class="prettyprint">Simple</code>. Thus, the example above is semantically equivalent to the following:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[SimpleAttribute]</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{...}</span>
+
+<span class="na">[SimpleAttribute]</span> <span class="k">interface</span> <span class="n">Interface1</span> <span class="p">{...}</span>
+</code></pre>
+<p><code class="prettyprint">AttributeUsage</code> has a named parameter (<a href="attributes.md#positional-and-named-parameters">Positional and named parameters</a>) called <code class="prettyprint">AllowMultiple</code>, which indicates whether the attribute can be specified more than once for a given entity. If <code class="prettyprint">AllowMultiple</code> for an attribute class is true, then that attribute class is a <strong><em>multi-use attribute class</em></strong>, and can be specified more than once on an entity. If <code class="prettyprint">AllowMultiple</code> for an attribute class is false or it is unspecified, then that attribute class is a <strong><em>single-use attribute class</em></strong>, and can be specified at most once on an entity.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">AuthorAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="kt">string</span> <span class="n">name</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">AuthorAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">name</span> <span class="p">=</span> <span class="n">name</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">name</span><span class="p">;</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>defines a multi-use attribute class named <code class="prettyprint">AuthorAttribute</code>. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[Author("Brian Kernighan"), Author("Dennis Ritchie")]</span> 
+<span class="k">class</span> <span class="nc">Class1</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre>
+<p>shows a class declaration with two uses of the <code class="prettyprint">Author</code> attribute.</p>
+
+<p><code class="prettyprint">AttributeUsage</code> has another named parameter called <code class="prettyprint">Inherited</code>, which indicates whether the attribute, when specified on a base class, is also inherited by classes that derive from that base class. If <code class="prettyprint">Inherited</code> for an attribute class is true, then that attribute is inherited. If <code class="prettyprint">Inherited</code> for an attribute class is false then that attribute is not inherited. If it is unspecified, its default value is true.</p>
+
+<p>An attribute class <code class="prettyprint">X</code> not having an <code class="prettyprint">AttributeUsage</code> attribute attached to it, as in</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">X</span><span class="p">:</span> <span class="n">Attribute</span> <span class="p">{...}</span>
+</code></pre>
+<p>is equivalent to the following:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span>
+    <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">All</span><span class="p">,</span>
+    <span class="n">AllowMultiple</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+    <span class="n">Inherited</span> <span class="p">=</span> <span class="k">true</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="k">class</span> <span class="nc">X</span><span class="p">:</span> <span class="n">Attribute</span> <span class="p">{...}</span>
+</code></pre>
+<h3 id="positional-and-named-parameters">Positional and named parameters</h3>
+
+<p>Attribute classes can have <strong><em>positional parameters</em></strong> and <strong><em>named parameters</em></strong>. Each public instance constructor for an attribute class defines a valid sequence of positional parameters for that attribute class. Each non-static public read-write field and property for an attribute class defines a named parameter for the attribute class.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.Class)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">HelpAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">HelpAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">url</span><span class="p">)</span> <span class="p">{</span>        <span class="c1">// Positional parameter</span>
+        <span class="p">...</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Topic</span> <span class="p">{</span>                     <span class="c1">// Named parameter</span>
+        <span class="k">get</span> <span class="p">{...}</span>
+        <span class="k">set</span> <span class="p">{...}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Url</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{...}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>defines an attribute class named <code class="prettyprint">HelpAttribute</code> that has one positional parameter, <code class="prettyprint">url</code>, and one named parameter, <code class="prettyprint">Topic</code>. Although it is non-static and public, the property <code class="prettyprint">Url</code> does not define a named parameter, since it is not read-write.</p>
+
+<p>This attribute class might be used as follows:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[Help("http://www.mycompany.com/.../Class1.htm")]</span>
+<span class="k">class</span> <span class="nc">Class1</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="na">[Help("http://www.mycompany.com/.../Misc.htm", Topic = "Class2")]</span>
+<span class="k">class</span> <span class="nc">Class2</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="attribute-parameter-types">Attribute parameter types</h3>
+
+<p>The types of positional and named parameters for an attribute class are limited to the <strong><em>attribute parameter types</em></strong>, which are:</p>
+
+<ul>
+<li> One of the following types: <code class="prettyprint">bool</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">char</code>, <code class="prettyprint">double</code>, <code class="prettyprint">float</code>, <code class="prettyprint">int</code>, <code class="prettyprint">long</code>, <code class="prettyprint">sbyte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">string</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">ushort</code>.</li>
+<li> The type <code class="prettyprint">object</code>.</li>
+<li> The type <code class="prettyprint">System.Type</code>.</li>
+<li> An enum type, provided it has public accessibility and the types in which it is nested (if any) also have public accessibility (<a href="attributes.md#attribute-specification">Attribute specification</a>).</li>
+<li> Single-dimensional arrays of the above types.</li>
+<li> A constructor argument or public field which does not have one of these types, cannot be used as a positional or named parameter in an attribute specification.</li>
+</ul>
+
+<h2 id="attribute-specification">Attribute specification</h2>
+
+<p><strong><em>Attribute specification</em></strong> is the application of a previously defined attribute to a declaration. An attribute is a piece of additional declarative information that is specified for a declaration. Attributes can be specified at global scope (to specify attributes on the containing assembly or module) and for <em>type_declaration*s (<a href="namespaces.md#type-declarations">Type declarations</a>), *class_member_declaration*s (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>), *interface_member_declaration*s (<a href="interfaces.md#interface-members">Interface members</a>), *struct_member_declaration*s (<a href="structs.md#struct-members">Struct members</a>), *enum_member_declaration*s (<a href="enums.md#enum-members">Enum members</a>), *accessor_declarations</em> (<a href="classes.md#accessors">Accessors</a>), <em>event_accessor_declarations</em> (<a href="classes.md#field-like-events">Field-like events</a>), and *formal_parameter_list*s (<a href="classes.md#method-parameters">Method parameters</a>).</p>
+
+<p>Attributes are specified in <strong><em>attribute sections</em></strong>. An attribute section consists of a pair of square brackets, which surround a comma-separated list of one or more attributes. The order in which attributes are specified in such a list, and the order in which sections attached to the same program entity are arranged, is not significant. For instance, the attribute specifications <code class="prettyprint">[A][B]</code>, <code class="prettyprint">[B][A]</code>, <code class="prettyprint">[A,B]</code>, and <code class="prettyprint">[B,A]</code> are equivalent.</p>
+<pre class="highlight plaintext"><code>global_attributes
+    : global_attribute_section+
+    ;
+
+global_attribute_section
+    : '[' global_attribute_target_specifier attribute_list ']'
+    | '[' global_attribute_target_specifier attribute_list ',' ']'
+    ;
+
+global_attribute_target_specifier
+    : global_attribute_target ':'
+    ;
+
+global_attribute_target
+    : 'assembly'
+    | 'module'
+    ;
+
+attributes
+    : attribute_section+
+    ;
+
+attribute_section
+    : '[' attribute_target_specifier? attribute_list ']'
+    | '[' attribute_target_specifier? attribute_list ',' ']'
+    ;
+
+attribute_target_specifier
+    : attribute_target ':'
+    ;
+
+attribute_target
+    : 'field'
+    | 'event'
+    | 'method'
+    | 'param'
+    | 'property'
+    | 'return'
+    | 'type'
+    ;
+
+attribute_list
+    : attribute (',' attribute)*
+    ;
+
+attribute
+    : attribute_name attribute_arguments?
+    ;
+
+attribute_name
+    : type_name
+    ;
+
+attribute_arguments
+    : '(' positional_argument_list? ')'
+    | '(' positional_argument_list ',' named_argument_list ')'
+    | '(' named_argument_list ')'
+    ;
+
+positional_argument_list
+    : positional_argument (',' positional_argument)*
+    ;
+
+positional_argument
+    : attribute_argument_expression
+    ;
+
+named_argument_list
+    : named_argument (','  named_argument)*
+    ;
+
+named_argument
+    : identifier '=' attribute_argument_expression
+    ;
+
+attribute_argument_expression
+    : expression
+    ;
+</code></pre>
+<p>An attribute consists of an <em>attribute_name</em> and an optional list of positional and named arguments. The positional arguments (if any) precede the named arguments. A positional argument consists of an <em>attribute_argument_expression</em>; a named argument consists of a name, followed by an equal sign, followed by an <em>attribute_argument_expression</em>, which, together, are constrained by the same rules as simple assignment. The order of named arguments is not significant.</p>
+
+<p>The <em>attribute_name</em> identifies an attribute class. If the form of <em>attribute_name</em> is <em>type_name</em> then this name must refer to an attribute class. Otherwise, a compile-time error occurs. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+
+<span class="na">[Class1]</span> <span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>    <span class="c1">// Error</span>
+</code></pre>
+<p>results in a compile-time error because it attempts to use <code class="prettyprint">Class1</code> as an attribute class when <code class="prettyprint">Class1</code> is not an attribute class.</p>
+
+<p>Certain contexts permit the specification of an attribute on more than one target. A program can explicitly specify the target by including an <em>attribute_target_specifier</em>. When an attribute is placed at the global level, a <em>global_attribute_target_specifier</em> is required. In all other locations, a reasonable default is applied, but an <em>attribute_target_specifier</em> can be used to affirm or override the default in certain ambiguous cases (or to just affirm the default in non-ambiguous cases). Thus, typically, *attribute_target_specifier*s can be omitted except at the global level. The potentially ambiguous contexts are resolved as follows:</p>
+
+<ul>
+<li> An attribute specified at global scope can apply either to the target assembly or the target module. No default exists for this context, so an <em>attribute_target_specifier</em> is always required in this context. The presence of the <code class="prettyprint">assembly</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the target assembly; the presence of the <code class="prettyprint">module</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the target module.</li>
+<li> An attribute specified on a delegate declaration can apply either to the delegate being declared or to its return value. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the delegate. The presence of the <code class="prettyprint">type</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the delegate; the presence of the <code class="prettyprint">return</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the return value.</li>
+<li> An attribute specified on a method declaration can apply either to the method being declared or to its return value. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the method. The presence of the <code class="prettyprint">method</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the method; the presence of the <code class="prettyprint">return</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the return value.</li>
+<li> An attribute specified on an operator declaration can apply either to the operator being declared or to its return value. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the operator. The presence of the <code class="prettyprint">method</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the operator; the presence of the <code class="prettyprint">return</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the return value.</li>
+<li> An attribute specified on an event declaration that omits event accessors can apply to the event being declared, to the associated field (if the event is not abstract), or to the associated add and remove methods. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the event. The presence of the <code class="prettyprint">event</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the event; the presence of the <code class="prettyprint">field</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the field; and the presence of the <code class="prettyprint">method</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the methods.</li>
+<li> An attribute specified on a get accessor declaration for a property or indexer declaration can apply either to the associated method or to its return value. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the method. The presence of the <code class="prettyprint">method</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the method; the presence of the <code class="prettyprint">return</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the return value.</li>
+<li> An attribute specified on a set accessor for a property or indexer declaration can apply either to the associated method or to its lone implicit parameter. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the method. The presence of the <code class="prettyprint">method</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the method; the presence of the <code class="prettyprint">param</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the parameter; the presence of the <code class="prettyprint">return</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the return value.</li>
+<li> An attribute specified on an add or remove accessor declaration for an event declaration can apply either to the associated method or to its lone parameter. In the absence of an <em>attribute_target_specifier</em>, the attribute applies to the method. The presence of the <code class="prettyprint">method</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the method; the presence of the <code class="prettyprint">param</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the parameter; the presence of the <code class="prettyprint">return</code> <em>attribute_target_specifier</em> indicates that the attribute applies to the return value.</li>
+</ul>
+
+<p>In other contexts, inclusion of an <em>attribute_target_specifier</em> is permitted but unnecessary. For instance, a class declaration may either include or omit the specifier <code class="prettyprint">type</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[type: Author("Brian Kernighan")]</span>
+<span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+
+<span class="na">[Author("Dennis Ritchie")]</span>
+<span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>
+</code></pre>
+<p>It is an error to specify an invalid <em>attribute_target_specifier</em>. For instance, the specifier <code class="prettyprint">param</code> cannot be used on a class declaration:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[param: Author("Brian Kernighan")]</span>        <span class="c1">// Error</span>
+<span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+</code></pre>
+<p>By convention, attribute classes are named with a suffix of <code class="prettyprint">Attribute</code>. An <em>attribute_name</em> of the form <em>type_name</em> may either include or omit this suffix. If an attribute class is found both with and without this suffix, an ambiguity is present, and a compile-time error results. If the <em>attribute_name</em> is spelled such that its right-most <em>identifier</em> is a verbatim identifier (<a href="lexical-structure.md#identifiers">Identifiers</a>), then only an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.All)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">X</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{}</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.All)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">XAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{}</span>
+
+<span class="na">[X]</span>                     <span class="c1">// Error: ambiguity</span>
+<span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+
+<span class="na">[XAttribute]</span>            <span class="c1">// Refers to XAttribute</span>
+<span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>
+
+<span class="na">[@X]</span>                    <span class="c1">// Refers to X</span>
+<span class="k">class</span> <span class="nc">Class3</span> <span class="p">{}</span>
+
+<span class="na">[@XAttribute]</span>           <span class="c1">// Refers to XAttribute</span>
+<span class="k">class</span> <span class="nc">Class4</span> <span class="p">{}</span>
+</code></pre>
+<p>shows two attribute classes named <code class="prettyprint">X</code> and <code class="prettyprint">XAttribute</code>. The attribute <code class="prettyprint">[X]</code> is ambiguous, since it could refer to either <code class="prettyprint">X</code> or <code class="prettyprint">XAttribute</code>. Using a verbatim identifier allows the exact intent to be specified in such rare cases. The attribute <code class="prettyprint">[XAttribute]</code> is not ambiguous (although it would be if there was an attribute class named <code class="prettyprint">XAttributeAttribute</code>!). If the declaration for class <code class="prettyprint">X</code> is removed, then both attributes refer to the attribute class named <code class="prettyprint">XAttribute</code>, as follows:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.All)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">XAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{}</span>
+
+<span class="na">[X]</span>                     <span class="c1">// Refers to XAttribute</span>
+<span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+
+<span class="na">[XAttribute]</span>            <span class="c1">// Refers to XAttribute</span>
+<span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>
+
+<span class="na">[@X]</span>                    <span class="c1">// Error: no attribute named "X"</span>
+<span class="k">class</span> <span class="nc">Class3</span> <span class="p">{}</span>
+</code></pre>
+<p>It is a compile-time error to use a single-use attribute class more than once on the same entity. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.Class)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">HelpStringAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{</span>
+    <span class="kt">string</span> <span class="k">value</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">HelpStringAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="k">value</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Value</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{...}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="na">[HelpString("Description of Class1")]</span>
+<span class="na">[HelpString("Another description of Class1")]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+</code></pre>
+<p>results in a compile-time error because it attempts to use <code class="prettyprint">HelpString</code>, which is a single-use attribute class, more than once on the declaration of <code class="prettyprint">Class1</code>.</p>
+
+<p>An expression <code class="prettyprint">E</code> is an <em>attribute_argument_expression</em> if all of the following statements are true:</p>
+
+<ul>
+<li> The type of <code class="prettyprint">E</code> is an attribute parameter type (<a href="attributes.md#attribute-parameter-types">Attribute parameter types</a>).</li>
+<li> At compile-time, the value of <code class="prettyprint">E</code> can be resolved to one of the following:
+
+<ul>
+<li>A constant value.</li>
+<li>A <code class="prettyprint">System.Type</code> object.</li>
+<li>A one-dimensional array of *attribute_argument_expression*s.</li>
+</ul></li>
+</ul>
+
+<p>For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="na">[AttributeUsage(AttributeTargets.Class)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">TestAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">P1</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{...}</span>
+        <span class="k">set</span> <span class="p">{...}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">Type</span> <span class="n">P2</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{...}</span>
+        <span class="k">set</span> <span class="p">{...}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">object</span> <span class="n">P3</span> <span class="p">{</span>
+        <span class="k">get</span> <span class="p">{...}</span>
+        <span class="k">set</span> <span class="p">{...}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="na">[Test(P1 = 1234, P3 = new int[]</span> <span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">5</span><span class="p">},</span> <span class="n">P2</span> <span class="p">=</span> <span class="k">typeof</span><span class="p">(</span><span class="kt">float</span><span class="p">))]</span>
+<span class="k">class</span> <span class="nc">MyClass</span> <span class="p">{}</span>
+</code></pre>
+<p>A <em>typeof_expression</em> (<a href="expressions.md#the-typeof-operator">The typeof operator</a>) used as an attribute argument expression can reference a non-generic type, a closed constructed type, or an unbound generic type, but it cannot reference an open type. This is to ensure that the expression can be resolved at compile-time.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">A</span><span class="p">:</span> <span class="n">Attribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">A</span><span class="p">(</span><span class="n">Type</span> <span class="n">t</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">G</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">A</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">T</span><span class="p">))]</span> <span class="n">T</span> <span class="n">t</span><span class="p">;</span>                  <span class="c1">// Error, open type in attribute</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">X</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">A</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">List</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;))]</span> <span class="kt">int</span> <span class="n">x</span><span class="p">;</span>        <span class="c1">// Ok, closed constructed type</span>
+    <span class="p">[</span><span class="nf">A</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">List</span><span class="p">&lt;&gt;))]</span> <span class="kt">int</span> <span class="n">y</span><span class="p">;</span>           <span class="c1">// Ok, unbound generic type</span>
+<span class="p">}</span>
+</code></pre>
+<h2 id="attribute-instances">Attribute instances</h2>
+
+<p>An <strong><em>attribute instance</em></strong> is an instance that represents an attribute at run-time. An attribute is defined with an attribute class, positional arguments, and named arguments. An attribute instance is an instance of the attribute class that is initialized with the positional and named arguments.</p>
+
+<p>Retrieval of an attribute instance involves both compile-time and run-time processing, as described in the following sections.</p>
+
+<h3 id="compilation-of-an-attribute">Compilation of an attribute</h3>
+
+<p>The compilation of an <em>attribute</em> with attribute class <code class="prettyprint">T</code>, <em>positional_argument_list</em> <code class="prettyprint">P</code> and <em>named_argument_list</em> <code class="prettyprint">N</code>, consists of the following steps:</p>
+
+<ul>
+<li> Follow the compile-time processing steps for compiling an <em>object_creation_expression</em> of the form <code class="prettyprint">new T(P)</code>. These steps either result in a compile-time error, or determine an instance constructor <code class="prettyprint">C</code> on <code class="prettyprint">T</code> that can be invoked at run-time.</li>
+<li> If <code class="prettyprint">C</code> does not have public accessibility, then a compile-time error occurs.</li>
+<li> For each <em>named_argument</em> <code class="prettyprint">Arg</code> in <code class="prettyprint">N</code>:
+
+<ul>
+<li>Let <code class="prettyprint">Name</code> be the <em>identifier</em> of the <em>named_argument</em> <code class="prettyprint">Arg</code>.</li>
+<li><code class="prettyprint">Name</code> must identify a non-static read-write public field or property on <code class="prettyprint">T</code>. If <code class="prettyprint">T</code> has no such field or property, then a compile-time error occurs.</li>
+</ul></li>
+<li> Keep the following information for run-time instantiation of the attribute: the attribute class <code class="prettyprint">T</code>, the instance constructor <code class="prettyprint">C</code> on <code class="prettyprint">T</code>, the <em>positional_argument_list</em> <code class="prettyprint">P</code> and the <em>named_argument_list</em> <code class="prettyprint">N</code>.</li>
+</ul>
+
+<h3 id="run-time-retrieval-of-an-attribute-instance">Run-time retrieval of an attribute instance</h3>
+
+<p>Compilation of an <em>attribute</em> yields an attribute class <code class="prettyprint">T</code>, an instance constructor <code class="prettyprint">C</code> on <code class="prettyprint">T</code>, a <em>positional_argument_list</em> <code class="prettyprint">P</code>, and a <em>named_argument_list</em> <code class="prettyprint">N</code>. Given this information, an attribute instance can be retrieved at run-time using the following steps:</p>
+
+<ul>
+<li> Follow the run-time processing steps for executing an <em>object_creation_expression</em> of the form <code class="prettyprint">new T(P)</code>, using the instance constructor <code class="prettyprint">C</code> as determined at compile-time. These steps either result in an exception, or produce an instance <code class="prettyprint">O</code> of <code class="prettyprint">T</code>.</li>
+<li> For each <em>named_argument</em> <code class="prettyprint">Arg</code> in <code class="prettyprint">N</code>, in order:
+
+<ul>
+<li>Let <code class="prettyprint">Name</code> be the <em>identifier</em> of the <em>named_argument</em> <code class="prettyprint">Arg</code>. If <code class="prettyprint">Name</code> does not identify a non-static public read-write field or property on <code class="prettyprint">O</code>, then an exception is thrown.</li>
+<li>Let <code class="prettyprint">Value</code> be the result of evaluating the <em>attribute_argument_expression</em> of <code class="prettyprint">Arg</code>.</li>
+<li>If <code class="prettyprint">Name</code> identifies a field on <code class="prettyprint">O</code>, then set this field to <code class="prettyprint">Value</code>.</li>
+<li>Otherwise, <code class="prettyprint">Name</code> identifies a property on <code class="prettyprint">O</code>. Set this property to <code class="prettyprint">Value</code>.</li>
+<li>The result is <code class="prettyprint">O</code>, an instance of the attribute class <code class="prettyprint">T</code> that has been initialized with the <em>positional_argument_list</em> <code class="prettyprint">P</code> and the <em>named_argument_list</em> <code class="prettyprint">N</code>.</li>
+</ul></li>
+</ul>
+
+<h2 id="reserved-attributes">Reserved attributes</h2>
+
+<p>A small number of attributes affect the language in some way. These attributes include:</p>
+
+<ul>
+<li> <code class="prettyprint">System.AttributeUsageAttribute</code> (<a href="attributes.md#the-attributeusage-attribute">The AttributeUsage attribute</a>), which is used to describe the ways in which an attribute class can be used.</li>
+<li> <code class="prettyprint">System.Diagnostics.ConditionalAttribute</code> (<a href="attributes.md#the-conditional-attribute">The Conditional attribute</a>), which is used to define conditional methods.</li>
+<li> <code class="prettyprint">System.ObsoleteAttribute</code> (<a href="attributes.md#the-obsolete-attribute">The Obsolete attribute</a>), which is used to mark a member as obsolete.</li>
+<li> <code class="prettyprint">System.Runtime.CompilerServices.CallerLineNumberAttribute</code>, <code class="prettyprint">System.Runtime.CompilerServices.CallerFilePathAttribute</code> and <code class="prettyprint">System.Runtime.CompilerServices.CallerMemberNameAttribute</code> (<a href="attributes.md#caller-info-attributes">Caller info attributes</a>), which are used to supply information about the calling context to optional parameters.</li>
+</ul>
+
+<h3 id="the-attributeusage-attribute">The AttributeUsage attribute</h3>
+
+<p>The attribute <code class="prettyprint">AttributeUsage</code> is used to describe the manner in which the attribute class can be used.</p>
+
+<p>A class that is decorated with the <code class="prettyprint">AttributeUsage</code> attribute must derive from <code class="prettyprint">System.Attribute</code>, either directly or indirectly. Otherwise, a compile-time error occurs.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span><span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Class</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">AttributeUsageAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="nf">AttributeUsageAttribute</span><span class="p">(</span><span class="n">AttributeTargets</span> <span class="n">validOn</span><span class="p">)</span> <span class="p">{...}</span>
+        <span class="k">public</span> <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">AllowMultiple</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="k">set</span> <span class="p">{...}</span> <span class="p">}</span>
+        <span class="k">public</span> <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">Inherited</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="k">set</span> <span class="p">{...}</span> <span class="p">}</span>
+        <span class="k">public</span> <span class="k">virtual</span> <span class="n">AttributeTargets</span> <span class="n">ValidOn</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">enum</span> <span class="n">AttributeTargets</span>
+    <span class="p">{</span>
+        <span class="n">Assembly</span>     <span class="p">=</span> <span class="m">0x0001</span><span class="p">,</span>
+        <span class="n">Module</span>       <span class="p">=</span> <span class="m">0x0002</span><span class="p">,</span>
+        <span class="n">Class</span>        <span class="p">=</span> <span class="m">0x0004</span><span class="p">,</span>
+        <span class="n">Struct</span>       <span class="p">=</span> <span class="m">0x0008</span><span class="p">,</span>
+        <span class="n">Enum</span>         <span class="p">=</span> <span class="m">0x0010</span><span class="p">,</span>
+        <span class="n">Constructor</span>  <span class="p">=</span> <span class="m">0x0020</span><span class="p">,</span>
+        <span class="n">Method</span>       <span class="p">=</span> <span class="m">0x0040</span><span class="p">,</span>
+        <span class="n">Property</span>     <span class="p">=</span> <span class="m">0x0080</span><span class="p">,</span>
+        <span class="n">Field</span>        <span class="p">=</span> <span class="m">0x0100</span><span class="p">,</span>
+        <span class="n">Event</span>        <span class="p">=</span> <span class="m">0x0200</span><span class="p">,</span>
+        <span class="n">Interface</span>    <span class="p">=</span> <span class="m">0x0400</span><span class="p">,</span>
+        <span class="n">Parameter</span>    <span class="p">=</span> <span class="m">0x0800</span><span class="p">,</span>
+        <span class="n">Delegate</span>     <span class="p">=</span> <span class="m">0x1000</span><span class="p">,</span>
+        <span class="n">ReturnValue</span>  <span class="p">=</span> <span class="m">0x2000</span><span class="p">,</span>
+
+        <span class="n">All</span> <span class="p">=</span> <span class="n">Assembly</span> <span class="p">|</span> <span class="n">Module</span> <span class="p">|</span> <span class="n">Class</span> <span class="p">|</span> <span class="n">Struct</span> <span class="p">|</span> <span class="n">Enum</span> <span class="p">|</span> <span class="n">Constructor</span> <span class="p">|</span> 
+            <span class="n">Method</span> <span class="p">|</span> <span class="n">Property</span> <span class="p">|</span> <span class="n">Field</span> <span class="p">|</span> <span class="n">Event</span> <span class="p">|</span> <span class="n">Interface</span> <span class="p">|</span> <span class="n">Parameter</span> <span class="p">|</span> 
+            <span class="n">Delegate</span> <span class="p">|</span> <span class="n">ReturnValue</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="the-conditional-attribute">The Conditional attribute</h3>
+
+<p>The attribute <code class="prettyprint">Conditional</code> enables the definition of <strong><em>conditional methods</em></strong> and <strong><em>conditional attribute classes</em></strong>.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System.Diagnostics</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span><span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Method</span> <span class="p">|</span> <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Class</span><span class="p">,</span> <span class="n">AllowMultiple</span> <span class="p">=</span> <span class="k">true</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ConditionalAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="nf">ConditionalAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">conditionString</span><span class="p">)</span> <span class="p">{...}</span>
+        <span class="k">public</span> <span class="kt">string</span> <span class="n">ConditionString</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h4 id="conditional-methods">Conditional methods</h4>
+
+<p>A method decorated with the <code class="prettyprint">Conditional</code> attribute is a conditional method. The <code class="prettyprint">Conditional</code> attribute indicates a condition by testing a conditional compilation symbol. Calls to a conditional method are either included or omitted depending on whether this symbol is defined at the point of the call. If the symbol is defined, the call is included; otherwise, the call (including evaluation of the receiver and parameters of the call) is omitted.</p>
+
+<p>A conditional method is subject to the following restrictions:</p>
+
+<ul>
+<li> The conditional method must be a method in a <em>class_declaration</em> or <em>struct_declaration</em>. A compile-time error occurs if the <code class="prettyprint">Conditional</code> attribute is specified on a method in an interface declaration.</li>
+<li> The conditional method must have a return type of <code class="prettyprint">void</code>.</li>
+<li> The conditional method must not be marked with the <code class="prettyprint">override</code> modifier. A conditional method may be marked with the <code class="prettyprint">virtual</code> modifier, however. Overrides of such a method are implicitly conditional, and must not be explicitly marked with a <code class="prettyprint">Conditional</code> attribute.</li>
+<li> The conditional method must not be an implementation of an interface method. Otherwise, a compile-time error occurs.</li>
+</ul>
+
+<p>In addition, a compile-time error occurs if a conditional method is used in a <em>delegate_creation_expression</em>. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+</span>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Class1</span> 
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">Conditional</span><span class="p">(</span><span class="s">"DEBUG"</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Executed Class1.M"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Class2</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Test</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Class1</span><span class="p">.</span><span class="nf">M</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>declares <code class="prettyprint">Class1.M</code> as a conditional method. <code class="prettyprint">Class2</code>&lsquo;s <code class="prettyprint">Test</code> method calls this method. Since the conditional compilation symbol <code class="prettyprint">DEBUG</code> is defined, if <code class="prettyprint">Class2.Test</code> is called, it will call <code class="prettyprint">M</code>. If the symbol <code class="prettyprint">DEBUG</code> had not been defined, then <code class="prettyprint">Class2.Test</code> would not call <code class="prettyprint">Class1.M</code>.</p>
+
+<p>It is important to note that the inclusion or exclusion of a call to a conditional method is controlled by the conditional compilation symbols at the point of the call. In the example</p>
+
+<p>File <code class="prettyprint">class1.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Class1</span> 
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">Conditional</span><span class="p">(</span><span class="s">"DEBUG"</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Executed Class1.F"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>File <code class="prettyprint">class2.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+</span>
+<span class="k">class</span> <span class="nc">Class2</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">G</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Class1</span><span class="p">.</span><span class="nf">F</span><span class="p">();</span>                <span class="c1">// F is called</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>File <code class="prettyprint">class3.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="cp">#undef DEBUG
+</span>
+<span class="k">class</span> <span class="nc">Class3</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">H</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Class1</span><span class="p">.</span><span class="nf">F</span><span class="p">();</span>                <span class="c1">// F is not called</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>the classes <code class="prettyprint">Class2</code> and <code class="prettyprint">Class3</code> each contain calls to the conditional method <code class="prettyprint">Class1.F</code>, which is conditional based on whether or not <code class="prettyprint">DEBUG</code> is defined. Since this symbol is defined in the context of <code class="prettyprint">Class2</code> but not <code class="prettyprint">Class3</code>, the call to <code class="prettyprint">F</code> in <code class="prettyprint">Class2</code> is included, while the call to <code class="prettyprint">F</code> in <code class="prettyprint">Class3</code> is omitted.</p>
+
+<p>The use of conditional methods in an inheritance chain can be confusing. Calls made to a conditional method through <code class="prettyprint">base</code>, of the form <code class="prettyprint">base.M</code>, are subject to the normal conditional method call rules. In the example</p>
+
+<p>File <code class="prettyprint">class1.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Class1</span> 
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">Conditional</span><span class="p">(</span><span class="s">"DEBUG"</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">M</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Class1.M executed"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>File <code class="prettyprint">class2.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Class2</span><span class="p">:</span> <span class="n">Class1</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">M</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Class2.M executed"</span><span class="p">);</span>
+        <span class="k">base</span><span class="p">.</span><span class="nf">M</span><span class="p">();</span>                        <span class="c1">// base.M is not called!</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>File <code class="prettyprint">class3.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+</span>
+<span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Class3</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Test</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Class2</span> <span class="n">c</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Class2</span><span class="p">();</span>
+        <span class="n">c</span><span class="p">.</span><span class="nf">M</span><span class="p">();</span>                            <span class="c1">// M is called</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code class="prettyprint">Class2</code> includes a call to the <code class="prettyprint">M</code> defined in its base class. This call is omitted because the base method is conditional based on the presence of the symbol <code class="prettyprint">DEBUG</code>, which is undefined. Thus, the method writes to the console &ldquo;<code class="prettyprint">Class2.M executed</code>&rdquo; only. Judicious use of *pp_declaration*s can eliminate such problems.</p>
+
+<h4 id="conditional-attribute-classes">Conditional attribute classes</h4>
+
+<p>An attribute class (<a href="attributes.md#attribute-classes">Attribute classes</a>) decorated with one or more <code class="prettyprint">Conditional</code> attributes is a <strong><em>conditional attribute class</em></strong>. A conditional attribute class is thus associated with the conditional compilation symbols declared in its <code class="prettyprint">Conditional</code> attributes. This example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+<span class="na">[Conditional("ALPHA")]</span>
+<span class="na">[Conditional("BETA")]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">TestAttribute</span> <span class="p">:</span> <span class="n">Attribute</span> <span class="p">{}</span>
+</code></pre>
+<p>declares <code class="prettyprint">TestAttribute</code> as a conditional attribute class associated with the conditional compilations symbols <code class="prettyprint">ALPHA</code> and <code class="prettyprint">BETA</code>.</p>
+
+<p>Attribute specifications (<a href="attributes.md#attribute-specification">Attribute specification</a>) of a conditional attribute are included if one or more of its associated conditional compilation symbols is defined at the point of specification, otherwise the attribute specification is omitted.</p>
+
+<p>It is important to note that the inclusion or exclusion of an attribute specification of a conditional attribute class is controlled by the conditional compilation symbols at the point of the specification. In the example</p>
+
+<p>File <code class="prettyprint">test.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+
+<span class="na">[Conditional("DEBUG")]</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">TestAttribute</span> <span class="p">:</span> <span class="n">Attribute</span> <span class="p">{}</span>
+</code></pre>
+<p>File <code class="prettyprint">class1.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="cp">#define DEBUG
+</span>
+<span class="na">[Test]</span>                <span class="c1">// TestAttribute is specified</span>
+
+<span class="k">class</span> <span class="nc">Class1</span> <span class="p">{}</span>
+</code></pre>
+<p>File <code class="prettyprint">class2.cs</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="cp">#undef DEBUG
+</span>
+<span class="na">[Test]</span>                 <span class="c1">// TestAttribute is not specified</span>
+
+<span class="k">class</span> <span class="nc">Class2</span> <span class="p">{}</span>
+</code></pre>
+<p>the classes <code class="prettyprint">Class1</code> and <code class="prettyprint">Class2</code> are each decorated with attribute <code class="prettyprint">Test</code>, which is conditional based on whether or not <code class="prettyprint">DEBUG</code> is defined. Since this symbol is defined in the context of <code class="prettyprint">Class1</code> but not <code class="prettyprint">Class2</code>, the specification of the <code class="prettyprint">Test</code> attribute on <code class="prettyprint">Class1</code> is included, while the specification of the <code class="prettyprint">Test</code> attribute on <code class="prettyprint">Class2</code> is omitted.</p>
+
+<h3 id="the-obsolete-attribute">The Obsolete attribute</h3>
+
+<p>The attribute <code class="prettyprint">Obsolete</code> is used to mark types and members of types that should no longer be used.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span>
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Class</span> <span class="p">|</span> 
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Struct</span> <span class="p">|</span>
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Enum</span> <span class="p">|</span> 
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Interface</span> <span class="p">|</span> 
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Delegate</span> <span class="p">|</span>
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Method</span> <span class="p">|</span> 
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Constructor</span> <span class="p">|</span>
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Property</span> <span class="p">|</span> 
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Field</span> <span class="p">|</span>
+        <span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">Inherited</span> <span class="p">=</span> <span class="k">false</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ObsoleteAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="nf">ObsoleteAttribute</span><span class="p">()</span> <span class="p">{...}</span>
+        <span class="k">public</span> <span class="nf">ObsoleteAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span> <span class="p">{...}</span>
+        <span class="k">public</span> <span class="nf">ObsoleteAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">error</span><span class="p">)</span> <span class="p">{...}</span>
+        <span class="k">public</span> <span class="kt">string</span> <span class="n">Message</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="p">}</span>
+        <span class="k">public</span> <span class="kt">bool</span> <span class="n">IsError</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>If a program uses a type or member that is decorated with the <code class="prettyprint">Obsolete</code> attribute, the compiler issues a warning or an error. Specifically, the compiler issues a warning if no error parameter is provided, or if the error parameter is provided and has the value <code class="prettyprint">false</code>. The compiler issues an error if the error parameter is specified and has the value <code class="prettyprint">true</code>.</p>
+
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="na">[Obsolete("This class is obsolete; use class B instead")]</span>
+<span class="k">class</span> <span class="nc">A</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">B</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">A</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">A</span><span class="p">();</span>         <span class="c1">// Warning</span>
+        <span class="n">a</span><span class="p">.</span><span class="nf">F</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>the class <code class="prettyprint">A</code> is decorated with the <code class="prettyprint">Obsolete</code> attribute. Each use of <code class="prettyprint">A</code> in <code class="prettyprint">Main</code> results in a warning that includes the specified message, &ldquo;This class is obsolete; use class B instead.&rdquo;</p>
+
+<h3 id="caller-info-attributes">Caller info attributes</h3>
+
+<p>For purposes such as logging and reporting, it is sometimes useful for a function member to obtain certain compile-time information about the calling code. The caller info attributes provide a way to pass such information transparently.</p>
+
+<p>When an optional parameter is annotated with one of the caller info attributes, omitting the corresponding argument in a call does not necessarily cause the default parameter value to be substituted. Instead, if the specified information about the calling context is available, that information will be passed as the argument value.</p>
+
+<p>For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System.Runtime.CompilerServices</span>
+
+<span class="p">...</span>
+
+<span class="k">public</span> <span class="k">void</span> <span class="nf">Log</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">CallerLineNumber</span><span class="p">]</span> <span class="kt">int</span> <span class="n">line</span> <span class="p">=</span> <span class="p">-</span><span class="m">1</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">CallerFilePath</span><span class="p">]</span>   <span class="kt">string</span> <span class="n">path</span> <span class="p">=</span> <span class="k">null</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">CallerMemberName</span><span class="p">]</span> <span class="kt">string</span> <span class="n">name</span> <span class="p">=</span> <span class="k">null</span>
+<span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">((</span><span class="n">line</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">)</span> <span class="p">?</span> <span class="s">"No line"</span> <span class="p">:</span> <span class="s">"Line "</span><span class="p">+</span> <span class="n">line</span><span class="p">);</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">((</span><span class="n">path</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">?</span> <span class="s">"No file path"</span> <span class="p">:</span> <span class="n">path</span><span class="p">);</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">((</span><span class="n">name</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">?</span> <span class="s">"No member name"</span> <span class="p">:</span> <span class="n">name</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+<p>A call to <code class="prettyprint">Log()</code> with no arguments would print the line number and file path of the call, as well as the name of the member within which the call occurred.</p>
+
+<p>Caller info attributes can occur on optional parameters anywhere, including in delegate declarations. However, the specific caller info attributes have restrictions on the types of the parameters they can attribute, so that there will always be an implicit conversion from a substituted value to the parameter type.</p>
+
+<p>It is an error to have the same caller info attribute on a parameter of both the defining and implementing part of a partial method declaration. Only caller info attributes in the defining part are applied, whereas caller info attributes occurring only in the implementing part are ignored.</p>
+
+<p>Caller information does not affect overload resolution. As the attributed optional parameters are still omitted from the source code of the caller, overload resolution ignores those parameters in the same way it ignores other omitted optional parameters (<a href="expressions.md#overload-resolution">Overload resolution</a>).</p>
+
+<p>Caller information is only substituted when a function is explicitly invoked in source code. Implicit invocations such as implicit parent constructor calls do not have a source location and will not substitute caller information. Also, calls that are dynamically bound will not substitute caller information. When a caller info attributed parameter is omitted in such cases, the specified default value of the parameter is used instead.</p>
+
+<p>One exception is query-expressions. These are considered syntactic expansions, and if the calls they expand to omit optional parameters with caller info attributes, caller information will be substituted. The location used is the location of the query clause which the call was generated from.</p>
+
+<p>If more than one caller info attribute is specified on a given parameter, they are preferred in the following order: <code class="prettyprint">CallerLineNumber</code>, <code class="prettyprint">CallerFilePath</code>, <code class="prettyprint">CallerMemberName</code>.</p>
+
+<h4 id="the-callerlinenumber-attribute">The CallerLineNumber attribute</h4>
+
+<p>The <code class="prettyprint">System.Runtime.CompilerServices.CallerLineNumberAttribute</code> is allowed on optional parameters when there is a standard implicit conversion (<a href="conversions.md#standard-implicit-conversions">Standard implicit conversions</a>) from the constant value <code class="prettyprint">int.MaxValue</code> to the parameter&rsquo;s type. This ensures that any non-negative line number up to that value can be passed without error.</p>
+
+<p>If a function invocation from a location in source code omits an optional parameter with the <code class="prettyprint">CallerLineNumberAttribute</code>, then a numeric literal representing that location&rsquo;s line number is used as an argument to the invocation instead of the default parameter value.</p>
+
+<p>If the invocation spans multiple lines, the line chosen is implementation-dependent.</p>
+
+<p>Note that the line number may be affected by <code class="prettyprint">#line</code> directives (<a href="lexical-structure.md#line-directives">Line directives</a>).</p>
+
+<h4 id="the-callerfilepath-attribute">The CallerFilePath attribute</h4>
+
+<p>The <code class="prettyprint">System.Runtime.CompilerServices.CallerFilePathAttribute</code> is allowed on optional parameters when there is a standard implicit conversion (<a href="conversions.md#standard-implicit-conversions">Standard implicit conversions</a>) from <code class="prettyprint">string</code> to the parameter&rsquo;s type.</p>
+
+<p>If a function invocation from a location in source code omits an optional parameter with the <code class="prettyprint">CallerFilePathAttribute</code>, then a string literal representing that location&rsquo;s file path is used as an argument to the invocation instead of the default parameter value.</p>
+
+<p>The format of the file path is implementation-dependent.</p>
+
+<p>Note that the file path may be affected by <code class="prettyprint">#line</code> directives (<a href="lexical-structure.md#line-directives">Line directives</a>).</p>
+
+<h4 id="the-callermembername-attribute">The CallerMemberName attribute</h4>
+
+<p>The <code class="prettyprint">System.Runtime.CompilerServices.CallerMemberNameAttribute</code> is allowed on optional parameters when there is a standard implicit conversion (<a href="conversions.md#standard-implicit-conversions">Standard implicit conversions</a>) from <code class="prettyprint">string</code> to the parameter&rsquo;s type.</p>
+
+<p>If a function invocation from a location within the body of a function member or within an attribute applied to the function member itself or its return type, parameters or type parameters in source code omits an optional parameter with the <code class="prettyprint">CallerMemberNameAttribute</code>, then a string literal representing the name of that member is used as an argument to the invocation instead of the default parameter value.</p>
+
+<p>For invocations that occur within generic methods, only the method name itself is used, without the type parameter list.</p>
+
+<p>For invocations that occur within explicit interface member implementations, only the method name itself is used, without the preceding interface qualification.</p>
+
+<p>For invocations that occur within property or event accessors, the member name used is that of the property or event itself.</p>
+
+<p>For invocations that occur within indexer accessors, the member name used is that supplied by an <code class="prettyprint">IndexerNameAttribute</code> (<a href="attributes.md#the-indexername-attribute">The IndexerName attribute</a>) on the indexer member, if present, or the default name <code class="prettyprint">Item</code> otherwise.</p>
+
+<p>For invocations that occur within declarations of instance constructors, static constructors, destructors and operators the member name used is implementation-dependent.</p>
+
+<h2 id="attributes-for-interoperation">Attributes for Interoperation</h2>
+
+<p>Note: This section is applicable only to the Microsoft .NET implementation of C#.</p>
+
+<h3 id="interoperation-with-com-and-win32-components">Interoperation with COM and Win32 components</h3>
+
+<p>The .NET run-time provides a large number of attributes that enable C# programs to interoperate with components written using COM and Win32 DLLs. For example, the <code class="prettyprint">DllImport</code> attribute can be used on a <code class="prettyprint">static extern</code> method to indicate that the implementation of the method is to be found in a Win32 DLL. These attributes are found in the <code class="prettyprint">System.Runtime.InteropServices</code> namespace, and detailed documentation for these attributes is found in the .NET runtime documentation.</p>
+
+<h3 id="interoperation-with-other-net-languages">Interoperation with other .NET languages</h3>
+
+<h4 id="the-indexername-attribute">The IndexerName attribute</h4>
+
+<p>Indexers are implemented in .NET using indexed properties, and have a name in the .NET metadata. If no <code class="prettyprint">IndexerName</code> attribute is present for an indexer, then the name <code class="prettyprint">Item</code> is used by default. The <code class="prettyprint">IndexerName</code> attribute enables a developer to override this default and specify a different name.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">namespace</span> <span class="nn">System.Runtime.CompilerServices.CSharp</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="nf">AttributeUsage</span><span class="p">(</span><span class="n">AttributeTargets</span><span class="p">.</span><span class="n">Property</span><span class="p">)]</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">IndexerNameAttribute</span><span class="p">:</span> <span class="n">Attribute</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="nf">IndexerNameAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">indexerName</span><span class="p">)</span> <span class="p">{...}</span>
+        <span class="k">public</span> <span class="kt">string</span> <span class="n">Value</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{...}</span> <span class="p">}</span> 
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>

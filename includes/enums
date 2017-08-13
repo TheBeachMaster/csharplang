@@ -1,0 +1,173 @@
+<h1 id="enums">Enums</h1>
+
+<p>An <strong><em>enum type</em></strong> is a distinct value type (<a href="types.md#value-types">Value types</a>) that declares a set of named constants.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">enum</span> <span class="n">Color</span>
+<span class="p">{</span>
+    <span class="n">Red</span><span class="p">,</span>
+    <span class="n">Green</span><span class="p">,</span>
+    <span class="n">Blue</span>
+<span class="p">}</span>
+</code></pre>
+<p>declares an enum type named <code class="prettyprint">Color</code> with members <code class="prettyprint">Red</code>, <code class="prettyprint">Green</code>, and <code class="prettyprint">Blue</code>.</p>
+
+<h2 id="enum-declarations">Enum declarations</h2>
+
+<p>An enum declaration declares a new enum type. An enum declaration begins with the keyword <code class="prettyprint">enum</code>, and defines the name, accessibility, underlying type, and members of the enum.</p>
+<pre class="highlight shell"><code>enum_declaration
+    : attributes? enum_modifier<span class="k">*</span> <span class="s1">'enum'</span> identifier enum_base? enum_body <span class="s1">';'</span>?
+    ;
+
+enum_base
+    : <span class="s1">':'</span> integral_type
+    ;
+
+enum_body
+    : <span class="s1">'{'</span> enum_member_declarations? <span class="s1">'}'</span>
+    | <span class="s1">'{'</span> enum_member_declarations <span class="s1">','</span> <span class="s1">'}'</span>
+    ;
+</code></pre>
+<p>Each enum type has a corresponding integral type called the <strong><em>underlying type</em></strong> of the enum type. This underlying type must be able to represent all the enumerator values defined in the enumeration. An enum declaration may explicitly declare an underlying type of <code class="prettyprint">byte</code>, <code class="prettyprint">sbyte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code> or <code class="prettyprint">ulong</code>. Note that <code class="prettyprint">char</code> cannot be used as an underlying type. An enum declaration that does not explicitly declare an underlying type has an underlying type of <code class="prettyprint">int</code>.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">enum</span> <span class="n">Color</span><span class="p">:</span> <span class="kt">long</span>
+<span class="p">{</span>
+    <span class="n">Red</span><span class="p">,</span>
+    <span class="n">Green</span><span class="p">,</span>
+    <span class="n">Blue</span>
+<span class="p">}</span>
+</code></pre>
+<p>declares an enum with an underlying type of <code class="prettyprint">long</code>. A developer might choose to use an underlying type of <code class="prettyprint">long</code>, as in the example, to enable the use of values that are in the range of <code class="prettyprint">long</code> but not in the range of <code class="prettyprint">int</code>, or to preserve this option for the future.</p>
+
+<h2 id="enum-modifiers">Enum modifiers</h2>
+
+<p>An <em>enum_declaration</em> may optionally include a sequence of enum modifiers:</p>
+<pre class="highlight shell"><code>enum_modifier
+    : <span class="s1">'new'</span>
+    | <span class="s1">'public'</span>
+    | <span class="s1">'protected'</span>
+    | <span class="s1">'internal'</span>
+    | <span class="s1">'private'</span>
+    ;
+</code></pre>
+<p>It is a compile-time error for the same modifier to appear multiple times in an enum declaration.</p>
+
+<p>The modifiers of an enum declaration have the same meaning as those of a class declaration (<a href="classes.md#class-modifiers">Class modifiers</a>). Note, however, that the <code class="prettyprint">abstract</code> and <code class="prettyprint">sealed</code> modifiers are not permitted in an enum declaration. Enums cannot be abstract and do not permit derivation.</p>
+
+<h2 id="enum-members">Enum members</h2>
+
+<p>The body of an enum type declaration defines zero or more enum members, which are the named constants of the enum type. No two enum members can have the same name.</p>
+<pre class="highlight shell"><code>enum_member_declarations
+    : enum_member_declaration <span class="o">(</span><span class="s1">','</span> enum_member_declaration<span class="o">)</span><span class="k">*</span>
+    ;
+
+enum_member_declaration
+    : attributes? identifier <span class="o">(</span><span class="s1">'='</span> constant_expression<span class="o">)</span>?
+    ;
+</code></pre>
+<p>Each enum member has an associated constant value. The type of this value is the underlying type for the containing enum. The constant value for each enum member must be in the range of the underlying type for the enum. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">enum</span> <span class="n">Color</span><span class="p">:</span> <span class="kt">uint</span>
+<span class="p">{</span>
+    <span class="n">Red</span> <span class="p">=</span> <span class="p">-</span><span class="m">1</span><span class="p">,</span>
+    <span class="n">Green</span> <span class="p">=</span> <span class="p">-</span><span class="m">2</span><span class="p">,</span>
+    <span class="n">Blue</span> <span class="p">=</span> <span class="p">-</span><span class="m">3</span>
+<span class="p">}</span>
+</code></pre>
+<p>results in a compile-time error because the constant values <code class="prettyprint">-1</code>, <code class="prettyprint">-2</code>, and <code class="prettyprint">-3</code> are not in the range of the underlying integral type <code class="prettyprint">uint</code>.</p>
+
+<p>Multiple enum members may share the same associated value. The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">enum</span> <span class="n">Color</span> 
+<span class="p">{</span>
+    <span class="n">Red</span><span class="p">,</span>
+    <span class="n">Green</span><span class="p">,</span>
+    <span class="n">Blue</span><span class="p">,</span>
+
+    <span class="n">Max</span> <span class="p">=</span> <span class="n">Blue</span>
+<span class="p">}</span>
+</code></pre>
+<p>shows an enum in which two enum members &ndash; <code class="prettyprint">Blue</code> and <code class="prettyprint">Max</code> &ndash; have the same associated value.</p>
+
+<p>The associated value of an enum member is assigned either implicitly or explicitly. If the declaration of the enum member has a <em>constant_expression</em> initializer, the value of that constant expression, implicitly converted to the underlying type of the enum, is the associated value of the enum member. If the declaration of the enum member has no initializer, its associated value is set implicitly, as follows:</p>
+
+<ul>
+<li> If the enum member is the first enum member declared in the enum type, its associated value is zero.</li>
+<li> Otherwise, the associated value of the enum member is obtained by increasing the associated value of the textually preceding enum member by one. This increased value must be within the range of values that can be represented by the underlying type, otherwise a compile-time error occurs.</li>
+</ul>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">enum</span> <span class="n">Color</span>
+<span class="p">{</span>
+    <span class="n">Red</span><span class="p">,</span>
+    <span class="n">Green</span> <span class="p">=</span> <span class="m">10</span><span class="p">,</span>
+    <span class="n">Blue</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">StringFromColor</span><span class="p">(</span><span class="n">Color</span><span class="p">.</span><span class="n">Red</span><span class="p">));</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">StringFromColor</span><span class="p">(</span><span class="n">Color</span><span class="p">.</span><span class="n">Green</span><span class="p">));</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">StringFromColor</span><span class="p">(</span><span class="n">Color</span><span class="p">.</span><span class="n">Blue</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="kt">string</span> <span class="nf">StringFromColor</span><span class="p">(</span><span class="n">Color</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="n">Color</span><span class="p">.</span><span class="n">Red</span><span class="p">:</span> 
+                <span class="k">return</span> <span class="n">String</span><span class="p">.</span><span class="nf">Format</span><span class="p">(</span><span class="s">"Red = {0}"</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="n">c</span><span class="p">);</span>
+
+            <span class="k">case</span> <span class="n">Color</span><span class="p">.</span><span class="n">Green</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">String</span><span class="p">.</span><span class="nf">Format</span><span class="p">(</span><span class="s">"Green = {0}"</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="n">c</span><span class="p">);</span>
+
+            <span class="k">case</span> <span class="n">Color</span><span class="p">.</span><span class="n">Blue</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">String</span><span class="p">.</span><span class="nf">Format</span><span class="p">(</span><span class="s">"Blue = {0}"</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="n">c</span><span class="p">);</span>
+
+            <span class="k">default</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">"Invalid color"</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>prints out the enum member names and their associated values. The output is:</p>
+<pre class="highlight shell"><code>Red <span class="o">=</span> 0
+Green <span class="o">=</span> 10
+Blue <span class="o">=</span> 11
+</code></pre>
+<p>for the following reasons:</p>
+
+<ul>
+<li> the enum member <code class="prettyprint">Red</code> is automatically assigned the value zero (since it has no initializer and is the first enum member);</li>
+<li> the enum member <code class="prettyprint">Green</code> is explicitly given the value <code class="prettyprint">10</code>;</li>
+<li> and the enum member <code class="prettyprint">Blue</code> is automatically assigned the value one greater than the member that textually precedes it.</li>
+</ul>
+
+<p>The associated value of an enum member may not, directly or indirectly, use the value of its own associated enum member. Other than this circularity restriction, enum member initializers may freely refer to other enum member initializers, regardless of their textual position. Within an enum member initializer, values of other enum members are always treated as having the type of their underlying type, so that casts are not necessary when referring to other enum members.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">enum</span> <span class="n">Circular</span>
+<span class="p">{</span>
+    <span class="n">A</span> <span class="p">=</span> <span class="n">B</span><span class="p">,</span>
+    <span class="n">B</span>
+<span class="p">}</span>
+</code></pre>
+<p>results in a compile-time error because the declarations of <code class="prettyprint">A</code> and <code class="prettyprint">B</code> are circular. <code class="prettyprint">A</code> depends on <code class="prettyprint">B</code> explicitly, and <code class="prettyprint">B</code> depends on <code class="prettyprint">A</code> implicitly.</p>
+
+<p>Enum members are named and scoped in a manner exactly analogous to fields within classes. The scope of an enum member is the body of its containing enum type. Within that scope, enum members can be referred to by their simple name. From all other code, the name of an enum member must be qualified with the name of its enum type. Enum members do not have any declared accessibility &ndash; an enum member is accessible if its containing enum type is accessible.</p>
+
+<h2 id="the-system-enum-type">The System.Enum type</h2>
+
+<p>The type <code class="prettyprint">System.Enum</code> is the abstract base class of all enum types (this is distinct and different from the underlying type of the enum type), and the members inherited from <code class="prettyprint">System.Enum</code> are available in any enum type. A boxing conversion (<a href="types.md#boxing-conversions">Boxing conversions</a>) exists from any enum type to <code class="prettyprint">System.Enum</code>, and an unboxing conversion (<a href="types.md#unboxing-conversions">Unboxing conversions</a>) exists from <code class="prettyprint">System.Enum</code> to any enum type.</p>
+
+<p>Note that <code class="prettyprint">System.Enum</code> is not itself an <em>enum_type</em>. Rather, it is a <em>class_type</em> from which all *enum_type*s are derived. The type <code class="prettyprint">System.Enum</code> inherits from the type <code class="prettyprint">System.ValueType</code> (<a href="types.md#the-systemvaluetype-type">The System.ValueType type</a>), which, in turn, inherits from type <code class="prettyprint">object</code>. At run-time, a value of type <code class="prettyprint">System.Enum</code> can be <code class="prettyprint">null</code> or a reference to a boxed value of any enum type.</p>
+
+<h2 id="enum-values-and-operations">Enum values and operations</h2>
+
+<p>Each enum type defines a distinct type; an explicit enumeration conversion (<a href="conversions.md#explicit-enumeration-conversions">Explicit enumeration conversions</a>) is required to convert between an enum type and an integral type, or between two enum types. The set of values that an enum type can take on is not limited by its enum members. In particular, any value of the underlying type of an enum can be cast to the enum type, and is a distinct valid value of that enum type.</p>
+
+<p>Enum members have the type of their containing enum type (except within other enum member initializers: see <a href="enums.md#enum-members">Enum members</a>). The value of an enum member declared in enum type <code class="prettyprint">E</code> with associated value <code class="prettyprint">v</code> is <code class="prettyprint">(E)v</code>.</p>
+
+<p>The following operators can be used on values of enum types: <code class="prettyprint">==</code>, <code class="prettyprint">!=</code>, <code class="prettyprint">&lt;</code>, <code class="prettyprint">&gt;</code>, <code class="prettyprint">&lt;=</code>, <code class="prettyprint">&gt;=</code> (<a href="expressions.md#enumeration-comparison-operators">Enumeration comparison operators</a>), binary <code class="prettyprint">+</code> (<a href="expressions.md#addition-operator">Addition operator</a>), binary <code class="prettyprint">-</code> (<a href="expressions.md#subtraction-operator">Subtraction operator</a>), <code class="prettyprint">^</code>, <code class="prettyprint">&amp;</code>, <code class="prettyprint">|</code> (<a href="expressions.md#enumeration-logical-operators">Enumeration logical operators</a>), <code class="prettyprint">~</code> (<a href="expressions.md#bitwise-complement-operator">Bitwise complement operator</a>), <code class="prettyprint">++</code> and <code class="prettyprint">--</code> (<a href="expressions.md#postfix-increment-and-decrement-operators">Postfix increment and decrement operators</a> and <a href="expressions.md#prefix-increment-and-decrement-operators">Prefix increment and decrement operators</a>).</p>
+
+<p>Every enum type automatically derives from the class <code class="prettyprint">System.Enum</code> (which, in turn, derives from <code class="prettyprint">System.ValueType</code> and <code class="prettyprint">object</code>). Thus, inherited methods and properties of this class can be used on values of an enum type.</p>

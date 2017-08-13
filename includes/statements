@@ -1,0 +1,1430 @@
+<h1 id="statements">Statements</h1>
+
+<p>C# provides a variety of statements. Most of these statements will be familiar to developers who have programmed in C and C++.</p>
+<pre class="highlight plaintext"><code>statement
+    : labeled_statement
+    | declaration_statement
+    | embedded_statement
+    ;
+
+embedded_statement
+    : block
+    | empty_statement
+    | expression_statement
+    | selection_statement
+    | iteration_statement
+    | jump_statement
+    | try_statement
+    | checked_statement
+    | unchecked_statement
+    | lock_statement
+    | using_statement
+    | yield_statement
+    | embedded_statement_unsafe
+    ;
+</code></pre>
+<p>The <em>embedded_statement</em> nonterminal is used for statements that appear within other statements. The use of <em>embedded_statement</em> rather than <em>statement</em> excludes the use of declaration statements and labeled statements in these contexts. The example
+<code class="prettyprint">csharp
+void F(bool b) {
+    if (b)
+        int i = 44;
+}
+</code>
+results in a compile-time error because an <code class="prettyprint">if</code> statement requires an <em>embedded_statement</em> rather than a <em>statement</em> for its if branch. If this code were permitted, then the variable <code class="prettyprint">i</code> would be declared, but it could never be used. Note, however, that by placing <code class="prettyprint">i</code>&lsquo;s declaration in a block, the example is valid.</p>
+
+<h2 id="end-points-and-reachability">End points and reachability</h2>
+
+<p>Every statement has an <strong><em>end point</em></strong>. In intuitive terms, the end point of a statement is the location that immediately follows the statement. The execution rules for composite statements (statements that contain embedded statements) specify the action that is taken when control reaches the end point of an embedded statement. For example, when control reaches the end point of a statement in a block, control is transferred to the next statement in the block.</p>
+
+<p>If a statement can possibly be reached by execution, the statement is said to be <strong><em>reachable</em></strong>. Conversely, if there is no possibility that a statement will be executed, the statement is said to be <strong><em>unreachable</em></strong>.</p>
+
+<p>In the example
+<code class="prettyprint">csharp
+void F() {
+    Console.WriteLine(&quot;reachable&quot;);
+    goto Label;
+    Console.WriteLine(&quot;unreachable&quot;);
+    Label:
+    Console.WriteLine(&quot;reachable&quot;);
+}
+</code>
+the second invocation of <code class="prettyprint">Console.WriteLine</code> is unreachable because there is no possibility that the statement will be executed.</p>
+
+<p>A warning is reported if the compiler determines that a statement is unreachable. It is specifically not an error for a statement to be unreachable.</p>
+
+<p>To determine whether a particular statement or end point is reachable, the compiler performs flow analysis according to the reachability rules defined for each statement. The flow analysis takes into account the values of constant expressions (<a href="expressions.md#constant-expressions">Constant expressions</a>) that control the behavior of statements, but the possible values of non-constant expressions are not considered. In other words, for purposes of control flow analysis, a non-constant expression of a given type is considered to have any possible value of that type.</p>
+
+<p>In the example
+<code class="prettyprint">csharp
+void F() {
+    const int i = 1;
+    if (i == 2) Console.WriteLine(&quot;unreachable&quot;);
+}
+</code>
+the boolean expression of the <code class="prettyprint">if</code> statement is a constant expression because both operands of the <code class="prettyprint">==</code> operator are constants. As the constant expression is evaluated at compile-time, producing the value <code class="prettyprint">false</code>, the <code class="prettyprint">Console.WriteLine</code> invocation is considered unreachable. However, if <code class="prettyprint">i</code> is changed to be a local variable
+<code class="prettyprint">csharp
+void F() {
+    int i = 1;
+    if (i == 2) Console.WriteLine(&quot;reachable&quot;);
+}
+</code>
+the <code class="prettyprint">Console.WriteLine</code> invocation is considered reachable, even though, in reality, it will never be executed.</p>
+
+<p>The <em>block</em> of a function member is always considered reachable. By successively evaluating the reachability rules of each statement in a block, the reachability of any given statement can be determined.</p>
+
+<p>In the example
+<code class="prettyprint">csharp
+void F(int x) {
+    Console.WriteLine(&quot;start&quot;);
+    if (x &lt; 0) Console.WriteLine(&quot;negative&quot;);
+}
+</code>
+the reachability of the second <code class="prettyprint">Console.WriteLine</code> is determined as follows:</p>
+
+<ul>
+<li> The first <code class="prettyprint">Console.WriteLine</code> expression statement is reachable because the block of the <code class="prettyprint">F</code> method is reachable.</li>
+<li> The end point of the first <code class="prettyprint">Console.WriteLine</code> expression statement is reachable because that statement is reachable.</li>
+<li> The <code class="prettyprint">if</code> statement is reachable because the end point of the first <code class="prettyprint">Console.WriteLine</code> expression statement is reachable.</li>
+<li> The second <code class="prettyprint">Console.WriteLine</code> expression statement is reachable because the boolean expression of the <code class="prettyprint">if</code> statement does not have the constant value <code class="prettyprint">false</code>.</li>
+</ul>
+
+<p>There are two situations in which it is a compile-time error for the end point of a statement to be reachable:</p>
+
+<ul>
+<li> Because the <code class="prettyprint">switch</code> statement does not permit a switch section to &ldquo;fall through&rdquo; to the next switch section, it is a compile-time error for the end point of the statement list of a switch section to be reachable. If this error occurs, it is typically an indication that a <code class="prettyprint">break</code> statement is missing.</li>
+<li> It is a compile-time error for the end point of the block of a function member that computes a value to be reachable. If this error occurs, it typically is an indication that a <code class="prettyprint">return</code> statement is missing.</li>
+</ul>
+
+<h2 id="blocks">Blocks</h2>
+
+<p>A <em>block</em> permits multiple statements to be written in contexts where a single statement is allowed.</p>
+<pre class="highlight plaintext"><code>block
+    : '{' statement_list? '}'
+    ;
+</code></pre>
+<p>A <em>block</em> consists of an optional <em>statement_list</em> (<a href="statements.md#statement-lists">Statement lists</a>), enclosed in braces. If the statement list is omitted, the block is said to be empty.</p>
+
+<p>A block may contain declaration statements (<a href="statements.md#declaration-statements">Declaration statements</a>). The scope of a local variable or constant declared in a block is the block.</p>
+
+<p>A block is executed as follows:</p>
+
+<ul>
+<li> If the block is empty, control is transferred to the end point of the block.</li>
+<li> If the block is not empty, control is transferred to the statement list. When and if control reaches the end point of the statement list, control is transferred to the end point of the block.</li>
+</ul>
+
+<p>The statement list of a block is reachable if the block itself is reachable.</p>
+
+<p>The end point of a block is reachable if the block is empty or if the end point of the statement list is reachable.</p>
+
+<p>A <em>block</em> that contains one or more <code class="prettyprint">yield</code> statements (<a href="statements.md#the-yield-statement">The yield statement</a>) is called an iterator block. Iterator blocks are used to implement function members as iterators (<a href="classes.md#iterators">Iterators</a>). Some additional restrictions apply to iterator blocks:</p>
+
+<ul>
+<li> It is a compile-time error for a <code class="prettyprint">return</code> statement to appear in an iterator block (but <code class="prettyprint">yield return</code> statements are permitted).</li>
+<li> It is a compile-time error for an iterator block to contain an unsafe context (<a href="unsafe-code.md#unsafe-contexts">Unsafe contexts</a>). An iterator block always defines a safe context, even when its declaration is nested in an unsafe context.</li>
+</ul>
+
+<h3 id="statement-lists">Statement lists</h3>
+
+<p>A <strong><em>statement list</em></strong> consists of one or more statements written in sequence. Statement lists occur in *block*s (<a href="statements.md#blocks">Blocks</a>) and in *switch_block*s (<a href="statements.md#the-switch-statement">The switch statement</a>).</p>
+<pre class="highlight plaintext"><code>statement_list
+    : statement+
+    ;
+</code></pre>
+<p>A statement list is executed by transferring control to the first statement. When and if control reaches the end point of a statement, control is transferred to the next statement. When and if control reaches the end point of the last statement, control is transferred to the end point of the statement list.</p>
+
+<p>A statement in a statement list is reachable if at least one of the following is true:</p>
+
+<ul>
+<li> The statement is the first statement and the statement list itself is reachable.</li>
+<li> The end point of the preceding statement is reachable.</li>
+<li> The statement is a labeled statement and the label is referenced by a reachable <code class="prettyprint">goto</code> statement.</li>
+</ul>
+
+<p>The end point of a statement list is reachable if the end point of the last statement in the list is reachable.</p>
+
+<h2 id="the-empty-statement">The empty statement</h2>
+
+<p>An <em>empty_statement</em> does nothing.</p>
+<pre class="highlight plaintext"><code>empty_statement
+    : ';'
+    ;
+</code></pre>
+<p>An empty statement is used when there are no operations to perform in a context where a statement is required.</p>
+
+<p>Execution of an empty statement simply transfers control to the end point of the statement. Thus, the end point of an empty statement is reachable if the empty statement is reachable.</p>
+
+<p>An empty statement can be used when writing a <code class="prettyprint">while</code> statement with a null body:
+&ldquo;`csharp
+bool ProcessMessage() {&hellip;}</p>
+
+<p>void ProcessMessages() {
+    while (ProcessMessage())
+        ;
+}
+&rdquo;`</p>
+
+<p>Also, an empty statement can be used to declare a label just before the closing &ldquo;<code class="prettyprint">}</code>&rdquo; of a block:
+<code class="prettyprint">csharp
+void F() {
+    ...
+    if (done) goto exit;
+    ...
+    exit: ;
+}
+</code></p>
+
+<h2 id="labeled-statements">Labeled statements</h2>
+
+<p>A <em>labeled_statement</em> permits a statement to be prefixed by a label. Labeled statements are permitted in blocks, but are not permitted as embedded statements.</p>
+<pre class="highlight plaintext"><code>labeled_statement
+    : identifier ':' statement
+    ;
+</code></pre>
+<p>A labeled statement declares a label with the name given by the <em>identifier</em>. The scope of a label is the whole block in which the label is declared, including any nested blocks. It is a compile-time error for two labels with the same name to have overlapping scopes.</p>
+
+<p>A label can be referenced from <code class="prettyprint">goto</code> statements (<a href="statements.md#the-goto-statement">The goto statement</a>) within the scope of the label. This means that <code class="prettyprint">goto</code> statements can transfer control within blocks and out of blocks, but never into blocks.</p>
+
+<p>Labels have their own declaration space and do not interfere with other identifiers. The example
+<code class="prettyprint">csharp
+int F(int x) {
+    if (x &gt;= 0) goto x;
+    x = -x;
+    x: return x;
+}
+</code>
+is valid and uses the name <code class="prettyprint">x</code> as both a parameter and a label.</p>
+
+<p>Execution of a labeled statement corresponds exactly to execution of the statement following the label.</p>
+
+<p>In addition to the reachability provided by normal flow of control, a labeled statement is reachable if the label is referenced by a reachable <code class="prettyprint">goto</code> statement. (Exception: If a <code class="prettyprint">goto</code> statement is inside a <code class="prettyprint">try</code> that includes a <code class="prettyprint">finally</code> block, and the labeled statement is outside the <code class="prettyprint">try</code>, and the end point of the <code class="prettyprint">finally</code> block is unreachable, then the labeled statement is not reachable from that <code class="prettyprint">goto</code> statement.)</p>
+
+<h2 id="declaration-statements">Declaration statements</h2>
+
+<p>A <em>declaration_statement</em> declares a local variable or constant. Declaration statements are permitted in blocks, but are not permitted as embedded statements.</p>
+<pre class="highlight plaintext"><code>declaration_statement
+    : local_variable_declaration ';'
+    | local_constant_declaration ';'
+    ;
+</code></pre>
+<h3 id="local-variable-declarations">Local variable declarations</h3>
+
+<p>A <em>local_variable_declaration</em> declares one or more local variables.</p>
+<pre class="highlight plaintext"><code>local_variable_declaration
+    : local_variable_type local_variable_declarators
+    ;
+
+local_variable_type
+    : type
+    | 'var'
+    ;
+
+local_variable_declarators
+    : local_variable_declarator
+    | local_variable_declarators ',' local_variable_declarator
+    ;
+
+local_variable_declarator
+    : identifier
+    | identifier '=' local_variable_initializer
+    ;
+
+local_variable_initializer
+    : expression
+    | array_initializer
+    | local_variable_initializer_unsafe
+    ;
+</code></pre>
+<p>The <em>local_variable_type</em> of a <em>local_variable_declaration</em> either directly specifies the type of the variables introduced by the declaration, or indicates with the identifier <code class="prettyprint">var</code> that the type should be inferred based on an initializer. The type is followed by a list of <em>local_variable_declarator*s, each of which introduces a new variable. A *local_variable_declarator</em> consists of an <em>identifier</em> that names the variable, optionally followed by an &ldquo;<code class="prettyprint">=</code>&rdquo; token and a <em>local_variable_initializer</em> that gives the initial value of the variable.</p>
+
+<p>In the context of a local variable declaration, the identifier var acts as a contextual keyword (<a href="lexical-structure.md#keywords">Keywords</a>).When the <em>local_variable_type</em> is specified as <code class="prettyprint">var</code> and no type named <code class="prettyprint">var</code> is in scope, the declaration is an <strong><em>implicitly typed local variable declaration</em></strong>, whose type is inferred from the type of the associated initializer expression. Implicitly typed local variable declarations are subject to the following restrictions:</p>
+
+<ul>
+<li> The <em>local_variable_declaration</em> cannot include multiple *local_variable_declarator*s.</li>
+<li> The <em>local_variable_declarator</em> must include a <em>local_variable_initializer</em>.</li>
+<li> The <em>local_variable_initializer</em> must be an <em>expression</em>.</li>
+<li> The initializer <em>expression</em> must have a compile-time type.</li>
+<li> The initializer <em>expression</em> cannot refer to the declared variable itself</li>
+</ul>
+
+<p>The following are examples of incorrect implicitly typed local variable declarations:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">var</span> <span class="n">x</span><span class="p">;</span>               <span class="c1">// Error, no initializer to infer type from</span>
+<span class="kt">var</span> <span class="n">y</span> <span class="p">=</span> <span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">};</span>   <span class="c1">// Error, array initializer not permitted</span>
+<span class="kt">var</span> <span class="n">z</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>        <span class="c1">// Error, null does not have a type</span>
+<span class="kt">var</span> <span class="n">u</span> <span class="p">=</span> <span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">+</span> <span class="m">1</span><span class="p">;</span>  <span class="c1">// Error, anonymous functions do not have a type</span>
+<span class="kt">var</span> <span class="n">v</span> <span class="p">=</span> <span class="n">v</span><span class="p">++;</span>         <span class="c1">// Error, initializer cannot refer to variable itself</span>
+</code></pre>
+<p>The value of a local variable is obtained in an expression using a <em>simple_name</em> (<a href="expressions.md#simple-names">Simple names</a>), and the value of a local variable is modified using an <em>assignment</em> (<a href="expressions.md#assignment-operators">Assignment operators</a>). A local variable must be definitely assigned (<a href="variables.md#definite-assignment">Definite assignment</a>) at each location where its value is obtained.</p>
+
+<p>The scope of a local variable declared in a <em>local_variable_declaration</em> is the block in which the declaration occurs. It is an error to refer to a local variable in a textual position that precedes the <em>local_variable_declarator</em> of the local variable. Within the scope of a local variable, it is a compile-time error to declare another local variable or constant with the same name.</p>
+
+<p>A local variable declaration that declares multiple variables is equivalent to multiple declarations of single variables with the same type. Furthermore, a variable initializer in a local variable declaration corresponds exactly to an assignment statement that is inserted immediately after the declaration.</p>
+
+<p>The example
+<code class="prettyprint">csharp
+void F() {
+    int x = 1, y, z = x * 2;
+}
+</code>
+corresponds exactly to
+<code class="prettyprint">csharp
+void F() {
+    int x; x = 1;
+    int y;
+    int z; z = x * 2;
+}
+</code></p>
+
+<p>In an implicitly typed local variable declaration, the type of the local variable being declared is taken to be the same as the type of the expression used to initialize the variable. For example:
+<code class="prettyprint">csharp
+var i = 5;
+var s = &quot;Hello&quot;;
+var d = 1.0;
+var numbers = new int[] {1, 2, 3};
+var orders = new Dictionary&lt;int,Order&gt;();
+</code></p>
+
+<p>The implicitly typed local variable declarations above are precisely equivalent to the following explicitly typed declarations:
+<code class="prettyprint">csharp
+int i = 5;
+string s = &quot;Hello&quot;;
+double d = 1.0;
+int[] numbers = new int[] {1, 2, 3};
+Dictionary&lt;int,Order&gt; orders = new Dictionary&lt;int,Order&gt;();
+</code></p>
+
+<h3 id="local-constant-declarations">Local constant declarations</h3>
+
+<p>A <em>local_constant_declaration</em> declares one or more local constants.</p>
+<pre class="highlight plaintext"><code>local_constant_declaration
+    : 'const' type constant_declarators
+    ;
+
+constant_declarators
+    : constant_declarator (',' constant_declarator)*
+    ;
+
+constant_declarator
+    : identifier '=' constant_expression
+    ;
+</code></pre>
+<p>The <em>type</em> of a <em>local_constant_declaration</em> specifies the type of the constants introduced by the declaration. The type is followed by a list of <em>constant_declarator*s, each of which introduces a new constant. A *constant_declarator</em> consists of an <em>identifier</em> that names the constant, followed by an &ldquo;<code class="prettyprint">=</code>&rdquo; token, followed by a <em>constant_expression</em> (<a href="expressions.md#constant-expressions">Constant expressions</a>) that gives the value of the constant.</p>
+
+<p>The <em>type</em> and <em>constant_expression</em> of a local constant declaration must follow the same rules as those of a constant member declaration (<a href="classes.md#constants">Constants</a>).</p>
+
+<p>The value of a local constant is obtained in an expression using a <em>simple_name</em> (<a href="expressions.md#simple-names">Simple names</a>).</p>
+
+<p>The scope of a local constant is the block in which the declaration occurs. It is an error to refer to a local constant in a textual position that precedes its <em>constant_declarator</em>. Within the scope of a local constant, it is a compile-time error to declare another local variable or constant with the same name.</p>
+
+<p>A local constant declaration that declares multiple constants is equivalent to multiple declarations of single constants with the same type.</p>
+
+<h2 id="expression-statements">Expression statements</h2>
+
+<p>An <em>expression_statement</em> evaluates a given expression. The value computed by the expression, if any, is discarded.</p>
+<pre class="highlight plaintext"><code>expression_statement
+    : statement_expression ';'
+    ;
+
+statement_expression
+    : invocation_expression
+    | null_conditional_invocation_expression
+    | object_creation_expression
+    | assignment
+    | post_increment_expression
+    | post_decrement_expression
+    | pre_increment_expression
+    | pre_decrement_expression
+    | await_expression
+    ;
+</code></pre>
+<p>Not all expressions are permitted as statements. In particular, expressions such as <code class="prettyprint">x + y</code> and <code class="prettyprint">x == 1</code> that merely compute a value (which will be discarded), are not permitted as statements.</p>
+
+<p>Execution of an <em>expression_statement</em> evaluates the contained expression and then transfers control to the end point of the <em>expression_statement</em>. The end point of an <em>expression_statement</em> is reachable if that <em>expression_statement</em> is reachable.</p>
+
+<h2 id="selection-statements">Selection statements</h2>
+
+<p>Selection statements select one of a number of possible statements for execution based on the value of some expression.</p>
+<pre class="highlight plaintext"><code>selection_statement
+    : if_statement
+    | switch_statement
+    ;
+</code></pre>
+<h3 id="the-if-statement">The if statement</h3>
+
+<p>The <code class="prettyprint">if</code> statement selects a statement for execution based on the value of a boolean expression.</p>
+<pre class="highlight plaintext"><code>if_statement
+    : 'if' '(' boolean_expression ')' embedded_statement
+    | 'if' '(' boolean_expression ')' embedded_statement 'else' embedded_statement
+    ;
+</code></pre>
+<p>An <code class="prettyprint">else</code> part is associated with the lexically nearest preceding <code class="prettyprint">if</code> that is allowed by the syntax. Thus, an <code class="prettyprint">if</code> statement of the form
+<code class="prettyprint">csharp
+if (x) if (y) F(); else G();
+</code>
+is equivalent to
+<code class="prettyprint">csharp
+if (x) {
+    if (y) {
+        F();
+    }
+    else {
+        G();
+    }
+}
+</code></p>
+
+<p>An <code class="prettyprint">if</code> statement is executed as follows:</p>
+
+<ul>
+<li> The <em>boolean_expression</em> (<a href="expressions.md#boolean-expressions">Boolean expressions</a>) is evaluated.</li>
+<li> If the boolean expression yields <code class="prettyprint">true</code>, control is transferred to the first embedded statement. When and if control reaches the end point of that statement, control is transferred to the end point of the <code class="prettyprint">if</code> statement.</li>
+<li> If the boolean expression yields <code class="prettyprint">false</code> and if an <code class="prettyprint">else</code> part is present, control is transferred to the second embedded statement. When and if control reaches the end point of that statement, control is transferred to the end point of the <code class="prettyprint">if</code> statement.</li>
+<li> If the boolean expression yields <code class="prettyprint">false</code> and if an <code class="prettyprint">else</code> part is not present, control is transferred to the end point of the <code class="prettyprint">if</code> statement.</li>
+</ul>
+
+<p>The first embedded statement of an <code class="prettyprint">if</code> statement is reachable if the <code class="prettyprint">if</code> statement is reachable and the boolean expression does not have the constant value <code class="prettyprint">false</code>.</p>
+
+<p>The second embedded statement of an <code class="prettyprint">if</code> statement, if present, is reachable if the <code class="prettyprint">if</code> statement is reachable and the boolean expression does not have the constant value <code class="prettyprint">true</code>.</p>
+
+<p>The end point of an <code class="prettyprint">if</code> statement is reachable if the end point of at least one of its embedded statements is reachable. In addition, the end point of an <code class="prettyprint">if</code> statement with no <code class="prettyprint">else</code> part is reachable if the <code class="prettyprint">if</code> statement is reachable and the boolean expression does not have the constant value <code class="prettyprint">true</code>.</p>
+
+<h3 id="the-switch-statement">The switch statement</h3>
+
+<p>The switch statement selects for execution a statement list having an associated switch label that corresponds to the value of the switch expression.</p>
+<pre class="highlight plaintext"><code>switch_statement
+    : 'switch' '(' expression ')' switch_block
+    ;
+
+switch_block
+    : '{' switch_section* '}'
+    ;
+
+switch_section
+    : switch_label+ statement_list
+    ;
+
+switch_label
+    : 'case' constant_expression ':'
+    | 'default' ':'
+    ;
+</code></pre>
+<p>A <em>switch_statement</em> consists of the keyword <code class="prettyprint">switch</code>, followed by a parenthesized expression (called the switch expression), followed by a <em>switch_block</em>. The <em>switch_block</em> consists of zero or more <em>switch_section*s, enclosed in braces. Each *switch_section</em> consists of one or more <em>switch_label*s followed by a *statement_list</em> (<a href="statements.md#statement-lists">Statement lists</a>).</p>
+
+<p>The <strong><em>governing type</em></strong> of a <code class="prettyprint">switch</code> statement is established by the switch expression.</p>
+
+<ul>
+<li> If the type of the switch expression is <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">bool</code>, <code class="prettyprint">char</code>, <code class="prettyprint">string</code>, or an <em>enum_type</em>, or if it is the nullable type corresponding to one of these types, then that is the governing type of the <code class="prettyprint">switch</code> statement.</li>
+<li> Otherwise, exactly one user-defined implicit conversion (<a href="conversions.md#user-defined-conversions">User-defined conversions</a>) must exist from the type of the switch expression to one of the following possible governing types: <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">string</code>, or,  a nullable type corresponding to one of those types.</li>
+<li> Otherwise, if no such implicit conversion exists, or if more than one such implicit conversion exists, a compile-time error occurs.</li>
+</ul>
+
+<p>The constant expression of each <code class="prettyprint">case</code> label must denote a value that is implicitly convertible (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) to the governing type of the <code class="prettyprint">switch</code> statement. A compile-time error occurs if two or more <code class="prettyprint">case</code> labels in the same <code class="prettyprint">switch</code> statement specify the same constant value.</p>
+
+<p>There can be at most one <code class="prettyprint">default</code> label in a switch statement.</p>
+
+<p>A <code class="prettyprint">switch</code> statement is executed as follows:</p>
+
+<ul>
+<li> The switch expression is evaluated and converted to the governing type.</li>
+<li> If one of the constants specified in a <code class="prettyprint">case</code> label in the same <code class="prettyprint">switch</code> statement is equal to the value of the switch expression, control is transferred to the statement list following the matched <code class="prettyprint">case</code> label.</li>
+<li> If none of the constants specified in <code class="prettyprint">case</code> labels in the same <code class="prettyprint">switch</code> statement is equal to the value of the switch expression, and if a <code class="prettyprint">default</code> label is present, control is transferred to the statement list following the <code class="prettyprint">default</code> label.</li>
+<li> If none of the constants specified in <code class="prettyprint">case</code> labels in the same <code class="prettyprint">switch</code> statement is equal to the value of the switch expression, and if no <code class="prettyprint">default</code> label is present, control is transferred to the end point of the <code class="prettyprint">switch</code> statement.</li>
+</ul>
+
+<p>If the end point of the statement list of a switch section is reachable, a compile-time error occurs. This is known as the &ldquo;no fall through&rdquo; rule. The example
+<code class="prettyprint">csharp
+switch (i) {
+case 0:
+    CaseZero();
+    break;
+case 1:
+    CaseOne();
+    break;
+default:
+    CaseOthers();
+    break;
+}
+</code>
+is valid because no switch section has a reachable end point. Unlike C and C++, execution of a switch section is not permitted to &ldquo;fall through&rdquo; to the next switch section, and the example
+<code class="prettyprint">csharp
+switch (i) {
+case 0:
+    CaseZero();
+case 1:
+    CaseZeroOrOne();
+default:
+    CaseAny();
+}
+</code>
+results in a compile-time error. When execution of a switch section is to be followed by execution of another switch section, an explicit <code class="prettyprint">goto case</code> or <code class="prettyprint">goto default</code> statement must be used:
+<code class="prettyprint">csharp
+switch (i) {
+case 0:
+    CaseZero();
+    goto case 1;
+case 1:
+    CaseZeroOrOne();
+    goto default;
+default:
+    CaseAny();
+    break;
+}
+</code></p>
+
+<p>Multiple labels are permitted in a <em>switch_section</em>. The example
+<code class="prettyprint">csharp
+switch (i) {
+case 0:
+    CaseZero();
+    break;
+case 1:
+    CaseOne();
+    break;
+case 2:
+default:
+    CaseTwo();
+    break;
+}
+</code>
+is valid. The example does not violate the &ldquo;no fall through&rdquo; rule because the labels <code class="prettyprint">case 2:</code> and <code class="prettyprint">default:</code> are part of the same <em>switch_section</em>.</p>
+
+<p>The &ldquo;no fall through&rdquo; rule prevents a common class of bugs that occur in C and C++ when <code class="prettyprint">break</code> statements are accidentally omitted. In addition, because of this rule, the switch sections of a <code class="prettyprint">switch</code> statement can be arbitrarily rearranged without affecting the behavior of the statement. For example, the sections of the <code class="prettyprint">switch</code> statement above can be reversed without affecting the behavior of the statement:
+<code class="prettyprint">csharp
+switch (i) {
+default:
+    CaseAny();
+    break;
+case 1:
+    CaseZeroOrOne();
+    goto default;
+case 0:
+    CaseZero();
+    goto case 1;
+}
+</code></p>
+
+<p>The statement list of a switch section typically ends in a <code class="prettyprint">break</code>, <code class="prettyprint">goto case</code>, or <code class="prettyprint">goto default</code> statement, but any construct that renders the end point of the statement list unreachable is permitted. For example, a <code class="prettyprint">while</code> statement controlled by the boolean expression <code class="prettyprint">true</code> is known to never reach its end point. Likewise, a <code class="prettyprint">throw</code> or <code class="prettyprint">return</code> statement always transfers control elsewhere and never reaches its end point. Thus, the following example is valid:
+<code class="prettyprint">csharp
+switch (i) {
+case 0:
+    while (true) F();
+case 1:
+    throw new ArgumentException();
+case 2:
+    return;
+}
+</code></p>
+
+<p>The governing type of a <code class="prettyprint">switch</code> statement may be the type <code class="prettyprint">string</code>. For example:
+<code class="prettyprint">csharp
+void DoCommand(string command) {
+    switch (command.ToLower()) {
+    case &quot;run&quot;:
+        DoRun();
+        break;
+    case &quot;save&quot;:
+        DoSave();
+        break;
+    case &quot;quit&quot;:
+        DoQuit();
+        break;
+    default:
+        InvalidCommand(command);
+        break;
+    }
+}
+</code></p>
+
+<p>Like the string equality operators (<a href="expressions.md#string-equality-operators">String equality operators</a>), the <code class="prettyprint">switch</code> statement is case sensitive and will execute a given switch section only if the switch expression string exactly matches a <code class="prettyprint">case</code> label constant.</p>
+
+<p>When the governing type of a <code class="prettyprint">switch</code> statement is <code class="prettyprint">string</code>, the value <code class="prettyprint">null</code> is permitted as a case label constant.</p>
+
+<p>The <em>statement_list*s of a *switch_block</em> may contain declaration statements (<a href="statements.md#declaration-statements">Declaration statements</a>). The scope of a local variable or constant declared in a switch block is the switch block.</p>
+
+<p>The statement list of a given switch section is reachable if the <code class="prettyprint">switch</code> statement is reachable and at least one of the following is true:</p>
+
+<ul>
+<li> The switch expression is a non-constant value.</li>
+<li> The switch expression is a constant value that matches a <code class="prettyprint">case</code> label in the switch section.</li>
+<li> The switch expression is a constant value that doesn&rsquo;t match any <code class="prettyprint">case</code> label, and the switch section contains the <code class="prettyprint">default</code> label.</li>
+<li> A switch label of the switch section is referenced by a reachable <code class="prettyprint">goto case</code> or <code class="prettyprint">goto default</code> statement.</li>
+</ul>
+
+<p>The end point of a <code class="prettyprint">switch</code> statement is reachable if at least one of the following is true:</p>
+
+<ul>
+<li> The <code class="prettyprint">switch</code> statement contains a reachable <code class="prettyprint">break</code> statement that exits the <code class="prettyprint">switch</code> statement.</li>
+<li> The <code class="prettyprint">switch</code> statement is reachable, the switch expression is a non-constant value, and no <code class="prettyprint">default</code> label is present.</li>
+<li> The <code class="prettyprint">switch</code> statement is reachable, the switch expression is a constant value that doesn&rsquo;t match any <code class="prettyprint">case</code> label, and no <code class="prettyprint">default</code> label is present.</li>
+</ul>
+
+<h2 id="iteration-statements">Iteration statements</h2>
+
+<p>Iteration statements repeatedly execute an embedded statement.</p>
+<pre class="highlight plaintext"><code>iteration_statement
+    : while_statement
+    | do_statement
+    | for_statement
+    | foreach_statement
+    ;
+</code></pre>
+<h3 id="the-while-statement">The while statement</h3>
+
+<p>The <code class="prettyprint">while</code> statement conditionally executes an embedded statement zero or more times.</p>
+<pre class="highlight plaintext"><code>while_statement
+    : 'while' '(' boolean_expression ')' embedded_statement
+    ;
+</code></pre>
+<p>A <code class="prettyprint">while</code> statement is executed as follows:</p>
+
+<ul>
+<li> The <em>boolean_expression</em> (<a href="expressions.md#boolean-expressions">Boolean expressions</a>) is evaluated.</li>
+<li> If the boolean expression yields <code class="prettyprint">true</code>, control is transferred to the embedded statement. When and if control reaches the end point of the embedded statement (possibly from execution of a <code class="prettyprint">continue</code> statement), control is transferred to the beginning of the <code class="prettyprint">while</code> statement.</li>
+<li> If the boolean expression yields <code class="prettyprint">false</code>, control is transferred to the end point of the <code class="prettyprint">while</code> statement.</li>
+</ul>
+
+<p>Within the embedded statement of a <code class="prettyprint">while</code> statement, a <code class="prettyprint">break</code> statement (<a href="statements.md#the-break-statement">The break statement</a>) may be used to transfer control to the end point of the <code class="prettyprint">while</code> statement (thus ending iteration of the embedded statement), and a <code class="prettyprint">continue</code> statement (<a href="statements.md#the-continue-statement">The continue statement</a>) may be used to transfer control to the end point of the embedded statement (thus performing another iteration of the <code class="prettyprint">while</code> statement).</p>
+
+<p>The embedded statement of a <code class="prettyprint">while</code> statement is reachable if the <code class="prettyprint">while</code> statement is reachable and the boolean expression does not have the constant value <code class="prettyprint">false</code>.</p>
+
+<p>The end point of a <code class="prettyprint">while</code> statement is reachable if at least one of the following is true:</p>
+
+<ul>
+<li> The <code class="prettyprint">while</code> statement contains a reachable <code class="prettyprint">break</code> statement that exits the <code class="prettyprint">while</code> statement.</li>
+<li> The <code class="prettyprint">while</code> statement is reachable and the boolean expression does not have the constant value <code class="prettyprint">true</code>.</li>
+</ul>
+
+<h3 id="the-do-statement">The do statement</h3>
+
+<p>The <code class="prettyprint">do</code> statement conditionally executes an embedded statement one or more times.</p>
+<pre class="highlight plaintext"><code>do_statement
+    : 'do' embedded_statement 'while' '(' boolean_expression ')' ';'
+    ;
+</code></pre>
+<p>A <code class="prettyprint">do</code> statement is executed as follows:</p>
+
+<ul>
+<li> Control is transferred to the embedded statement.</li>
+<li> When and if control reaches the end point of the embedded statement (possibly from execution of a <code class="prettyprint">continue</code> statement), the <em>boolean_expression</em> (<a href="expressions.md#boolean-expressions">Boolean expressions</a>) is evaluated. If the boolean expression yields <code class="prettyprint">true</code>, control is transferred to the beginning of the <code class="prettyprint">do</code> statement. Otherwise, control is transferred to the end point of the <code class="prettyprint">do</code> statement.</li>
+</ul>
+
+<p>Within the embedded statement of a <code class="prettyprint">do</code> statement, a <code class="prettyprint">break</code> statement (<a href="statements.md#the-break-statement">The break statement</a>) may be used to transfer control to the end point of the <code class="prettyprint">do</code> statement (thus ending iteration of the embedded statement), and a <code class="prettyprint">continue</code> statement (<a href="statements.md#the-continue-statement">The continue statement</a>) may be used to transfer control to the end point of the embedded statement.</p>
+
+<p>The embedded statement of a <code class="prettyprint">do</code> statement is reachable if the <code class="prettyprint">do</code> statement is reachable.</p>
+
+<p>The end point of a <code class="prettyprint">do</code> statement is reachable if at least one of the following is true:</p>
+
+<ul>
+<li> The <code class="prettyprint">do</code> statement contains a reachable <code class="prettyprint">break</code> statement that exits the <code class="prettyprint">do</code> statement.</li>
+<li> The end point of the embedded statement is reachable and the boolean expression does not have the constant value <code class="prettyprint">true</code>.</li>
+</ul>
+
+<h3 id="the-for-statement">The for statement</h3>
+
+<p>The <code class="prettyprint">for</code> statement evaluates a sequence of initialization expressions and then, while a condition is true, repeatedly executes an embedded statement and evaluates a sequence of iteration expressions.</p>
+<pre class="highlight plaintext"><code>for_statement
+    : 'for' '(' for_initializer? ';' for_condition? ';' for_iterator? ')' embedded_statement
+    ;
+
+for_initializer
+    : local_variable_declaration
+    | statement_expression_list
+    ;
+
+for_condition
+    : boolean_expression
+    ;
+
+for_iterator
+    : statement_expression_list
+    ;
+
+statement_expression_list
+    : statement_expression (',' statement_expression)*
+    ;
+</code></pre>
+<p>The <em>for_initializer</em>, if present, consists of either a <em>local_variable_declaration</em> (<a href="statements.md#local-variable-declarations">Local variable declarations</a>) or a list of <em>statement_expression*s (<a href="statements.md#expression-statements">Expression statements</a>) separated by commas. The scope of a local variable declared by a *for_initializer</em> starts at the <em>local_variable_declarator</em> for the variable and extends to the end of the embedded statement. The scope includes the <em>for_condition</em> and the <em>for_iterator</em>.</p>
+
+<p>The <em>for_condition</em>, if present, must be a <em>boolean_expression</em> (<a href="expressions.md#boolean-expressions">Boolean expressions</a>).</p>
+
+<p>The <em>for_iterator</em>, if present, consists of a list of *statement_expression*s (<a href="statements.md#expression-statements">Expression statements</a>) separated by commas.</p>
+
+<p>A for statement is executed as follows:</p>
+
+<ul>
+<li> If a <em>for_initializer</em> is present, the variable initializers or statement expressions are executed in the order they are written. This step is only performed once.</li>
+<li> If a <em>for_condition</em> is present, it is evaluated.</li>
+<li> If the <em>for_condition</em> is not present or if the evaluation yields <code class="prettyprint">true</code>, control is transferred to the embedded statement. When and if control reaches the end point of the embedded statement (possibly from execution of a <code class="prettyprint">continue</code> statement), the expressions of the <em>for_iterator</em>, if any, are evaluated in sequence, and then another iteration is performed, starting with evaluation of the <em>for_condition</em> in the step above.</li>
+<li> If the <em>for_condition</em> is present and the evaluation yields <code class="prettyprint">false</code>, control is transferred to the end point of the <code class="prettyprint">for</code> statement.</li>
+</ul>
+
+<p>Within the embedded statement of a <code class="prettyprint">for</code> statement, a <code class="prettyprint">break</code> statement (<a href="statements.md#the-break-statement">The break statement</a>) may be used to transfer control to the end point of the <code class="prettyprint">for</code> statement (thus ending iteration of the embedded statement), and a <code class="prettyprint">continue</code> statement (<a href="statements.md#the-continue-statement">The continue statement</a>) may be used to transfer control to the end point of the embedded statement (thus executing the <em>for_iterator</em> and performing another iteration of the <code class="prettyprint">for</code> statement, starting with the <em>for_condition</em>).</p>
+
+<p>The embedded statement of a <code class="prettyprint">for</code> statement is reachable if one of the following is true:</p>
+
+<ul>
+<li> The <code class="prettyprint">for</code> statement is reachable and no <em>for_condition</em> is present.</li>
+<li> The <code class="prettyprint">for</code> statement is reachable and a <em>for_condition</em> is present and does not have the constant value <code class="prettyprint">false</code>.</li>
+</ul>
+
+<p>The end point of a <code class="prettyprint">for</code> statement is reachable if at least one of the following is true:</p>
+
+<ul>
+<li> The <code class="prettyprint">for</code> statement contains a reachable <code class="prettyprint">break</code> statement that exits the <code class="prettyprint">for</code> statement.</li>
+<li> The <code class="prettyprint">for</code> statement is reachable and a <em>for_condition</em> is present and does not have the constant value <code class="prettyprint">true</code>.</li>
+</ul>
+
+<h3 id="the-foreach-statement">The foreach statement</h3>
+
+<p>The <code class="prettyprint">foreach</code> statement enumerates the elements of a collection, executing an embedded statement for each element of the collection.</p>
+<pre class="highlight plaintext"><code>foreach_statement
+    : 'foreach' '(' local_variable_type identifier 'in' expression ')' embedded_statement
+    ;
+</code></pre>
+<p>The <em>type</em> and <em>identifier</em> of a <code class="prettyprint">foreach</code> statement declare the <strong><em>iteration variable</em></strong> of the statement. If the <code class="prettyprint">var</code> identifier is given as the <em>local_variable_type</em>, and no type named <code class="prettyprint">var</code> is in scope, the iteration variable is said to be an <strong><em>implicitly typed iteration variable</em></strong>, and its type is taken to be the element type of the <code class="prettyprint">foreach</code> statement, as specified below. The iteration variable corresponds to a read-only local variable with a scope that extends over the embedded statement. During execution of a <code class="prettyprint">foreach</code> statement, the iteration variable represents the collection element for which an iteration is currently being performed. A compile-time error occurs if the embedded statement attempts to modify the iteration variable (via assignment or the <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators) or pass the iteration variable as a <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameter.</p>
+
+<p>In the following, for brevity, <code class="prettyprint">IEnumerable</code>, <code class="prettyprint">IEnumerator</code>, <code class="prettyprint">IEnumerable&lt;T&gt;</code> and <code class="prettyprint">IEnumerator&lt;T&gt;</code> refer to the corresponding types in the namespaces <code class="prettyprint">System.Collections</code> and <code class="prettyprint">System.Collections.Generic</code>.</p>
+
+<p>The compile-time processing of a foreach statement first determines the <strong><em>collection type</em></strong>, <strong><em>enumerator type</em></strong> and <strong><em>element type</em></strong> of the expression. This determination proceeds as follows:</p>
+
+<ul>
+<li> If the type <code class="prettyprint">X</code> of <em>expression</em> is an array type then there is an implicit reference conversion from <code class="prettyprint">X</code> to the <code class="prettyprint">IEnumerable</code> interface (since <code class="prettyprint">System.Array</code> implements this interface). The <strong><em>collection type</em></strong> is the <code class="prettyprint">IEnumerable</code> interface, the <strong><em>enumerator type</em></strong> is the <code class="prettyprint">IEnumerator</code> interface and the <strong><em>element type</em></strong> is the element type of the array type <code class="prettyprint">X</code>.</li>
+<li> If the type <code class="prettyprint">X</code> of <em>expression</em> is <code class="prettyprint">dynamic</code> then there is an implicit conversion from <em>expression</em> to the <code class="prettyprint">IEnumerable</code> interface (<a href="conversions.md#implicit-dynamic-conversions">Implicit dynamic conversions</a>). The <strong><em>collection type</em></strong> is the <code class="prettyprint">IEnumerable</code> interface and the <strong><em>enumerator type</em></strong> is the <code class="prettyprint">IEnumerator</code> interface. If the <code class="prettyprint">var</code> identifier is given as the <em>local_variable_type</em> then the <strong><em>element type</em></strong> is <code class="prettyprint">dynamic</code>, otherwise it is <code class="prettyprint">object</code>.</li>
+<li><p>Otherwise, determine whether the type <code class="prettyprint">X</code> has an appropriate <code class="prettyprint">GetEnumerator</code> method:</p>
+
+<ul>
+<li>Perform member lookup on the type <code class="prettyprint">X</code> with identifier <code class="prettyprint">GetEnumerator</code> and no type arguments. If the member lookup does not produce a match, or it produces an ambiguity, or produces a match that is not a method group, check for an enumerable interface as described below. It is recommended that a warning be issued if member lookup produces anything except a method group or no match.</li>
+<li>Perform overload resolution using the resulting method group and an empty argument list. If overload resolution results in no applicable methods, results in an ambiguity, or results in a single best method but that method is either static or not public, check for an enumerable interface as described below. It is recommended that a warning be issued if overload resolution produces anything except an unambiguous public instance method or no applicable methods.</li>
+<li>If the return type <code class="prettyprint">E</code> of the <code class="prettyprint">GetEnumerator</code> method is not a class, struct or interface type, an error is produced and no further steps are taken.</li>
+<li>Member lookup is performed on <code class="prettyprint">E</code> with the identifier <code class="prettyprint">Current</code> and no type arguments. If the member lookup produces no match, the result is an error, or the result is anything except a public instance property that permits reading, an error is produced and no further steps are taken.</li>
+<li>Member lookup is performed on <code class="prettyprint">E</code> with the identifier <code class="prettyprint">MoveNext</code> and no type arguments. If the member lookup produces no match, the result is an error, or the result is anything except a method group, an error is produced and no further steps are taken.</li>
+<li>Overload resolution is performed on the method group with an empty argument list. If overload resolution results in no applicable methods, results in an ambiguity, or results in a single best method but that method is either static or not public, or its return type is not <code class="prettyprint">bool</code>, an error is produced and no further steps are taken.</li>
+<li>The <strong><em>collection type</em></strong> is <code class="prettyprint">X</code>, the <strong><em>enumerator type</em></strong> is <code class="prettyprint">E</code>, and the <strong><em>element type</em></strong> is the type of the <code class="prettyprint">Current</code> property.</li>
+</ul></li>
+<li><p>Otherwise, check for an enumerable interface:</p>
+
+<ul>
+<li>If among all the types <code class="prettyprint">Ti</code> for which there is an implicit conversion from <code class="prettyprint">X</code> to <code class="prettyprint">IEnumerable&lt;Ti&gt;</code>, there is a unique type <code class="prettyprint">T</code> such that <code class="prettyprint">T</code> is not <code class="prettyprint">dynamic</code> and for all the other <code class="prettyprint">Ti</code> there is an implicit conversion from <code class="prettyprint">IEnumerable&lt;T&gt;</code> to <code class="prettyprint">IEnumerable&lt;Ti&gt;</code>, then the <strong><em>collection type</em></strong> is the interface <code class="prettyprint">IEnumerable&lt;T&gt;</code>, the <strong><em>enumerator type</em></strong> is the interface <code class="prettyprint">IEnumerator&lt;T&gt;</code>, and the <strong><em>element type</em></strong> is <code class="prettyprint">T</code>.</li>
+<li>Otherwise, if there is more than one such type <code class="prettyprint">T</code>, then an error is produced and no further steps are taken.</li>
+<li>Otherwise, if there is an implicit conversion from <code class="prettyprint">X</code> to the <code class="prettyprint">System.Collections.IEnumerable</code> interface, then the <strong><em>collection type</em></strong> is this interface, the <strong><em>enumerator type</em></strong> is the interface <code class="prettyprint">System.Collections.IEnumerator</code>, and the <strong><em>element type</em></strong> is <code class="prettyprint">object</code>.</li>
+<li>Otherwise, an error is produced and no further steps are taken.</li>
+</ul></li>
+</ul>
+
+<p>The above steps, if successful, unambiguously produce a collection type <code class="prettyprint">C</code>, enumerator type <code class="prettyprint">E</code> and element type <code class="prettyprint">T</code>. A foreach statement of the form
+<code class="prettyprint">csharp
+foreach (V v in x) embedded_statement
+</code>
+is then expanded to:
+<code class="prettyprint">csharp
+{
+    E e = ((C)(x)).GetEnumerator();
+    try {
+        while (e.MoveNext()) {
+            V v = (V)(T)e.Current;
+            embedded_statement
+        }
+    }
+    finally {
+        ... // Dispose e
+    }
+}
+</code></p>
+
+<p>The variable <code class="prettyprint">e</code> is not visible to or accessible to the expression <code class="prettyprint">x</code> or the embedded statement or any other source code of the program. The variable <code class="prettyprint">v</code> is read-only in the embedded statement. If there is not an explicit conversion (<a href="conversions.md#explicit-conversions">Explicit conversions</a>) from <code class="prettyprint">T</code> (the element type) to <code class="prettyprint">V</code> (the <em>local_variable_type</em> in the foreach statement), an error is produced and no further steps are taken. If <code class="prettyprint">x</code> has the value <code class="prettyprint">null</code>, a <code class="prettyprint">System.NullReferenceException</code> is thrown at run-time.</p>
+
+<p>An implementation is permitted to implement a given foreach-statement differently, e.g. for performance reasons, as long as the behavior is consistent with the above expansion.</p>
+
+<p>The placement of <code class="prettyprint">v</code> inside the while loop is important for how it is captured by any anonymous function occurring in the <em>embedded_statement</em>.</p>
+
+<p>For example:
+&ldquo;`csharp
+int[] values = { 7, 9, 13 };
+Action f = null;</p>
+
+<p>foreach (var value in values)
+{
+    if (f == null) f = () =&gt; Console.WriteLine(&quot;First value: &rdquo; + value);
+}</p>
+
+<p>f();
+&ldquo;<code class="prettyprint">
+If</code>v<code class="prettyprint">was declared outside of the while loop, it would be shared among all iterations, and its value after the for loop would be the final value,</code>13<code class="prettyprint">, which is what the invocation of</code>f<code class="prettyprint">would print. Instead, because each iteration has its own variable</code>v<code class="prettyprint">, the one captured by</code>f<code class="prettyprint">in the first iteration will continue to hold the value</code>7<code class="prettyprint">, which is what will be printed. (Note: earlier versions of C# declared</code>v` outside of the while loop.)</p>
+
+<p>The body of the finally block is constructed according to the following steps:</p>
+
+<ul>
+<li><p>If there is an implicit conversion from <code class="prettyprint">E</code> to the <code class="prettyprint">System.IDisposable</code> interface, then</p>
+
+<ul>
+<li> If <code class="prettyprint">E</code> is a non-nullable value type then the finally clause is expanded to the semantic equivalent  of:</li>
+</ul>
+<pre class="highlight csharp tab-csharp"><code>  <span class="k">finally</span> <span class="p">{</span>
+      <span class="p">((</span><span class="n">System</span><span class="p">.</span><span class="n">IDisposable</span><span class="p">)</span><span class="n">e</span><span class="p">).</span><span class="nf">Dispose</span><span class="p">();</span>
+  <span class="p">}</span>
+</code></pre>
+<ul>
+<li> Otherwise the finally clause is expanded to the semantic equivalent of:</li>
+</ul>
+<pre class="highlight csharp tab-csharp"><code>  <span class="k">finally</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">((</span><span class="n">System</span><span class="p">.</span><span class="n">IDisposable</span><span class="p">)</span><span class="n">e</span><span class="p">).</span><span class="nf">Dispose</span><span class="p">();</span>
+  <span class="p">}</span>
+</code></pre></li>
+</ul>
+
+<p>except that if <code class="prettyprint">E</code> is a value type, or a type parameter instantiated to a value type, then the cast of <code class="prettyprint">e</code> to <code class="prettyprint">System.IDisposable</code> will not cause boxing to occur.</p>
+
+<ul>
+<li> Otherwise, if <code class="prettyprint">E</code> is a sealed type, the finally clause is expanded to an empty block:</li>
+</ul>
+<pre class="highlight csharp tab-csharp"><code>   <span class="k">finally</span> <span class="p">{</span>
+   <span class="p">}</span>
+</code></pre>
+<ul>
+<li> Otherwise, the finally clause is expanded to:</li>
+</ul>
+<pre class="highlight csharp tab-csharp"><code>   <span class="k">finally</span> <span class="p">{</span>
+       <span class="n">System</span><span class="p">.</span><span class="n">IDisposable</span> <span class="n">d</span> <span class="p">=</span> <span class="n">e</span> <span class="k">as</span> <span class="n">System</span><span class="p">.</span><span class="n">IDisposable</span><span class="p">;</span>
+       <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">d</span><span class="p">.</span><span class="nf">Dispose</span><span class="p">();</span>
+   <span class="p">}</span>
+</code></pre>
+<p>The local variable <code class="prettyprint">d</code> is not visible to or accessible to any user code. In particular, it does not conflict with any other variable whose scope includes the finally block.</p>
+
+<p>The order in which <code class="prettyprint">foreach</code> traverses the elements of an array, is as follows: For single-dimensional arrays elements are traversed in increasing index order, starting with index <code class="prettyprint">0</code> and ending with index <code class="prettyprint">Length - 1</code>. For multi-dimensional arrays, elements are traversed such that the indices of the rightmost dimension are increased first, then the next left dimension, and so on to the left.</p>
+
+<p>The following example prints out each value in a two-dimensional array, in element order:
+&rdquo;`csharp
+using System;</p>
+
+<p>class Test
+{
+    static void Main() {
+        double[,] values = {
+            {1.2, 2.3, 3.4, 4.5},
+            {5.6, 6.7, 7.8, 8.9}
+        };</p>
+
+<p>foreach (double elementValue in values)
+            Console.Write(&ldquo;{0} &rdquo;, elementValue);</p>
+
+<p>Console.WriteLine();
+    }
+}
+<code class="prettyprint">
+The output produced is as follows:
+</code>csharp
+1.2 2.3 3.4 4.5 5.6 6.7 7.8 8.9
+&ldquo;`</p>
+
+<p>In the example
+<code class="prettyprint">csharp
+int[] numbers = { 1, 3, 5, 7, 9 };
+foreach (var n in numbers) Console.WriteLine(n);
+</code>
+the type of <code class="prettyprint">n</code> is inferred to be <code class="prettyprint">int</code>, the element type of <code class="prettyprint">numbers</code>.</p>
+
+<h2 id="jump-statements">Jump statements</h2>
+
+<p>Jump statements unconditionally transfer control.</p>
+<pre class="highlight plaintext"><code>jump_statement
+    : break_statement
+    | continue_statement
+    | goto_statement
+    | return_statement
+    | throw_statement
+    ;
+</code></pre>
+<p>The location to which a jump statement transfers control is called the <strong><em>target</em></strong> of the jump statement.</p>
+
+<p>When a jump statement occurs within a block, and the target of that jump statement is outside that block, the jump statement is said to <strong><em>exit</em></strong> the block. While a jump statement may transfer control out of a block, it can never transfer control into a block.</p>
+
+<p>Execution of jump statements is complicated by the presence of intervening <code class="prettyprint">try</code> statements. In the absence of such <code class="prettyprint">try</code> statements, a jump statement unconditionally transfers control from the jump statement to its target. In the presence of such intervening <code class="prettyprint">try</code> statements, execution is more complex. If the jump statement exits one or more <code class="prettyprint">try</code> blocks with associated <code class="prettyprint">finally</code> blocks, control is initially transferred to the <code class="prettyprint">finally</code> block of the innermost <code class="prettyprint">try</code> statement. When and if control reaches the end point of a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block of the next enclosing <code class="prettyprint">try</code> statement. This process is repeated until the <code class="prettyprint">finally</code> blocks of all intervening <code class="prettyprint">try</code> statements have been executed.</p>
+
+<p>In the example
+&rdquo;`csharp
+using System;</p>
+
+<p>class Test
+{
+    static void Main() {
+        while (true) {
+            try {
+                try {
+                    Console.WriteLine(&ldquo;Before break&rdquo;);
+                    break;
+                }
+                finally {
+                    Console.WriteLine(&ldquo;Innermost finally block&rdquo;);
+                }
+            }
+            finally {
+                Console.WriteLine(&ldquo;Outermost finally block&rdquo;);
+            }
+        }
+        Console.WriteLine(&ldquo;After break&rdquo;);
+    }
+}
+&ldquo;<code class="prettyprint">
+the</code>finally<code class="prettyprint">blocks associated with two</code>try` statements are executed before control is transferred to the target of the jump statement.</p>
+
+<p>The output produced is as follows:
+<code class="prettyprint">
+Before break
+Innermost finally block
+Outermost finally block
+After break
+</code></p>
+
+<h3 id="the-break-statement">The break statement</h3>
+
+<p>The <code class="prettyprint">break</code> statement exits the nearest enclosing <code class="prettyprint">switch</code>, <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statement.</p>
+<pre class="highlight plaintext"><code>break_statement
+    : 'break' ';'
+    ;
+</code></pre>
+<p>The target of a <code class="prettyprint">break</code> statement is the end point of the nearest enclosing <code class="prettyprint">switch</code>, <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statement. If a <code class="prettyprint">break</code> statement is not enclosed by a <code class="prettyprint">switch</code>, <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statement, a compile-time error occurs.</p>
+
+<p>When multiple <code class="prettyprint">switch</code>, <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statements are nested within each other, a <code class="prettyprint">break</code> statement applies only to the innermost statement. To transfer control across multiple nesting levels, a <code class="prettyprint">goto</code> statement (<a href="statements.md#the-goto-statement">The goto statement</a>) must be used.</p>
+
+<p>A <code class="prettyprint">break</code> statement cannot exit a <code class="prettyprint">finally</code> block (<a href="statements.md#the-try-statement">The try statement</a>). When a <code class="prettyprint">break</code> statement occurs within a <code class="prettyprint">finally</code> block, the target of the <code class="prettyprint">break</code> statement must be within the same <code class="prettyprint">finally</code> block; otherwise, a compile-time error occurs.</p>
+
+<p>A <code class="prettyprint">break</code> statement is executed as follows:</p>
+
+<ul>
+<li> If the <code class="prettyprint">break</code> statement exits one or more <code class="prettyprint">try</code> blocks with associated <code class="prettyprint">finally</code> blocks, control is initially transferred to the <code class="prettyprint">finally</code> block of the innermost <code class="prettyprint">try</code> statement. When and if control reaches the end point of a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block of the next enclosing <code class="prettyprint">try</code> statement. This process is repeated until the <code class="prettyprint">finally</code> blocks of all intervening <code class="prettyprint">try</code> statements have been executed.</li>
+<li> Control is transferred to the target of the <code class="prettyprint">break</code> statement.</li>
+</ul>
+
+<p>Because a <code class="prettyprint">break</code> statement unconditionally transfers control elsewhere, the end point of a <code class="prettyprint">break</code> statement is never reachable.</p>
+
+<h3 id="the-continue-statement">The continue statement</h3>
+
+<p>The <code class="prettyprint">continue</code> statement starts a new iteration of the nearest enclosing <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statement.</p>
+<pre class="highlight plaintext"><code>continue_statement
+    : 'continue' ';'
+    ;
+</code></pre>
+<p>The target of a <code class="prettyprint">continue</code> statement is the end point of the embedded statement of the nearest enclosing <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statement. If a <code class="prettyprint">continue</code> statement is not enclosed by a <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statement, a compile-time error occurs.</p>
+
+<p>When multiple <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, or <code class="prettyprint">foreach</code> statements are nested within each other, a <code class="prettyprint">continue</code> statement applies only to the innermost statement. To transfer control across multiple nesting levels, a <code class="prettyprint">goto</code> statement (<a href="statements.md#the-goto-statement">The goto statement</a>) must be used.</p>
+
+<p>A <code class="prettyprint">continue</code> statement cannot exit a <code class="prettyprint">finally</code> block (<a href="statements.md#the-try-statement">The try statement</a>). When a <code class="prettyprint">continue</code> statement occurs within a <code class="prettyprint">finally</code> block, the target of the <code class="prettyprint">continue</code> statement must be within the same <code class="prettyprint">finally</code> block; otherwise a compile-time error occurs.</p>
+
+<p>A <code class="prettyprint">continue</code> statement is executed as follows:</p>
+
+<ul>
+<li> If the <code class="prettyprint">continue</code> statement exits one or more <code class="prettyprint">try</code> blocks with associated <code class="prettyprint">finally</code> blocks, control is initially transferred to the <code class="prettyprint">finally</code> block of the innermost <code class="prettyprint">try</code> statement. When and if control reaches the end point of a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block of the next enclosing <code class="prettyprint">try</code> statement. This process is repeated until the <code class="prettyprint">finally</code> blocks of all intervening <code class="prettyprint">try</code> statements have been executed.</li>
+<li> Control is transferred to the target of the <code class="prettyprint">continue</code> statement.</li>
+</ul>
+
+<p>Because a <code class="prettyprint">continue</code> statement unconditionally transfers control elsewhere, the end point of a <code class="prettyprint">continue</code> statement is never reachable.</p>
+
+<h3 id="the-goto-statement">The goto statement</h3>
+
+<p>The <code class="prettyprint">goto</code> statement transfers control to a statement that is marked by a label.</p>
+<pre class="highlight plaintext"><code>goto_statement
+    : 'goto' identifier ';'
+    | 'goto' 'case' constant_expression ';'
+    | 'goto' 'default' ';'
+    ;
+</code></pre>
+<p>The target of a <code class="prettyprint">goto</code> <em>identifier</em> statement is the labeled statement with the given label. If a label with the given name does not exist in the current function member, or if the <code class="prettyprint">goto</code> statement is not within the scope of the label, a compile-time error occurs. This rule permits the use of a <code class="prettyprint">goto</code> statement to transfer control out of a nested scope, but not into a nested scope. In the example
+&rdquo;`csharp
+using System;</p>
+
+<p>class Test
+{
+    static void Main(string[] args) {
+        string[,] table = {
+            {&ldquo;Red&rdquo;, &ldquo;Blue&rdquo;, &ldquo;Green&rdquo;},
+            {&ldquo;Monday&rdquo;, &ldquo;Wednesday&rdquo;, &ldquo;Friday&rdquo;}
+        };</p>
+
+<p>foreach (string str in args) {
+            int row, colm;
+            for (row = 0; row &lt;= 1; ++row)
+                for (colm = 0; colm &lt;= 2; ++colm)
+                    if (str == table[row,colm])
+                         goto done;</p>
+
+<p>Console.WriteLine(&ldquo;{0} not found&rdquo;, str);
+            continue;
+    done:
+            Console.WriteLine(&ldquo;Found {0} at [{1}][{2}]&rdquo;, str, row, colm);
+        }
+    }
+}
+&ldquo;<code class="prettyprint">
+a</code>goto` statement is used to transfer control out of a nested scope.</p>
+
+<p>The target of a <code class="prettyprint">goto case</code> statement is the statement list in the immediately enclosing <code class="prettyprint">switch</code> statement (<a href="statements.md#the-switch-statement">The switch statement</a>), which contains a <code class="prettyprint">case</code> label with the given constant value. If the <code class="prettyprint">goto case</code> statement is not enclosed by a <code class="prettyprint">switch</code> statement, if the <em>constant_expression</em> is not implicitly convertible (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) to the governing type of the nearest enclosing <code class="prettyprint">switch</code> statement, or if the nearest enclosing <code class="prettyprint">switch</code> statement does not contain a <code class="prettyprint">case</code> label with the given constant value, a compile-time error occurs.</p>
+
+<p>The target of a <code class="prettyprint">goto default</code> statement is the statement list in the immediately enclosing <code class="prettyprint">switch</code> statement (<a href="statements.md#the-switch-statement">The switch statement</a>), which contains a <code class="prettyprint">default</code> label. If the <code class="prettyprint">goto default</code> statement is not enclosed by a <code class="prettyprint">switch</code> statement, or if the nearest enclosing <code class="prettyprint">switch</code> statement does not contain a <code class="prettyprint">default</code> label, a compile-time error occurs.</p>
+
+<p>A <code class="prettyprint">goto</code> statement cannot exit a <code class="prettyprint">finally</code> block (<a href="statements.md#the-try-statement">The try statement</a>). When a <code class="prettyprint">goto</code> statement occurs within a <code class="prettyprint">finally</code> block, the target of the <code class="prettyprint">goto</code> statement must be within the same <code class="prettyprint">finally</code> block, or otherwise a compile-time error occurs.</p>
+
+<p>A <code class="prettyprint">goto</code> statement is executed as follows:</p>
+
+<ul>
+<li> If the <code class="prettyprint">goto</code> statement exits one or more <code class="prettyprint">try</code> blocks with associated <code class="prettyprint">finally</code> blocks, control is initially transferred to the <code class="prettyprint">finally</code> block of the innermost <code class="prettyprint">try</code> statement. When and if control reaches the end point of a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block of the next enclosing <code class="prettyprint">try</code> statement. This process is repeated until the <code class="prettyprint">finally</code> blocks of all intervening <code class="prettyprint">try</code> statements have been executed.</li>
+<li> Control is transferred to the target of the <code class="prettyprint">goto</code> statement.</li>
+</ul>
+
+<p>Because a <code class="prettyprint">goto</code> statement unconditionally transfers control elsewhere, the end point of a <code class="prettyprint">goto</code> statement is never reachable.</p>
+
+<h3 id="the-return-statement">The return statement</h3>
+
+<p>The <code class="prettyprint">return</code> statement returns control to the current caller of the function in which the <code class="prettyprint">return</code> statement appears.</p>
+<pre class="highlight plaintext"><code>return_statement
+    : 'return' expression? ';'
+    ;
+</code></pre>
+<p>A <code class="prettyprint">return</code> statement with no expression can be used only in a function member that does not compute a value, that is, a method with the result type (<a href="classes.md#method-body">Method body</a>) <code class="prettyprint">void</code>, the <code class="prettyprint">set</code> accessor of a property or indexer, the <code class="prettyprint">add</code> and <code class="prettyprint">remove</code> accessors of an event, an instance constructor, a static constructor, or a destructor.</p>
+
+<p>A <code class="prettyprint">return</code> statement with an expression can only be used in a function member that computes a value, that is, a method with a non-void result type, the <code class="prettyprint">get</code> accessor of a property or indexer, or a user-defined operator. An implicit conversion (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) must exist from the type of the expression to the return type of the containing function member.</p>
+
+<p>Return statements can also be used in the body of anonymous function expressions (<a href="expressions.md#anonymous-function-expressions">Anonymous function expressions</a>), and participate in determining which conversions exist for those functions.</p>
+
+<p>It is a compile-time error for a <code class="prettyprint">return</code> statement to appear in a <code class="prettyprint">finally</code> block (<a href="statements.md#the-try-statement">The try statement</a>).</p>
+
+<p>A <code class="prettyprint">return</code> statement is executed as follows:</p>
+
+<ul>
+<li> If the <code class="prettyprint">return</code> statement specifies an expression, the expression is evaluated and the resulting value is converted to the return type of the containing function by an implicit conversion. The result of the conversion becomes the result value produced by the function.</li>
+<li> If the <code class="prettyprint">return</code> statement is enclosed by one or more <code class="prettyprint">try</code> or <code class="prettyprint">catch</code> blocks with associated <code class="prettyprint">finally</code> blocks, control is initially transferred to the <code class="prettyprint">finally</code> block of the innermost <code class="prettyprint">try</code> statement. When and if control reaches the end point of a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block of the next enclosing <code class="prettyprint">try</code> statement. This process is repeated until the <code class="prettyprint">finally</code> blocks of all enclosing <code class="prettyprint">try</code> statements have been executed.</li>
+<li> If the containing function is not an async function, control is returned to the caller of the containing function along with the result value, if any.</li>
+<li> If the containing function is an async function, control is returned to the current caller, and the result value, if any, is recorded in the return task as described in (<a href="classes.md#enumerator-interfaces">Enumerator interfaces</a>).</li>
+</ul>
+
+<p>Because a <code class="prettyprint">return</code> statement unconditionally transfers control elsewhere, the end point of a <code class="prettyprint">return</code> statement is never reachable.</p>
+
+<h3 id="the-throw-statement">The throw statement</h3>
+
+<p>The <code class="prettyprint">throw</code> statement throws an exception.</p>
+<pre class="highlight plaintext"><code>throw_statement
+    : 'throw' expression? ';'
+    ;
+</code></pre>
+<p>A <code class="prettyprint">throw</code> statement with an expression throws the value produced by evaluating the expression. The expression must denote a value of the class type <code class="prettyprint">System.Exception</code>, of a class type that derives from <code class="prettyprint">System.Exception</code> or of a type parameter type that has <code class="prettyprint">System.Exception</code> (or a subclass thereof) as its effective base class. If evaluation of the expression produces <code class="prettyprint">null</code>, a <code class="prettyprint">System.NullReferenceException</code> is thrown instead.</p>
+
+<p>A <code class="prettyprint">throw</code> statement with no expression can be used only in a <code class="prettyprint">catch</code> block, in which case that statement re-throws the exception that is currently being handled by that <code class="prettyprint">catch</code> block.</p>
+
+<p>Because a <code class="prettyprint">throw</code> statement unconditionally transfers control elsewhere, the end point of a <code class="prettyprint">throw</code> statement is never reachable.</p>
+
+<p>When an exception is thrown, control is transferred to the first <code class="prettyprint">catch</code> clause in an enclosing <code class="prettyprint">try</code> statement that can handle the exception. The process that takes place from the point of the exception being thrown to the point of transferring control to a suitable exception handler is known as <strong><em>exception propagation</em></strong>. Propagation of an exception consists of repeatedly evaluating the following steps until a <code class="prettyprint">catch</code> clause that matches the exception is found. In this description, the <strong><em>throw point</em></strong> is initially the location at which the exception is thrown.</p>
+
+<ul>
+<li><p>In the current function member, each <code class="prettyprint">try</code> statement that encloses the throw point is examined. For each statement <code class="prettyprint">S</code>, starting with the innermost <code class="prettyprint">try</code> statement and ending with the outermost <code class="prettyprint">try</code> statement, the following steps are evaluated:</p>
+
+<ul>
+<li>If the <code class="prettyprint">try</code> block of <code class="prettyprint">S</code> encloses the throw point and if S has one or more <code class="prettyprint">catch</code> clauses, the <code class="prettyprint">catch</code> clauses are examined in order of appearance to locate a suitable handler for the exception, according to the rules specified in Section <a href="statements.md#the-try-statement">The try statement</a>. If a matching <code class="prettyprint">catch</code> clause is located, the exception propagation is completed by transferring control to the block of that <code class="prettyprint">catch</code> clause.</li>
+<li>Otherwise, if the <code class="prettyprint">try</code> block or a <code class="prettyprint">catch</code> block of <code class="prettyprint">S</code> encloses the throw point and if <code class="prettyprint">S</code> has a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block. If the <code class="prettyprint">finally</code> block throws another exception, processing of the current exception is terminated. Otherwise, when control reaches the end point of the <code class="prettyprint">finally</code> block, processing of the current exception is continued.</li>
+</ul></li>
+<li><p>If an exception handler was not located in the current function invocation, the function invocation is terminated, and one of the following occurs:</p>
+
+<ul>
+<li>If the current function is non-async, the steps above are repeated for the caller of the function with a throw point corresponding to the statement from which the function member was invoked.</li>
+<li>If the current function is async and task-returning, the exception is recorded in the return task, which is put into a faulted or cancelled state as described in <a href="classes.md#enumerator-interfaces">Enumerator interfaces</a>.</li>
+<li>If the current function is async and void-returning, the synchronization context of the current thread is notified as described in <a href="classes.md#enumerable-interfaces">Enumerable interfaces</a>.</li>
+</ul></li>
+<li><p>If the exception processing terminates all function member invocations in the current thread, indicating that the thread has no handler for the exception, then the thread is itself terminated. The impact of such termination is implementation-defined.</p></li>
+</ul>
+
+<h2 id="the-try-statement">The try statement</h2>
+
+<p>The <code class="prettyprint">try</code> statement provides a mechanism for catching exceptions that occur during execution of a block. Furthermore, the <code class="prettyprint">try</code> statement provides the ability to specify a block of code that is always executed when control leaves the <code class="prettyprint">try</code> statement.</p>
+<pre class="highlight plaintext"><code>try_statement
+    : 'try' block catch_clause+
+    | 'try' block finally_clause
+    | 'try' block catch_clause+ finally_clause
+    ;
+
+catch_clause
+    : 'catch' exception_specifier? exception_filter?  block
+    ;
+
+exception_specifier
+    : '(' type identifier? ')'
+    ;
+
+exception_filter
+    : 'when' '(' expression ')'
+    ;
+
+finally_clause
+    : 'finally' block
+    ;
+</code></pre>
+<p>There are three possible forms of <code class="prettyprint">try</code> statements:</p>
+
+<ul>
+<li> A <code class="prettyprint">try</code> block followed by one or more <code class="prettyprint">catch</code> blocks.</li>
+<li> A <code class="prettyprint">try</code> block followed by a <code class="prettyprint">finally</code> block.</li>
+<li> A <code class="prettyprint">try</code> block followed by one or more <code class="prettyprint">catch</code> blocks followed by a <code class="prettyprint">finally</code> block.</li>
+</ul>
+
+<p>When a <code class="prettyprint">catch</code> clause specifies an <em>exception_specifier</em>, the type must be <code class="prettyprint">System.Exception</code>, a type that derives from <code class="prettyprint">System.Exception</code> or a type parameter type that has <code class="prettyprint">System.Exception</code> (or a subclass thereof) as its effective base class.</p>
+
+<p>When a <code class="prettyprint">catch</code> clause specifies both an <em>exception_specifier</em> with an <em>identifier</em>, an <strong><em>exception variable</em></strong> of the given name and type is declared. The exception variable corresponds to a local variable with a scope that extends over the <code class="prettyprint">catch</code> clause. During execution of the <em>exception_filter</em> and <em>block</em>, the exception variable represents the exception currently being handled. For purposes of definite assignment checking, the exception variable is considered definitely assigned in its entire scope.</p>
+
+<p>Unless a <code class="prettyprint">catch</code> clause includes an exception variable name, it is impossible to access the exception object in the filter and <code class="prettyprint">catch</code> block.</p>
+
+<p>A <code class="prettyprint">catch</code> clause that does not specify an <em>exception_specifier</em> is called a general <code class="prettyprint">catch</code> clause.</p>
+
+<p>Some programming languages may support exceptions that are not representable as an object derived from <code class="prettyprint">System.Exception</code>, although such exceptions could never be generated by C# code. A general <code class="prettyprint">catch</code> clause may be used to catch such exceptions. Thus, a general <code class="prettyprint">catch</code> clause is semantically different from one that specifies the type <code class="prettyprint">System.Exception</code>, in that the former may also catch exceptions from other languages.</p>
+
+<p>In order to locate a handler for an exception, <code class="prettyprint">catch</code> clauses are examined in lexical order. If a <code class="prettyprint">catch</code> clause specifies a type but no exception filter, it is a compile-time error for a later <code class="prettyprint">catch</code> clause in the same <code class="prettyprint">try</code> statement to specify a type that is the same as, or is derived from, that type. If a <code class="prettyprint">catch</code> clause specifies no type and no filter, it must be the last <code class="prettyprint">catch</code> clause for that <code class="prettyprint">try</code> statement.</p>
+
+<p>Within a <code class="prettyprint">catch</code> block, a <code class="prettyprint">throw</code> statement (<a href="statements.md#the-throw-statement">The throw statement</a>) with no expression can be used to re-throw the exception that was caught by the <code class="prettyprint">catch</code> block. Assignments to an exception variable do not alter the exception that is re-thrown.</p>
+
+<p>In the example
+&rdquo;`csharp
+using System;</p>
+
+<p>class Test
+{
+    static void F() {
+        try {
+            G();
+        }
+        catch (Exception e) {
+            Console.WriteLine(&ldquo;Exception in F: &rdquo; + e.Message);
+            e = new Exception(&ldquo;F&rdquo;);
+            throw;                // re-throw
+        }
+    }</p>
+
+<p>static void G() {
+        throw new Exception(&ldquo;G&rdquo;);
+    }</p>
+
+<p>static void Main() {
+        try {
+            F();
+        }
+        catch (Exception e) {
+            Console.WriteLine(&ldquo;Exception in Main: &rdquo; + e.Message);
+        }
+    }
+}
+<code class="prettyprint">
+the method `F` catches an exception, writes some diagnostic information to the console, alters the exception variable, and re-throws the exception. The exception that is re-thrown is the original exception, so the output produced is:
+</code>
+Exception in F: G
+Exception in Main: G
+&ldquo;`</p>
+
+<p>If the first catch block had thrown <code class="prettyprint">e</code> instead of rethrowing the current exception, the output produced would be as follows:
+<code class="prettyprint">csharp
+Exception in F: G
+Exception in Main: F
+</code></p>
+
+<p>It is a compile-time error for a <code class="prettyprint">break</code>, <code class="prettyprint">continue</code>, or <code class="prettyprint">goto</code> statement to transfer control out of a <code class="prettyprint">finally</code> block. When a <code class="prettyprint">break</code>, <code class="prettyprint">continue</code>, or <code class="prettyprint">goto</code> statement occurs in a <code class="prettyprint">finally</code> block, the target of the statement must be within the same <code class="prettyprint">finally</code> block, or otherwise a compile-time error occurs.</p>
+
+<p>It is a compile-time error for a <code class="prettyprint">return</code> statement to occur in a <code class="prettyprint">finally</code> block.</p>
+
+<p>A <code class="prettyprint">try</code> statement is executed as follows:</p>
+
+<ul>
+<li> Control is transferred to the <code class="prettyprint">try</code> block.</li>
+<li><p>When and if control reaches the end point of the <code class="prettyprint">try</code> block:</p>
+
+<ul>
+<li> If the <code class="prettyprint">try</code> statement has a <code class="prettyprint">finally</code> block, the <code class="prettyprint">finally</code> block is executed.</li>
+<li> Control is transferred to the end point of the <code class="prettyprint">try</code> statement.</li>
+</ul></li>
+<li><p>If an exception is propagated to the <code class="prettyprint">try</code> statement during execution of the <code class="prettyprint">try</code> block:</p>
+
+<ul>
+<li> The <code class="prettyprint">catch</code> clauses, if any, are examined in order of appearance to locate a suitable handler for the exception. If a <code class="prettyprint">catch</code> clause does not specify a type, or specifies the exception type or a base type of the exception type:
+
+<ul>
+<li> If the <code class="prettyprint">catch</code> clause declares an exception variable, the exception object is assigned to the exception variable.</li>
+<li> If the <code class="prettyprint">catch</code> clause declares an exception filter, the filter is evaluated. If it evaluates to <code class="prettyprint">false</code>, the catch clause is not a match, and the search continues through any subsequent <code class="prettyprint">catch</code> clauses for a suitable handler.</li>
+<li> Otherwise, the <code class="prettyprint">catch</code> clause is considered a match, and control is transferred to the matching <code class="prettyprint">catch</code> block.</li>
+<li> When and if control reaches the end point of the <code class="prettyprint">catch</code> block:
+
+<ul>
+<li>If the <code class="prettyprint">try</code> statement has a <code class="prettyprint">finally</code> block, the <code class="prettyprint">finally</code> block is executed.</li>
+<li>Control is transferred to the end point of the <code class="prettyprint">try</code> statement.</li>
+</ul></li>
+<li> If an exception is propagated to the <code class="prettyprint">try</code> statement during execution of the <code class="prettyprint">catch</code> block:
+
+<ul>
+<li> If the <code class="prettyprint">try</code> statement has a <code class="prettyprint">finally</code> block, the <code class="prettyprint">finally</code> block is executed.</li>
+<li> The exception is propagated to the next enclosing <code class="prettyprint">try</code> statement.</li>
+</ul></li>
+</ul></li>
+<li> If the <code class="prettyprint">try</code> statement has no <code class="prettyprint">catch</code> clauses or if no <code class="prettyprint">catch</code> clause matches the exception:
+
+<ul>
+<li> If the <code class="prettyprint">try</code> statement has a <code class="prettyprint">finally</code> block, the <code class="prettyprint">finally</code> block is executed.</li>
+<li> The exception is propagated to the next enclosing <code class="prettyprint">try</code> statement.</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>The statements of a <code class="prettyprint">finally</code> block are always executed when control leaves a <code class="prettyprint">try</code> statement. This is true whether the control transfer occurs as a result of normal execution, as a result of executing a <code class="prettyprint">break</code>, <code class="prettyprint">continue</code>, <code class="prettyprint">goto</code>, or <code class="prettyprint">return</code> statement, or as a result of propagating an exception out of the <code class="prettyprint">try</code> statement.</p>
+
+<p>If an exception is thrown during execution of a <code class="prettyprint">finally</code> block, and is not caught within the same finally block, the exception is propagated to the next enclosing <code class="prettyprint">try</code> statement. If another exception was in the process of being propagated, that exception is lost. The process of propagating an exception is discussed further in the description of the <code class="prettyprint">throw</code> statement (<a href="statements.md#the-throw-statement">The throw statement</a>).</p>
+
+<p>The <code class="prettyprint">try</code> block of a <code class="prettyprint">try</code> statement is reachable if the <code class="prettyprint">try</code> statement is reachable.</p>
+
+<p>A <code class="prettyprint">catch</code> block of a <code class="prettyprint">try</code> statement is reachable if the <code class="prettyprint">try</code> statement is reachable.</p>
+
+<p>The <code class="prettyprint">finally</code> block of a <code class="prettyprint">try</code> statement is reachable if the <code class="prettyprint">try</code> statement is reachable.</p>
+
+<p>The end point of a <code class="prettyprint">try</code> statement is reachable if both of the following are true:</p>
+
+<ul>
+<li> The end point of the <code class="prettyprint">try</code> block is reachable or the end point of at least one <code class="prettyprint">catch</code> block is reachable.</li>
+<li> If a <code class="prettyprint">finally</code> block is present, the end point of the <code class="prettyprint">finally</code> block is reachable.</li>
+</ul>
+
+<h2 id="the-checked-and-unchecked-statements">The checked and unchecked statements</h2>
+
+<p>The <code class="prettyprint">checked</code> and <code class="prettyprint">unchecked</code> statements are used to control the <strong><em>overflow checking context</em></strong> for integral-type arithmetic operations and conversions.</p>
+<pre class="highlight plaintext"><code>checked_statement
+    : 'checked' block
+    ;
+
+unchecked_statement
+    : 'unchecked' block
+    ;
+</code></pre>
+<p>The <code class="prettyprint">checked</code> statement causes all expressions in the <em>block</em> to be evaluated in a checked context, and the <code class="prettyprint">unchecked</code> statement causes all expressions in the <em>block</em> to be evaluated in an unchecked context.</p>
+
+<p>The <code class="prettyprint">checked</code> and <code class="prettyprint">unchecked</code> statements are precisely equivalent to the <code class="prettyprint">checked</code> and <code class="prettyprint">unchecked</code> operators (<a href="expressions.md#the-checked-and-unchecked-operators">The checked and unchecked operators</a>), except that they operate on blocks instead of expressions.</p>
+
+<h2 id="the-lock-statement">The lock statement</h2>
+
+<p>The <code class="prettyprint">lock</code> statement obtains the mutual-exclusion lock for a given object, executes a statement, and then releases the lock.</p>
+<pre class="highlight plaintext"><code>lock_statement
+    : 'lock' '(' expression ')' embedded_statement
+    ;
+</code></pre>
+<p>The expression of a <code class="prettyprint">lock</code> statement must denote a value of a type known to be a <em>reference_type</em>. No implicit boxing conversion (<a href="conversions.md#boxing-conversions">Boxing conversions</a>) is ever performed for the expression of a <code class="prettyprint">lock</code> statement, and thus it is a compile-time error for the expression to denote a value of a <em>value_type</em>.</p>
+
+<p>A <code class="prettyprint">lock</code> statement of the form
+<code class="prettyprint">csharp
+lock (x) ...
+</code>
+where <code class="prettyprint">x</code> is an expression of a <em>reference_type</em>, is precisely equivalent to
+<code class="prettyprint">csharp
+bool __lockWasTaken = false;
+try {
+    System.Threading.Monitor.Enter(x, ref __lockWasTaken);
+    ...
+}
+finally {
+    if (__lockWasTaken) System.Threading.Monitor.Exit(x);
+}
+</code>
+except that <code class="prettyprint">x</code> is only evaluated once.</p>
+
+<p>While a mutual-exclusion lock is held, code executing in the same execution thread can also obtain and release the lock. However, code executing in other threads is blocked from obtaining the lock until the lock is released.</p>
+
+<p>Locking <code class="prettyprint">System.Type</code> objects in order to synchronize access to static data is not recommended. Other code might lock on the same type, which can result in deadlock. A better approach is to synchronize access to static data by locking a private static object. For example:
+&rdquo;`csharp
+class Cache
+{
+    private static readonly object synchronizationObject = new object();</p>
+
+<p>public static void Add(object x) {
+        lock (Cache.synchronizationObject) {
+            &hellip;
+        }
+    }</p>
+
+<p>public static void Remove(object x) {
+        lock (Cache.synchronizationObject) {
+            &hellip;
+        }
+    }
+}
+&ldquo;`</p>
+
+<h2 id="the-using-statement">The using statement</h2>
+
+<p>The <code class="prettyprint">using</code> statement obtains one or more resources, executes a statement, and then disposes of the resource.</p>
+<pre class="highlight plaintext"><code>using_statement
+    : 'using' '(' resource_acquisition ')' embedded_statement
+    ;
+
+resource_acquisition
+    : local_variable_declaration
+    | expression
+    ;
+</code></pre>
+<p>A <strong><em>resource</em></strong> is a class or struct that implements <code class="prettyprint">System.IDisposable</code>, which includes a single parameterless method named <code class="prettyprint">Dispose</code>. Code that is using a resource can call <code class="prettyprint">Dispose</code> to indicate that the resource is no longer needed. If <code class="prettyprint">Dispose</code> is not called, then automatic disposal eventually occurs as a consequence of garbage collection.</p>
+
+<p>If the form of <em>resource_acquisition</em> is <em>local_variable_declaration</em> then the type of the <em>local_variable_declaration</em> must be either <code class="prettyprint">dynamic</code> or a type that can be implicitly converted to <code class="prettyprint">System.IDisposable</code>. If the form of <em>resource_acquisition</em> is <em>expression</em> then this expression must be implicitly convertible to <code class="prettyprint">System.IDisposable</code>.</p>
+
+<p>Local variables declared in a <em>resource_acquisition</em> are read-only, and must include an initializer. A compile-time error occurs if the embedded statement attempts to modify these local variables (via assignment or the <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators) , take the address of them, or pass them as <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameters.</p>
+
+<p>A <code class="prettyprint">using</code> statement is translated into three parts: acquisition, usage, and disposal. Usage of the resource is implicitly enclosed in a <code class="prettyprint">try</code> statement that includes a <code class="prettyprint">finally</code> clause. This <code class="prettyprint">finally</code> clause disposes of the resource. If a <code class="prettyprint">null</code> resource is acquired, then no call to <code class="prettyprint">Dispose</code> is made, and no exception is thrown. If the resource is of type <code class="prettyprint">dynamic</code> it is dynamically converted through an implicit dynamic conversion (<a href="conversions.md#implicit-dynamic-conversions">Implicit dynamic conversions</a>) to <code class="prettyprint">IDisposable</code> during acquisition in order to ensure that the conversion is successful before the usage and disposal.</p>
+
+<p>A <code class="prettyprint">using</code> statement of the form
+<code class="prettyprint">csharp
+using (ResourceType resource = expression) statement
+</code>
+corresponds to one of three possible expansions. When <code class="prettyprint">ResourceType</code> is a non-nullable value type, the expansion is
+<code class="prettyprint">csharp
+{
+    ResourceType resource = expression;
+    try {
+        statement;
+    }
+    finally {
+        ((IDisposable)resource).Dispose();
+    }
+}
+</code></p>
+
+<p>Otherwise, when <code class="prettyprint">ResourceType</code> is a nullable value type or a reference type other than <code class="prettyprint">dynamic</code>, the expansion is
+<code class="prettyprint">csharp
+{
+    ResourceType resource = expression;
+    try {
+        statement;
+    }
+    finally {
+        if (resource != null) ((IDisposable)resource).Dispose();
+    }
+}
+</code></p>
+
+<p>Otherwise, when <code class="prettyprint">ResourceType</code> is <code class="prettyprint">dynamic</code>, the expansion is
+<code class="prettyprint">csharp
+{
+    ResourceType resource = expression;
+    IDisposable d = (IDisposable)resource;
+    try {
+        statement;
+    }
+    finally {
+        if (d != null) d.Dispose();
+    }
+}
+</code></p>
+
+<p>In either expansion, the <code class="prettyprint">resource</code> variable is read-only in the embedded statement, and the <code class="prettyprint">d</code> variable is inaccessible in, and invisible to, the embedded statement.</p>
+
+<p>An implementation is permitted to implement a given using-statement differently, e.g. for performance reasons, as long as the behavior is consistent with the above expansion.</p>
+
+<p>A <code class="prettyprint">using</code> statement of the form
+<code class="prettyprint">csharp
+using (expression) statement
+</code>
+has the same three possible expansions. In this case <code class="prettyprint">ResourceType</code> is implicitly the compile-time type of the <code class="prettyprint">expression</code>, if it has one. Otherwise the interface <code class="prettyprint">IDisposable</code> itself is used as the <code class="prettyprint">ResourceType</code>. The <code class="prettyprint">resource</code> variable is inaccessible in, and invisible to, the embedded statement.</p>
+
+<p>When a <em>resource_acquisition</em> takes the form of a <em>local_variable_declaration</em>, it is possible to acquire multiple resources of a given type. A <code class="prettyprint">using</code> statement of the form
+<code class="prettyprint">csharp
+using (ResourceType r1 = e1, r2 = e2, ..., rN = eN) statement
+</code>
+is precisely equivalent to a sequence of nested <code class="prettyprint">using</code> statements:
+<code class="prettyprint">csharp
+using (ResourceType r1 = e1)
+    using (ResourceType r2 = e2)
+        ...
+            using (ResourceType rN = eN)
+                statement
+</code></p>
+
+<p>The example below creates a file named <code class="prettyprint">log.txt</code> and writes two lines of text to the file. The example then opens that same file for reading and copies the contained lines of text to the console.
+&rdquo;`csharp
+using System;
+using System.IO;</p>
+
+<p>class Test
+{
+    static void Main() {
+        using (TextWriter w = File.CreateText(&ldquo;log.txt&rdquo;)) {
+            w.WriteLine(&ldquo;This is line one&rdquo;);
+            w.WriteLine(&ldquo;This is line two&rdquo;);
+        }</p>
+
+<p>using (TextReader r = File.OpenText(&ldquo;log.txt&rdquo;)) {
+            string s;
+            while ((s = r.ReadLine()) != null) {
+                Console.WriteLine(s);
+            }</p>
+
+<p>}
+    }
+}
+&ldquo;`</p>
+
+<p>Since the <code class="prettyprint">TextWriter</code> and <code class="prettyprint">TextReader</code> classes implement the <code class="prettyprint">IDisposable</code> interface, the example can use <code class="prettyprint">using</code> statements to ensure that the underlying file is properly closed following the write or read operations.</p>
+
+<h2 id="the-yield-statement">The yield statement</h2>
+
+<p>The <code class="prettyprint">yield</code> statement is used in an iterator block (<a href="statements.md#blocks">Blocks</a>) to yield a value to the enumerator object (<a href="classes.md#enumerator-objects">Enumerator objects</a>) or enumerable object (<a href="classes.md#enumerable-objects">Enumerable objects</a>) of an iterator or to signal the end of the iteration.</p>
+<pre class="highlight plaintext"><code>yield_statement
+    : 'yield' 'return' expression ';'
+    | 'yield' 'break' ';'
+    ;
+</code></pre>
+<p><code class="prettyprint">yield</code> is not a reserved word; it has special meaning only when used immediately before a <code class="prettyprint">return</code> or <code class="prettyprint">break</code> keyword. In other contexts, <code class="prettyprint">yield</code> can be used as an identifier.</p>
+
+<p>There are several restrictions on where a <code class="prettyprint">yield</code> statement can appear, as described in the following.</p>
+
+<ul>
+<li> It is a compile-time error for a <code class="prettyprint">yield</code> statement (of either form) to appear outside a <em>method_body</em>, <em>operator_body</em> or <em>accessor_body</em></li>
+<li> It is a compile-time error for a <code class="prettyprint">yield</code> statement (of either form) to appear inside an anonymous function.</li>
+<li> It is a compile-time error for a <code class="prettyprint">yield</code> statement (of either form) to appear in the <code class="prettyprint">finally</code> clause of a <code class="prettyprint">try</code> statement.</li>
+<li> It is a compile-time error for a <code class="prettyprint">yield return</code> statement to appear anywhere in a <code class="prettyprint">try</code> statement that contains any <code class="prettyprint">catch</code> clauses.</li>
+</ul>
+
+<p>The following example shows some valid and invalid uses of <code class="prettyprint">yield</code> statements.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">delegate</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="nf">D</span><span class="p">();</span>
+
+<span class="n">IEnumerator</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="nf">GetEnumerator</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="k">yield</span> <span class="k">return</span> <span class="m">1</span><span class="p">;</span>        <span class="c1">// Ok</span>
+        <span class="k">yield</span> <span class="k">break</span><span class="p">;</span>           <span class="c1">// Ok</span>
+    <span class="p">}</span>
+    <span class="k">finally</span> <span class="p">{</span>
+        <span class="k">yield</span> <span class="k">return</span> <span class="m">2</span><span class="p">;</span>        <span class="c1">// Error, yield in finally</span>
+        <span class="k">yield</span> <span class="k">break</span><span class="p">;</span>           <span class="c1">// Error, yield in finally</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="k">yield</span> <span class="k">return</span> <span class="m">3</span><span class="p">;</span>        <span class="c1">// Error, yield return in try...catch</span>
+        <span class="k">yield</span> <span class="k">break</span><span class="p">;</span>           <span class="c1">// Ok</span>
+    <span class="p">}</span>
+    <span class="k">catch</span> <span class="p">{</span>
+        <span class="k">yield</span> <span class="k">return</span> <span class="m">4</span><span class="p">;</span>        <span class="c1">// Error, yield return in try...catch</span>
+        <span class="k">yield</span> <span class="k">break</span><span class="p">;</span>           <span class="c1">// Ok</span>
+    <span class="p">}</span>
+
+    <span class="n">D</span> <span class="n">d</span> <span class="p">=</span> <span class="k">delegate</span> <span class="p">{</span> 
+        <span class="k">yield</span> <span class="k">return</span> <span class="m">5</span><span class="p">;</span>        <span class="c1">// Error, yield in an anonymous function</span>
+    <span class="p">};</span> 
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">MyMethod</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">yield</span> <span class="k">return</span> <span class="m">1</span><span class="p">;</span>            <span class="c1">// Error, wrong return type for an iterator block</span>
+<span class="p">}</span>
+</code></pre>
+<p>An implicit conversion (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) must exist from the type of the expression in the <code class="prettyprint">yield return</code> statement to the yield type (<a href="classes.md#yield-type">Yield type</a>) of the iterator.</p>
+
+<p>A <code class="prettyprint">yield return</code> statement is executed as follows:</p>
+
+<ul>
+<li> The expression given in the statement is evaluated, implicitly converted to the yield type, and assigned to the <code class="prettyprint">Current</code> property of the enumerator object.</li>
+<li> Execution of the iterator block is suspended. If the <code class="prettyprint">yield return</code> statement is within one or more <code class="prettyprint">try</code> blocks, the associated <code class="prettyprint">finally</code> blocks are not executed at this time.</li>
+<li> The <code class="prettyprint">MoveNext</code> method of the enumerator object returns <code class="prettyprint">true</code> to its caller, indicating that the enumerator object successfully advanced to the next item.</li>
+</ul>
+
+<p>The next call to the enumerator object&rsquo;s <code class="prettyprint">MoveNext</code> method resumes execution of the iterator block from where it was last suspended.</p>
+
+<p>A <code class="prettyprint">yield break</code> statement is executed as follows:</p>
+
+<ul>
+<li> If the <code class="prettyprint">yield break</code> statement is enclosed by one or more <code class="prettyprint">try</code> blocks with associated <code class="prettyprint">finally</code> blocks, control is initially transferred to the <code class="prettyprint">finally</code> block of the innermost <code class="prettyprint">try</code> statement. When and if control reaches the end point of a <code class="prettyprint">finally</code> block, control is transferred to the <code class="prettyprint">finally</code> block of the next enclosing <code class="prettyprint">try</code> statement. This process is repeated until the <code class="prettyprint">finally</code> blocks of all enclosing <code class="prettyprint">try</code> statements have been executed.</li>
+<li> Control is returned to the caller of the iterator block. This is either the <code class="prettyprint">MoveNext</code> method or <code class="prettyprint">Dispose</code> method of the enumerator object.</li>
+</ul>
+
+<p>Because a <code class="prettyprint">yield break</code> statement unconditionally transfers control elsewhere, the end point of a <code class="prettyprint">yield break</code> statement is never reachable.</p>

@@ -1,0 +1,242 @@
+<h1 id="delegates">Delegates</h1>
+
+<p>Delegates enable scenarios that other languages—such as C++, Pascal, and Modula &ndash; have addressed with function pointers. Unlike C++ function pointers, however, delegates are fully object oriented, and unlike C++ pointers to member functions, delegates encapsulate both an object instance and a method.</p>
+
+<p>A delegate declaration defines a class that is derived from the class <code class="prettyprint">System.Delegate</code>. A delegate instance encapsulates an invocation list, which is a list of one or more methods, each of which is referred to as a callable entity. For instance methods, a callable entity consists of an instance and a method on that instance. For static methods, a callable entity consists of just a method. Invoking a delegate instance with an appropriate set of arguments causes each of the delegate&rsquo;s callable entities to be invoked with the given set of arguments.</p>
+
+<p>An interesting and useful property of a delegate instance is that it does not know or care about the classes of the methods it encapsulates; all that matters is that those methods be compatible (<a href="delegates.md#delegate-declarations">Delegate declarations</a>) with the delegate&rsquo;s type. This makes delegates perfectly suited for &ldquo;anonymous&rdquo; invocation.</p>
+
+<h2 id="delegate-declarations">Delegate declarations</h2>
+
+<p>A <em>delegate_declaration</em> is a <em>type_declaration</em> (<a href="namespaces.md#type-declarations">Type declarations</a>) that declares a new delegate type.</p>
+<pre class="highlight shell"><code>delegate_declaration
+    : attributes? delegate_modifier<span class="k">*</span> <span class="s1">'delegate'</span> return_type
+      identifier variant_type_parameter_list?
+      <span class="s1">'('</span> formal_parameter_list? <span class="s1">')'</span> type_parameter_constraints_clause<span class="k">*</span> <span class="s1">';'</span>
+    ;
+
+delegate_modifier
+    : <span class="s1">'new'</span>
+    | <span class="s1">'public'</span>
+    | <span class="s1">'protected'</span>
+    | <span class="s1">'internal'</span>
+    | <span class="s1">'private'</span>
+    | delegate_modifier_unsafe
+    ;
+</code></pre>
+<p>It is a compile-time error for the same modifier to appear multiple times in a delegate declaration.</p>
+
+<p>The <code class="prettyprint">new</code> modifier is only permitted on delegates declared within another type, in which case it specifies that such a delegate hides an inherited member by the same name, as described in <a href="classes.md#the-new-modifier">The new modifier</a>.</p>
+
+<p>The <code class="prettyprint">public</code>, <code class="prettyprint">protected</code>, <code class="prettyprint">internal</code>, and <code class="prettyprint">private</code> modifiers control the accessibility of the delegate type. Depending on the context in which the delegate declaration occurs, some of these modifiers may not be permitted (<a href="basic-concepts.md#declared-accessibility">Declared accessibility</a>).</p>
+
+<p>The delegate&rsquo;s type name is <em>identifier</em>.</p>
+
+<p>The optional <em>formal_parameter_list</em> specifies the parameters of the delegate, and <em>return_type</em> indicates the return type of the delegate.</p>
+
+<p>The optional <em>variant_type_parameter_list</em> (<a href="interfaces.md#variant-type-parameter-lists">Variant type parameter lists</a>) specifies the type parameters to the delegate itself.</p>
+
+<p>The return type of a delegate type must be either <code class="prettyprint">void</code>, or output-safe (<a href="interfaces.md#variance-safety">Variance safety</a>).</p>
+
+<p>All the formal parameter types of a delegate type must be input-safe. Additionally, any <code class="prettyprint">out</code> or <code class="prettyprint">ref</code> parameter types must also be output-safe. Note that even <code class="prettyprint">out</code> parameters are required to be input-safe, due to a limitiation of the underlying execution platform.</p>
+
+<p>Delegate types in C# are name equivalent, not structurally equivalent. Specifically, two different delegate types that have the same parameter lists and return type are considered different delegate types. However, instances of two distinct but structurally equivalent delegate types may compare as equal (<a href="expressions.md#delegate-equality-operators">Delegate equality operators</a>).</p>
+
+<p>For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">delegate</span> <span class="kt">int</span> <span class="nf">D1</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="kt">double</span> <span class="n">d</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">A</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">M1</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">double</span> <span class="n">b</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">B</span>
+<span class="p">{</span>
+    <span class="k">delegate</span> <span class="kt">int</span> <span class="nf">D2</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">,</span> <span class="kt">double</span> <span class="n">d</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">M1</span><span class="p">(</span><span class="kt">int</span> <span class="n">f</span><span class="p">,</span> <span class="kt">double</span> <span class="n">g</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M2</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span><span class="p">,</span> <span class="kt">double</span> <span class="n">l</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">M3</span><span class="p">(</span><span class="kt">int</span> <span class="n">g</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M4</span><span class="p">(</span><span class="kt">int</span> <span class="n">g</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The methods <code class="prettyprint">A.M1</code> and <code class="prettyprint">B.M1</code>are compatible with both the delegate types <code class="prettyprint">D1</code> and <code class="prettyprint">D2</code> , since they have the same return type and parameter list; however, these delegate types are two different types, so they are not interchangeable. The methods <code class="prettyprint">B.M2</code>, <code class="prettyprint">B.M3</code>, and <code class="prettyprint">B.M4</code> are incompatible with the delegate types <code class="prettyprint">D1</code> and <code class="prettyprint">D2</code>, since they have different return types or parameter lists.</p>
+
+<p>Like other generic type declarations, type arguments must be given to create a constructed delegate type. The parameter types and return type of a constructed delegate type are created by substituting, for each type parameter in the delegate declaration, the corresponding type argument of the constructed delegate type. The resulting return type and parameter types are used in determining what methods are compatible with a constructed delegate type. For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">delegate</span> <span class="kt">bool</span> <span class="n">Predicate</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="n">T</span> <span class="k">value</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">X</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="nf">F</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="nf">G</span><span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The method <code class="prettyprint">X.F</code> is compatible with the delegate type <code class="prettyprint">Predicate&lt;int&gt;</code> and the method <code class="prettyprint">X.G</code> is compatible with the delegate type <code class="prettyprint">Predicate&lt;string&gt;</code> .</p>
+
+<p>The only way to declare a delegate type is via a <em>delegate_declaration</em>. A delegate type is a class type that is derived from <code class="prettyprint">System.Delegate</code>. Delegate types are implicitly <code class="prettyprint">sealed</code>, so it is not permissible to derive any type from a delegate type. It is also not permissible to derive a non-delegate class type from <code class="prettyprint">System.Delegate</code>. Note that <code class="prettyprint">System.Delegate</code> is not itself a delegate type; it is a class type from which all delegate types are derived.</p>
+
+<p>C# provides special syntax for delegate instantiation and invocation. Except for instantiation, any operation that can be applied to a class or class instance can also be applied to a delegate class or instance, respectively. In particular, it is possible to access members of the <code class="prettyprint">System.Delegate</code> type via the usual member access syntax.</p>
+
+<p>The set of methods encapsulated by a delegate instance is called an invocation list. When a delegate instance is created (<a href="delegates.md#delegate-compatibility">Delegate compatibility</a>) from a single method, it encapsulates that method, and its invocation list contains only one entry. However, when two non-null delegate instances are combined, their invocation lists are concatenated &ndash; in the order left operand then right operand &ndash; to form a new invocation list, which contains two or more entries.</p>
+
+<p>Delegates are combined using the binary <code class="prettyprint">+</code> (<a href="expressions.md#addition-operator">Addition operator</a>) and <code class="prettyprint">+=</code> operators (<a href="expressions.md#compound-assignment">Compound assignment</a>). A delegate can be removed from a combination of delegates, using the binary <code class="prettyprint">-</code> (<a href="expressions.md#subtraction-operator">Subtraction operator</a>) and <code class="prettyprint">-=</code> operators (<a href="expressions.md#compound-assignment">Compound assignment</a>). Delegates can be compared for equality (<a href="expressions.md#delegate-equality-operators">Delegate equality operators</a>).</p>
+
+<p>The following example shows the instantiation of a number of delegates, and their corresponding invocation lists:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">delegate</span> <span class="k">void</span> <span class="nf">D</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">C</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M1</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M2</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{...}</span>
+
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">D</span> <span class="n">cd1</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">C</span><span class="p">.</span><span class="n">M1</span><span class="p">);</span>      <span class="c1">// M1</span>
+        <span class="n">D</span> <span class="n">cd2</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">C</span><span class="p">.</span><span class="n">M2</span><span class="p">);</span>      <span class="c1">// M2</span>
+        <span class="n">D</span> <span class="n">cd3</span> <span class="p">=</span> <span class="n">cd1</span> <span class="p">+</span> <span class="n">cd2</span><span class="p">;</span>        <span class="c1">// M1 + M2</span>
+        <span class="n">D</span> <span class="n">cd4</span> <span class="p">=</span> <span class="n">cd3</span> <span class="p">+</span> <span class="n">cd1</span><span class="p">;</span>        <span class="c1">// M1 + M2 + M1</span>
+        <span class="n">D</span> <span class="n">cd5</span> <span class="p">=</span> <span class="n">cd4</span> <span class="p">+</span> <span class="n">cd3</span><span class="p">;</span>        <span class="c1">// M1 + M2 + M1 + M1 + M2</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre>
+<p>When <code class="prettyprint">cd1</code> and <code class="prettyprint">cd2</code> are instantiated, they each encapsulate one method. When <code class="prettyprint">cd3</code> is instantiated, it has an invocation list of two methods, <code class="prettyprint">M1</code> and <code class="prettyprint">M2</code>, in that order. <code class="prettyprint">cd4</code>&lsquo;s invocation list contains <code class="prettyprint">M1</code>, <code class="prettyprint">M2</code>, and <code class="prettyprint">M1</code>, in that order. Finally, <code class="prettyprint">cd5</code>&rsquo;s invocation list contains <code class="prettyprint">M1</code>, <code class="prettyprint">M2</code>, <code class="prettyprint">M1</code>, <code class="prettyprint">M1</code>, and <code class="prettyprint">M2</code>, in that order. For more examples of combining (as well as removing) delegates, see <a href="delegates.md#delegate-invocation">Delegate invocation</a>.</p>
+
+<h2 id="delegate-compatibility">Delegate compatibility</h2>
+
+<p>A method or delegate <code class="prettyprint">M</code> is <strong><em>compatible</em></strong> with a delegate type <code class="prettyprint">D</code> if all of the following are true:</p>
+
+<ul>
+<li> <code class="prettyprint">D</code> and <code class="prettyprint">M</code> have the same number of parameters, and each parameter in <code class="prettyprint">D</code> has the same <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> modifiers as the corresponding parameter in <code class="prettyprint">M</code>.</li>
+<li> For each value parameter (a parameter with no <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> modifier), an identity conversion (<a href="conversions.md#identity-conversion">Identity conversion</a>) or implicit reference conversion (<a href="conversions.md#implicit-reference-conversions">Implicit reference conversions</a>) exists from the parameter type in <code class="prettyprint">D</code> to the corresponding parameter type in <code class="prettyprint">M</code>.</li>
+<li> For each <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameter, the parameter type in <code class="prettyprint">D</code> is the same as the parameter type in <code class="prettyprint">M</code>.</li>
+<li> An identity or implicit reference conversion exists from the return type of <code class="prettyprint">M</code> to the return type of <code class="prettyprint">D</code>.</li>
+</ul>
+
+<h2 id="delegate-instantiation">Delegate instantiation</h2>
+
+<p>An instance of a delegate is created by a <em>delegate_creation_expression</em> (<a href="expressions.md#delegate-creation-expressions">Delegate creation expressions</a>) or a conversion to a delegate type. The newly created delegate instance then refers to either:</p>
+
+<ul>
+<li> The static method referenced in the <em>delegate_creation_expression</em>, or</li>
+<li> The target object (which cannot be <code class="prettyprint">null</code>) and instance method referenced in the <em>delegate_creation_expression</em>, or</li>
+<li> Another delegate.</li>
+</ul>
+
+<p>For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">delegate</span> <span class="k">void</span> <span class="nf">D</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">C</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M1</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{...}</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">M2</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span> 
+        <span class="n">D</span> <span class="n">cd1</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">C</span><span class="p">.</span><span class="n">M1</span><span class="p">);</span>        <span class="c1">// static method</span>
+        <span class="n">C</span> <span class="n">t</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">C</span><span class="p">();</span>
+        <span class="n">D</span> <span class="n">cd2</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">M2</span><span class="p">);</span>        <span class="c1">// instance method</span>
+        <span class="n">D</span> <span class="n">cd3</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">cd2</span><span class="p">);</span>        <span class="c1">// another delegate</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Once instantiated, delegate instances always refer to the same target object and method. Remember, when two delegates are combined, or one is removed from another, a new delegate results with its own invocation list; the invocation lists of the delegates combined or removed remain unchanged.</p>
+
+<h2 id="delegate-invocation">Delegate invocation</h2>
+
+<p>C# provides special syntax for invoking a delegate. When a non-null delegate instance whose invocation list contains one entry is invoked, it invokes the one method with the same arguments it was given, and returns the same value as the referred to method. (See <a href="expressions.md#delegate-invocations">Delegate invocations</a> for detailed information on delegate invocation.) If an exception occurs during the invocation of such a delegate, and that exception is not caught within the method that was invoked, the search for an exception catch clause continues in the method that called the delegate, as if that method had directly called the method to which that delegate referred.</p>
+
+<p>Invocation of a delegate instance whose invocation list contains multiple entries proceeds by invoking each of the methods in the invocation list, synchronously, in order. Each method so called is passed the same set of arguments as was given to the delegate instance. If such a delegate invocation includes reference parameters (<a href="classes.md#reference-parameters">Reference parameters</a>), each method invocation will occur with a reference to the same variable; changes to that variable by one method in the invocation list will be visible to methods further down the invocation list. If the delegate invocation includes output parameters or a return value, their final value will come from the invocation of the last delegate in the list.</p>
+
+<p>If an exception occurs during processing of the invocation of such a delegate, and that exception is not caught within the method that was invoked, the search for an exception catch clause continues in the method that called the delegate, and any methods further down the invocation list are not invoked.</p>
+
+<p>Attempting to invoke a delegate instance whose value is null results in an exception of type <code class="prettyprint">System.NullReferenceException</code>.</p>
+
+<p>The following example shows how to instantiate, combine, remove, and invoke delegates:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">delegate</span> <span class="k">void</span> <span class="nf">D</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">C</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M1</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"C.M1: "</span> <span class="p">+</span> <span class="n">i</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">M2</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"C.M2: "</span> <span class="p">+</span> <span class="n">i</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">M3</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"C.M3: "</span> <span class="p">+</span> <span class="n">i</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span> 
+        <span class="n">D</span> <span class="n">cd1</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">C</span><span class="p">.</span><span class="n">M1</span><span class="p">);</span>
+        <span class="nf">cd1</span><span class="p">(-</span><span class="m">1</span><span class="p">);</span>                <span class="c1">// call M1</span>
+
+        <span class="n">D</span> <span class="n">cd2</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">C</span><span class="p">.</span><span class="n">M2</span><span class="p">);</span>
+        <span class="nf">cd2</span><span class="p">(-</span><span class="m">2</span><span class="p">);</span>                <span class="c1">// call M2</span>
+
+        <span class="n">D</span> <span class="n">cd3</span> <span class="p">=</span> <span class="n">cd1</span> <span class="p">+</span> <span class="n">cd2</span><span class="p">;</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">10</span><span class="p">);</span>                <span class="c1">// call M1 then M2</span>
+
+        <span class="n">cd3</span> <span class="p">+=</span> <span class="n">cd1</span><span class="p">;</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">20</span><span class="p">);</span>                <span class="c1">// call M1, M2, then M1</span>
+
+        <span class="n">C</span> <span class="n">c</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">C</span><span class="p">();</span>
+        <span class="n">D</span> <span class="n">cd4</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">M3</span><span class="p">);</span>
+        <span class="n">cd3</span> <span class="p">+=</span> <span class="n">cd4</span><span class="p">;</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">30</span><span class="p">);</span>                <span class="c1">// call M1, M2, M1, then M3</span>
+
+        <span class="n">cd3</span> <span class="p">-=</span> <span class="n">cd1</span><span class="p">;</span>             <span class="c1">// remove last M1</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">40</span><span class="p">);</span>                <span class="c1">// call M1, M2, then M3</span>
+
+        <span class="n">cd3</span> <span class="p">-=</span> <span class="n">cd4</span><span class="p">;</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">50</span><span class="p">);</span>                <span class="c1">// call M1 then M2</span>
+
+        <span class="n">cd3</span> <span class="p">-=</span> <span class="n">cd2</span><span class="p">;</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">60</span><span class="p">);</span>                <span class="c1">// call M1</span>
+
+        <span class="n">cd3</span> <span class="p">-=</span> <span class="n">cd2</span><span class="p">;</span>             <span class="c1">// impossible removal is benign</span>
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">60</span><span class="p">);</span>                <span class="c1">// call M1</span>
+
+        <span class="n">cd3</span> <span class="p">-=</span> <span class="n">cd1</span><span class="p">;</span>             <span class="c1">// invocation list is empty so cd3 is null</span>
+
+        <span class="nf">cd3</span><span class="p">(</span><span class="m">70</span><span class="p">);</span>                <span class="c1">// System.NullReferenceException thrown</span>
+
+        <span class="n">cd3</span> <span class="p">-=</span> <span class="n">cd1</span><span class="p">;</span>             <span class="c1">// impossible removal is benign</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>As shown in the statement <code class="prettyprint">cd3 += cd1;</code>, a delegate can be present in an invocation list multiple times. In this case, it is simply invoked once per occurrence. In an invocation list such as this, when that delegate is removed, the last occurrence in the invocation list is the one actually removed.</p>
+
+<p>Immediately prior to the execution of the final statement, <code class="prettyprint">cd3 -= cd1;</code>, the delegate <code class="prettyprint">cd3</code> refers to an empty invocation list. Attempting to remove a delegate from an empty list (or to remove a non-existent delegate from a non-empty list) is not an error.</p>
+
+<p>The output produced is:</p>
+<pre class="highlight shell"><code>C.M1: -1
+C.M2: -2
+C.M1: 10
+C.M2: 10
+C.M1: 20
+C.M2: 20
+C.M1: 20
+C.M1: 30
+C.M2: 30
+C.M1: 30
+C.M3: 30
+C.M1: 40
+C.M2: 40
+C.M3: 40
+C.M1: 50
+C.M2: 50
+C.M1: 60
+C.M1: 60
+</code></pre>

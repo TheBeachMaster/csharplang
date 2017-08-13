@@ -1,0 +1,98 @@
+<h1 id="exceptions">Exceptions</h1>
+
+<p>Exceptions in C# provide a structured, uniform, and type-safe way of handling both system level and application level error conditions. The exception mechanism in C# is quite similar to that of C++, with a few important differences:</p>
+
+<ul>
+<li> In C#, all exceptions must be represented by an instance of a class type derived from <code class="prettyprint">System.Exception</code>. In C++, any value of any type can be used to represent an exception.</li>
+<li> In C#, a finally block (<a href="statements.md#the-try-statement">The try statement</a>) can be used to write termination code that executes in both normal execution and exceptional conditions. Such code is difficult to write in C++ without duplicating code.</li>
+<li> In C#, system-level exceptions such as overflow, divide-by-zero, and null dereferences have well defined exception classes and are on a par with application-level error conditions.</li>
+</ul>
+
+<h2 id="causes-of-exceptions">Causes of exceptions</h2>
+
+<p>Exception can be thrown in two different ways.</p>
+
+<ul>
+<li> A <code class="prettyprint">throw</code> statement (<a href="statements.md#the-throw-statement">The throw statement</a>) throws an exception immediately and unconditionally. Control never reaches the statement immediately following the <code class="prettyprint">throw</code>.</li>
+<li> Certain exceptional conditions that arise during the processing of C# statements and expression cause an exception in certain circumstances when the operation cannot be completed normally. For example, an integer division operation (<a href="expressions.md#division-operator">Division operator</a>) throws a <code class="prettyprint">System.DivideByZeroException</code> if the denominator is zero. See <a href="exceptions.md#common-exception-classes">Common Exception Classes</a> for a list of the various exceptions that can occur in this way.</li>
+</ul>
+
+<h2 id="the-system-exception-class">The System.Exception class</h2>
+
+<p>The <code class="prettyprint">System.Exception</code> class is the base type of all exceptions. This class has a few notable properties that all exceptions share:</p>
+
+<ul>
+<li> <code class="prettyprint">Message</code> is a read-only property of type <code class="prettyprint">string</code> that contains a human-readable description of the reason for the exception.</li>
+<li> <code class="prettyprint">InnerException</code> is a read-only property of type <code class="prettyprint">Exception</code>. If its value is non-null, it refers to the exception that caused the current exception—that is, the current exception was raised in a catch block handling the <code class="prettyprint">InnerException</code>. Otherwise, its value is null, indicating that this exception was not caused by another exception. The number of exception objects chained together in this manner can be arbitrary.</li>
+</ul>
+
+<p>The value of these properties can be specified in calls to the instance constructor for <code class="prettyprint">System.Exception</code>.</p>
+
+<h2 id="how-exceptions-are-handled">How exceptions are handled</h2>
+
+<p>Exceptions are handled by a <code class="prettyprint">try</code> statement (<a href="statements.md#the-try-statement">The try statement</a>).</p>
+
+<p>When an exception occurs, the system searches for the nearest <code class="prettyprint">catch</code> clause that can handle the exception, as determined by the run-time type of the exception. First, the current method is searched for a lexically enclosing <code class="prettyprint">try</code> statement, and the associated catch clauses of the try statement are considered in order. If that fails, the method that called the current method is searched for a lexically enclosing <code class="prettyprint">try</code> statement that encloses the point of the call to the current method. This search continues until a <code class="prettyprint">catch</code> clause is found that can handle the current exception, by naming an exception class that is of the same class, or a base class, of the run-time type of the exception being thrown. A <code class="prettyprint">catch</code> clause that doesn&rsquo;t name an exception class can handle any exception.</p>
+
+<p>Once a matching catch clause is found, the system prepares to transfer control to the first statement of the catch clause. Before execution of the catch clause begins, the system first executes, in order, any <code class="prettyprint">finally</code> clauses that were associated with try statements more nested that than the one that caught the exception.</p>
+
+<p>If no matching catch clause is found, one of two things occurs:</p>
+
+<ul>
+<li> If the search for a matching catch clause reaches a static constructor (<a href="classes.md#static-constructors">Static constructors</a>) or static field initializer, then a <code class="prettyprint">System.TypeInitializationException</code> is thrown at the point that triggered the invocation of the static constructor. The inner exception of the <code class="prettyprint">System.TypeInitializationException</code> contains the exception that was originally thrown.</li>
+<li> If the search for matching catch clauses reaches the code that initially started the thread, then execution of the thread is terminated. The impact of such termination is implementation-defined.</li>
+</ul>
+
+<p>Exceptions that occur during destructor execution are worth special mention. If an exception occurs during destructor execution, and that exception is not caught, then the execution of that destructor is terminated and the destructor of the base class (if any) is called. If there is no base class (as in the case of the <code class="prettyprint">object</code> type) or if there is no base class destructor, then the exception is discarded.</p>
+
+<h2 id="common-exception-classes">Common Exception Classes</h2>
+
+<p>The following exceptions are thrown by certain C# operations.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">System.ArithmeticException</code></td>
+<td>A base class for exceptions that occur during arithmetic operations, such as <code class="prettyprint">System.DivideByZeroException</code> and <code class="prettyprint">System.OverflowException</code>.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.ArrayTypeMismatchException</code></td>
+<td>Thrown when a store into an array fails because the actual type of the stored element is incompatible with the actual type of the array.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.DivideByZeroException</code></td>
+<td>Thrown when an attempt to divide an integral value by zero occurs.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.IndexOutOfRangeException</code></td>
+<td>Thrown when an attempt to index an array via an index that is less than zero or outside the bounds of the array.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.InvalidCastException</code></td>
+<td>Thrown when an explicit conversion from a base type or interface to a derived type fails at run time.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.NullReferenceException</code></td>
+<td>Thrown when a <code class="prettyprint">null</code> reference is used in a way that causes the referenced object to be required.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.OutOfMemoryException</code></td>
+<td>Thrown when an attempt to allocate memory (via <code class="prettyprint">new</code>) fails.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.OverflowException</code></td>
+<td>Thrown when an arithmetic operation in a <code class="prettyprint">checked</code> context overflows.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.StackOverflowException</code></td>
+<td>Thrown when the execution stack is exhausted by having too many pending method calls; typically indicative of very deep or unbounded recursion.</td>
+</tr>
+<tr>
+<td><code class="prettyprint">System.TypeInitializationException</code></td>
+<td>Thrown when a static constructor throws an exception, and no <code class="prettyprint">catch</code> clauses exists to catch it.</td>
+</tr>
+</tbody></table>

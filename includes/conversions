@@ -1,0 +1,903 @@
+<h1 id="conversions">Conversions</h1>
+
+<p>A <strong><em>conversion</em></strong> enables an expression to be treated as being of a particular type. A conversion may cause an expression of a given type to be treated as having a different type, or it may cause an expression without a type to get a type. Conversions can be <strong><em>implicit</em></strong> or <strong><em>explicit</em></strong>, and this determines whether an explicit cast is required. For instance, the conversion from type <code class="prettyprint">int</code> to type <code class="prettyprint">long</code> is implicit, so expressions of type <code class="prettyprint">int</code> can implicitly be treated as type <code class="prettyprint">long</code>. The opposite conversion, from type <code class="prettyprint">long</code> to type <code class="prettyprint">int</code>, is explicit and so an explicit cast is required.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span> <span class="n">a</span> <span class="p">=</span> <span class="m">123</span><span class="p">;</span>
+<span class="kt">long</span> <span class="n">b</span> <span class="p">=</span> <span class="n">a</span><span class="p">;</span>         <span class="c1">// implicit conversion from int to long</span>
+<span class="kt">int</span> <span class="n">c</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="n">b</span><span class="p">;</span>    <span class="c1">// explicit conversion from long to int</span>
+</code></pre>
+<p>Some conversions are defined by the language. Programs may also define their own conversions (<a href="conversions.md#user-defined-conversions">User-defined conversions</a>).</p>
+
+<h2 id="implicit-conversions">Implicit conversions</h2>
+
+<p>The following conversions are classified as implicit conversions:</p>
+
+<ul>
+<li> Identity conversions</li>
+<li> Implicit numeric conversions</li>
+<li> Implicit enumeration conversions.</li>
+<li> Implicit nullable conversions</li>
+<li> Null literal conversions</li>
+<li> Implicit reference conversions</li>
+<li> Boxing conversions</li>
+<li> Implicit dynamic conversions</li>
+<li> Implicit constant expression conversions</li>
+<li> User-defined implicit conversions</li>
+<li> Anonymous function conversions</li>
+<li> Method group conversions</li>
+</ul>
+
+<p>Implicit conversions can occur in a variety of situations, including function member invocations (<a href="expressions.md#compile-time-checking-of-dynamic-overload-resolution">Compile-time checking of dynamic overload resolution</a>), cast expressions (<a href="expressions.md#cast-expressions">Cast expressions</a>), and assignments (<a href="expressions.md#assignment-operators">Assignment operators</a>).</p>
+
+<p>The pre-defined implicit conversions always succeed and never cause exceptions to be thrown. Properly designed user-defined implicit conversions should exhibit these characteristics as well.</p>
+
+<p>For the purposes of conversion, the types <code class="prettyprint">object</code> and <code class="prettyprint">dynamic</code> are considered equivalent.</p>
+
+<p>However, dynamic conversions (<a href="conversions.md#implicit-dynamic-conversions">Implicit dynamic conversions</a> and <a href="conversions.md#explicit-dynamic-conversions">Explicit dynamic conversions</a>) apply only to expressions of type <code class="prettyprint">dynamic</code> (<a href="types.md#the-dynamic-type">The dynamic type</a>).</p>
+
+<h3 id="identity-conversion">Identity conversion</h3>
+
+<p>An identity conversion converts from any type to the same type. This conversion exists such that an entity that already has a required type can be said to be convertible to that type.</p>
+
+<ul>
+<li> Because object and dynamic are considered equivalent there is an identity conversion between <code class="prettyprint">object</code> and <code class="prettyprint">dynamic</code>, and between constructed types that are the same when replacing all occurences of <code class="prettyprint">dynamic</code> with <code class="prettyprint">object</code>.</li>
+</ul>
+
+<h3 id="implicit-numeric-conversions">Implicit numeric conversions</h3>
+
+<p>The implicit numeric conversions are:</p>
+
+<ul>
+<li> From <code class="prettyprint">sbyte</code> to <code class="prettyprint">short</code>, <code class="prettyprint">int</code>, <code class="prettyprint">long</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">byte</code> to <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">short</code> to <code class="prettyprint">int</code>, <code class="prettyprint">long</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">ushort</code> to <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">int</code> to <code class="prettyprint">long</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">uint</code> to <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">long</code> to <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">ulong</code> to <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">char</code> to <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">float</code> to <code class="prettyprint">double</code>.</li>
+</ul>
+
+<p>Conversions from <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, or <code class="prettyprint">ulong</code> to <code class="prettyprint">float</code> and from <code class="prettyprint">long</code> or <code class="prettyprint">ulong</code> to <code class="prettyprint">double</code> may cause a loss of precision, but will never cause a loss of magnitude. The other implicit numeric conversions never lose any information.</p>
+
+<p>There are no implicit conversions to the <code class="prettyprint">char</code> type, so values of the other integral types do not automatically convert to the <code class="prettyprint">char</code> type.</p>
+
+<h3 id="implicit-enumeration-conversions">Implicit enumeration conversions</h3>
+
+<p>An implicit enumeration conversion permits the <em>decimal_integer_literal</em> <code class="prettyprint">0</code> to be converted to any <em>enum_type</em> and to any <em>nullable_type</em> whose underlying type is an <em>enum_type</em>. In the latter case the conversion is evaluated by converting to the underlying <em>enum_type</em> and wrapping the result (<a href="types.md#nullable-types">Nullable types</a>).</p>
+
+<h3 id="implicit-interpolated-string-conversions">Implicit interpolated string conversions</h3>
+
+<p>An implicit interpolated string conversion permits an <em>interpolated_string_expression</em> (<a href="expressions.md#interpolated-strings">Interpolated strings</a>) to be converted to <code class="prettyprint">System.IFormattable</code> or <code class="prettyprint">System.FormattableString</code> (which implements <code class="prettyprint">System.IFormattable</code>).</p>
+
+<p>When this conversion is applied a string value is not composed from the interpolated string. Instead an instance of <code class="prettyprint">System.FormattableString</code> is created, as further described in <a href="expressions.md#interpolated-strings">Interpolated strings</a>.</p>
+
+<h3 id="implicit-nullable-conversions">Implicit nullable conversions</h3>
+
+<p>Predefined implicit conversions that operate on non-nullable value types can also be used with nullable forms of those types. For each of the predefined implicit identity and numeric conversions that convert from a non-nullable value type <code class="prettyprint">S</code> to a non-nullable value type <code class="prettyprint">T</code>, the following implicit nullable conversions exist:</p>
+
+<ul>
+<li> An implicit conversion from <code class="prettyprint">S?</code> to <code class="prettyprint">T?</code>.</li>
+<li> An implicit conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T?</code>.</li>
+</ul>
+
+<p>Evaluation of an implicit nullable conversion based on an underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code> proceeds as follows:</p>
+
+<ul>
+<li><p>If the nullable conversion is from <code class="prettyprint">S?</code> to <code class="prettyprint">T?</code>:</p>
+
+<ul>
+<li>If the source value is null (<code class="prettyprint">HasValue</code> property is false), the result is the null value of type <code class="prettyprint">T?</code>.</li>
+<li>Otherwise, the conversion is evaluated as an unwrapping from <code class="prettyprint">S?</code> to <code class="prettyprint">S</code>, followed by the underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code>, followed by a wrapping (<a href="types.md#nullable-types">Nullable types</a>) from <code class="prettyprint">T</code> to <code class="prettyprint">T?</code>.</li>
+</ul></li>
+<li><p>If the nullable conversion is from <code class="prettyprint">S</code> to <code class="prettyprint">T?</code>, the conversion is evaluated as the underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code> followed by a wrapping from <code class="prettyprint">T</code> to <code class="prettyprint">T?</code>.</p></li>
+</ul>
+
+<h3 id="null-literal-conversions">Null literal conversions</h3>
+
+<p>An implicit conversion exists from the <code class="prettyprint">null</code> literal to any nullable type. This conversion produces the null value (<a href="types.md#nullable-types">Nullable types</a>) of the given nullable type.</p>
+
+<h3 id="implicit-reference-conversions">Implicit reference conversions</h3>
+
+<p>The implicit reference conversions are:</p>
+
+<ul>
+<li> From any <em>reference_type</em> to <code class="prettyprint">object</code> and <code class="prettyprint">dynamic</code>.</li>
+<li> From any <em>class_type</em> <code class="prettyprint">S</code> to any <em>class_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">S</code> is derived from <code class="prettyprint">T</code>.</li>
+<li> From any <em>class_type</em> <code class="prettyprint">S</code> to any <em>interface_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">S</code> implements <code class="prettyprint">T</code>.</li>
+<li> From any <em>interface_type</em> <code class="prettyprint">S</code> to any <em>interface_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">S</code> is derived from <code class="prettyprint">T</code>.</li>
+<li> From an <em>array_type</em> <code class="prettyprint">S</code> with an element type <code class="prettyprint">SE</code> to an <em>array_type</em> <code class="prettyprint">T</code> with an element type <code class="prettyprint">TE</code>, provided all of the following are true:
+
+<ul>
+<li><code class="prettyprint">S</code> and <code class="prettyprint">T</code> differ only in element type. In other words, <code class="prettyprint">S</code> and <code class="prettyprint">T</code> have the same number of dimensions.</li>
+<li>Both <code class="prettyprint">SE</code> and <code class="prettyprint">TE</code> are *reference_type*s.</li>
+<li>An implicit reference conversion exists from <code class="prettyprint">SE</code> to <code class="prettyprint">TE</code>.</li>
+</ul></li>
+<li> From any <em>array_type</em> to <code class="prettyprint">System.Array</code> and the interfaces it implements.</li>
+<li> From a single-dimensional array type <code class="prettyprint">S[]</code> to <code class="prettyprint">System.Collections.Generic.IList&lt;T&gt;</code> and its base interfaces, provided that there is an implicit identity or reference conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code>.</li>
+<li> From any <em>delegate_type</em> to <code class="prettyprint">System.Delegate</code> and the interfaces it implements.</li>
+<li> From the null literal to any <em>reference_type</em>.</li>
+<li> From any <em>reference_type</em> to a <em>reference_type</em> <code class="prettyprint">T</code> if it has an implicit identity or reference conversion to a <em>reference_type</em> <code class="prettyprint">T0</code> and <code class="prettyprint">T0</code> has an identity conversion to <code class="prettyprint">T</code>.</li>
+<li> From any <em>reference_type</em> to an interface or delegate type <code class="prettyprint">T</code> if it has an implicit identity or reference conversion to an interface or delegate type <code class="prettyprint">T0</code> and <code class="prettyprint">T0</code> is variance-convertible (<a href="interfaces.md#variance-conversion">Variance conversion</a>) to <code class="prettyprint">T</code>.</li>
+<li> Implicit conversions involving type parameters that are known to be reference types. See <a href="conversions.md#implicit-conversions-involving-type-parameters">Implicit conversions involving type parameters</a> for more details on implicit conversions involving type parameters.</li>
+</ul>
+
+<p>The implicit reference conversions are those conversions between *reference_type*s that can be proven to always succeed, and therefore require no checks at run-time.</p>
+
+<p>Reference conversions, implicit or explicit, never change the referential identity of the object being converted. In other words, while a reference conversion may change the type of the reference, it never changes the type or value of the object being referred to.</p>
+
+<h3 id="boxing-conversions">Boxing conversions</h3>
+
+<p>A boxing conversion permits a <em>value_type</em> to be implicitly converted to a reference type. A boxing conversion exists from any <em>non_nullable_value_type</em> to <code class="prettyprint">object</code> and <code class="prettyprint">dynamic</code>, to <code class="prettyprint">System.ValueType</code> and to any <em>interface_type</em> implemented by the <em>non_nullable_value_type</em>. Furthermore an <em>enum_type</em> can be converted to the type <code class="prettyprint">System.Enum</code>.</p>
+
+<p>A boxing conversion exists from a <em>nullable_type</em> to a reference type, if and only if a boxing conversion exists from the underlying <em>non_nullable_value_type</em> to the reference type.</p>
+
+<p>A value type has a boxing conversion to an interface type <code class="prettyprint">I</code> if it has a boxing conversion to an interface type <code class="prettyprint">I0</code> and <code class="prettyprint">I0</code> has an identity conversion to <code class="prettyprint">I</code>.</p>
+
+<p>A value type has a boxing conversion to an interface type <code class="prettyprint">I</code> if it has a boxing conversion to an interface or delegate type <code class="prettyprint">I0</code> and <code class="prettyprint">I0</code> is variance-convertible (<a href="interfaces.md#variance-conversion">Variance conversion</a>) to <code class="prettyprint">I</code>.</p>
+
+<p>Boxing a value of a <em>non_nullable_value_type</em> consists of allocating an object instance and copying the <em>value_type</em> value into that instance. A struct can be boxed to the type <code class="prettyprint">System.ValueType</code>, since that is a base class for all structs (<a href="structs.md#inheritance">Inheritance</a>).</p>
+
+<p>Boxing a value of a <em>nullable_type</em> proceeds as follows:</p>
+
+<ul>
+<li> If the source value is null (<code class="prettyprint">HasValue</code> property is false), the result is a null reference of the target type.</li>
+<li> Otherwise, the result is a reference to a boxed <code class="prettyprint">T</code> produced by unwrapping and boxing the source value.</li>
+</ul>
+
+<p>Boxing conversions are described further in <a href="types.md#boxing-conversions">Boxing conversions</a>.</p>
+
+<h3 id="implicit-dynamic-conversions">Implicit dynamic conversions</h3>
+
+<p>An implicit dynamic conversion exists from an expression of type <code class="prettyprint">dynamic</code> to any type <code class="prettyprint">T</code>. The conversion is dynamically bound (<a href="expressions.md#dynamic-binding">Dynamic binding</a>), which means that an implicit conversion will be sought at run-time from the run-time type of the expression to <code class="prettyprint">T</code>. If no conversion is found, a run-time exception is thrown.</p>
+
+<p>Note that this implicit conversion seemingly violates the advice in the beginning of <a href="conversions.md#implicit-conversions">Implicit conversions</a> that an implicit conversion should never cause an exception. However it is not the conversion itself, but the <em>finding</em> of the conversion that causes the exception. The risk of run-time exceptions is inherent in the use of dynamic binding. If dynamic binding of the conversion is not desired, the expression can be first converted to <code class="prettyprint">object</code>, and then to the desired type.</p>
+
+<p>The following example illustrates implicit dynamic conversions:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">object</span> <span class="n">o</span>  <span class="p">=</span> <span class="s">"object"</span>
+<span class="kt">dynamic</span> <span class="n">d</span> <span class="p">=</span> <span class="s">"dynamic"</span><span class="p">;</span>
+
+<span class="kt">string</span> <span class="n">s1</span> <span class="p">=</span> <span class="n">o</span><span class="p">;</span> <span class="c1">// Fails at compile-time -- no conversion exists</span>
+<span class="kt">string</span> <span class="n">s2</span> <span class="p">=</span> <span class="n">d</span><span class="p">;</span> <span class="c1">// Compiles and succeeds at run-time</span>
+<span class="kt">int</span> <span class="n">i</span>     <span class="p">=</span> <span class="n">d</span><span class="p">;</span> <span class="c1">// Compiles but fails at run-time -- no conversion exists</span>
+</code></pre>
+<p>The assignments to <code class="prettyprint">s2</code> and <code class="prettyprint">i</code> both employ implicit dynamic conversions, where the binding of the operations is suspended until run-time. At run-time, implicit conversions are sought from the run-time type of <code class="prettyprint">d</code> &ndash; <code class="prettyprint">string</code> &ndash; to the target type. A conversion is found to <code class="prettyprint">string</code> but not to <code class="prettyprint">int</code>.</p>
+
+<h3 id="implicit-constant-expression-conversions">Implicit constant expression conversions</h3>
+
+<p>An implicit constant expression conversion permits the following conversions:</p>
+
+<ul>
+<li> A <em>constant_expression</em> (<a href="expressions.md#constant-expressions">Constant expressions</a>) of type <code class="prettyprint">int</code> can be converted to type <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">uint</code>, or <code class="prettyprint">ulong</code>, provided the value of the <em>constant_expression</em> is within the range of the destination type.</li>
+<li> A <em>constant_expression</em> of type <code class="prettyprint">long</code> can be converted to type <code class="prettyprint">ulong</code>, provided the value of the <em>constant_expression</em> is not negative.</li>
+</ul>
+
+<h3 id="implicit-conversions-involving-type-parameters">Implicit conversions involving type parameters</h3>
+
+<p>The following implicit conversions exist for a given type parameter <code class="prettyprint">T</code>:</p>
+
+<ul>
+<li> From <code class="prettyprint">T</code> to its effective base class <code class="prettyprint">C</code>, from <code class="prettyprint">T</code> to any base class of <code class="prettyprint">C</code>, and from <code class="prettyprint">T</code> to any interface implemented by <code class="prettyprint">C</code>. At run-time, if <code class="prettyprint">T</code> is a value type, the conversion is executed as a boxing conversion. Otherwise, the conversion is executed as an implicit reference conversion or identity conversion.</li>
+<li> From <code class="prettyprint">T</code> to an interface type <code class="prettyprint">I</code> in <code class="prettyprint">T</code>&lsquo;s effective interface set and from <code class="prettyprint">T</code> to any base interface of <code class="prettyprint">I</code>. At run-time, if <code class="prettyprint">T</code> is a value type, the conversion is executed as a boxing conversion. Otherwise, the conversion is executed as an implicit reference conversion or identity conversion.</li>
+<li> From <code class="prettyprint">T</code> to a type parameter <code class="prettyprint">U</code>, provided <code class="prettyprint">T</code> depends on <code class="prettyprint">U</code> (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>). At run-time, if <code class="prettyprint">U</code> is a value type, then <code class="prettyprint">T</code> and <code class="prettyprint">U</code> are necessarily the same type and no conversion is performed. Otherwise, if <code class="prettyprint">T</code> is a value type, the conversion is executed as a boxing conversion. Otherwise, the conversion is executed as an implicit reference conversion or identity conversion.</li>
+<li> From the null literal to <code class="prettyprint">T</code>, provided <code class="prettyprint">T</code> is known to be a reference type.</li>
+<li> From <code class="prettyprint">T</code> to a reference type <code class="prettyprint">I</code> if it has an implicit conversion to a reference type <code class="prettyprint">S0</code> and <code class="prettyprint">S0</code> has an identity conversion to <code class="prettyprint">S</code>. At run-time the conversion is executed the same way as the conversion to <code class="prettyprint">S0</code>.</li>
+<li> From <code class="prettyprint">T</code> to an interface type <code class="prettyprint">I</code> if it has an implicit conversion to an interface or delegate type <code class="prettyprint">I0</code> and <code class="prettyprint">I0</code> is variance-convertible to <code class="prettyprint">I</code> (<a href="interfaces.md#variance-conversion">Variance conversion</a>). At run-time, if <code class="prettyprint">T</code> is a value type, the conversion is executed as a boxing conversion. Otherwise, the conversion is executed as an implicit reference conversion or identity conversion.</li>
+</ul>
+
+<p>If <code class="prettyprint">T</code> is known to be a reference type (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>), the conversions above are all classified as implicit reference conversions (<a href="conversions.md#implicit-reference-conversions">Implicit reference conversions</a>). If <code class="prettyprint">T</code> is not known to be a reference type, the conversions above are classified as boxing conversions (<a href="conversions.md#boxing-conversions">Boxing conversions</a>).</p>
+
+<h3 id="user-defined-implicit-conversions">User-defined implicit conversions</h3>
+
+<p>A user-defined implicit conversion consists of an optional standard implicit conversion, followed by execution of a user-defined implicit conversion operator, followed by another optional standard implicit conversion. The exact rules for evaluating user-defined implicit conversions are described in <a href="conversions.md#processing-of-user-defined-implicit-conversions">Processing of user-defined implicit conversions</a>.</p>
+
+<h3 id="anonymous-function-conversions-and-method-group-conversions">Anonymous function conversions and method group conversions</h3>
+
+<p>Anonymous functions and method groups do not have types in and of themselves, but may be implicitly converted to delegate types or expression tree types. Anonymous function conversions are described in more detail in <a href="conversions.md#anonymous-function-conversions">Anonymous function conversions</a> and method group conversions in <a href="conversions.md#method-group-conversions">Method group conversions</a>.</p>
+
+<h2 id="explicit-conversions">Explicit conversions</h2>
+
+<p>The following conversions are classified as explicit conversions:</p>
+
+<ul>
+<li> All implicit conversions.</li>
+<li> Explicit numeric conversions.</li>
+<li> Explicit enumeration conversions.</li>
+<li> Explicit nullable conversions.</li>
+<li> Explicit reference conversions.</li>
+<li> Explicit interface conversions.</li>
+<li> Unboxing conversions.</li>
+<li> Explicit dynamic conversions</li>
+<li> User-defined explicit conversions.</li>
+</ul>
+
+<p>Explicit conversions can occur in cast expressions (<a href="expressions.md#cast-expressions">Cast expressions</a>).</p>
+
+<p>The set of explicit conversions includes all implicit conversions. This means that redundant cast expressions are allowed.</p>
+
+<p>The explicit conversions that are not implicit conversions are conversions that cannot be proven to always succeed, conversions that are known to possibly lose information, and conversions across domains of types sufficiently different to merit explicit notation.</p>
+
+<h3 id="explicit-numeric-conversions">Explicit numeric conversions</h3>
+
+<p>The explicit numeric conversions are the conversions from a <em>numeric_type</em> to another <em>numeric_type</em> for which an implicit numeric conversion (<a href="conversions.md#implicit-numeric-conversions">Implicit numeric conversions</a>) does not already exist:</p>
+
+<ul>
+<li> From <code class="prettyprint">sbyte</code> to <code class="prettyprint">byte</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">ulong</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">byte</code> to <code class="prettyprint">sbyte</code> and <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">short</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">ulong</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">ushort</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">int</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">ulong</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">uint</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">long</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">ulong</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">ulong</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, or <code class="prettyprint">char</code>.</li>
+<li> From <code class="prettyprint">char</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, or <code class="prettyprint">short</code>.</li>
+<li> From <code class="prettyprint">float</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">double</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">float</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From <code class="prettyprint">decimal</code> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">float</code>, or <code class="prettyprint">double</code>.</li>
+</ul>
+
+<p>Because the explicit conversions include all implicit and explicit numeric conversions, it is always possible to convert from any <em>numeric_type</em> to any other <em>numeric_type</em> using a cast expression (<a href="expressions.md#cast-expressions">Cast expressions</a>).</p>
+
+<p>The explicit numeric conversions possibly lose information or possibly cause exceptions to be thrown. An explicit numeric conversion is processed as follows:</p>
+
+<ul>
+<li> For a conversion from an integral type to another integral type, the processing depends on the overflow checking context (<a href="expressions.md#the-checked-and-unchecked-operators">The checked and unchecked operators</a>) in which the conversion takes place:
+
+<ul>
+<li>In a <code class="prettyprint">checked</code> context, the conversion succeeds if the value of the source operand is within the range of the destination type, but throws a <code class="prettyprint">System.OverflowException</code> if the value of the source operand is outside the range of the destination type.</li>
+<li>In an <code class="prettyprint">unchecked</code> context, the conversion always succeeds, and proceeds as follows.
+
+<ul>
+<li>If the source type is larger than the destination type, then the source value is truncated by discarding its &ldquo;extra&rdquo; most significant bits. The result is then treated as a value of the destination type.</li>
+<li>If the source type is smaller than the destination type, then the source value is either sign-extended or zero-extended so that it is the same size as the destination type. Sign-extension is used if the source type is signed; zero-extension is used if the source type is unsigned. The result is then treated as a value of the destination type.</li>
+<li>If the source type is the same size as the destination type, then the source value is treated as a value of the destination type.</li>
+</ul></li>
+</ul></li>
+<li> For a conversion from <code class="prettyprint">decimal</code> to an integral type, the source value is rounded towards zero to the nearest integral value, and this integral value becomes the result of the conversion. If the resulting integral value is outside the range of the destination type, a <code class="prettyprint">System.OverflowException</code> is thrown.</li>
+<li> For a conversion from <code class="prettyprint">float</code> or <code class="prettyprint">double</code> to an integral type, the processing depends on the overflow checking context (<a href="expressions.md#the-checked-and-unchecked-operators">The checked and unchecked operators</a>) in which the conversion takes place:
+
+<ul>
+<li>In a <code class="prettyprint">checked</code> context, the conversion proceeds as follows:
+
+<ul>
+<li>If the value of the operand is NaN or infinite, a <code class="prettyprint">System.OverflowException</code> is thrown.</li>
+<li>Otherwise, the source operand is rounded towards zero to the nearest integral value. If this integral value is within the range of the destination type then this value is the result of the conversion.</li>
+<li>Otherwise, a <code class="prettyprint">System.OverflowException</code> is thrown.</li>
+</ul></li>
+<li>In an <code class="prettyprint">unchecked</code> context, the conversion always succeeds, and proceeds as follows.
+
+<ul>
+<li>If the value of the operand is NaN or infinite, the result of the conversion is an unspecified value of the destination type.</li>
+<li>Otherwise, the source operand is rounded towards zero to the nearest integral value. If this integral value is within the range of the destination type then this value is the result of the conversion.</li>
+<li>Otherwise, the result of the conversion is an unspecified value of the destination type.</li>
+</ul></li>
+</ul></li>
+<li> For a conversion from <code class="prettyprint">double</code> to <code class="prettyprint">float</code>, the <code class="prettyprint">double</code> value is rounded to the nearest <code class="prettyprint">float</code> value. If the <code class="prettyprint">double</code> value is too small to represent as a <code class="prettyprint">float</code>, the result becomes positive zero or negative zero. If the <code class="prettyprint">double</code> value is too large to represent as a <code class="prettyprint">float</code>, the result becomes positive infinity or negative infinity. If the <code class="prettyprint">double</code> value is NaN, the result is also NaN.</li>
+<li> For a conversion from <code class="prettyprint">float</code> or <code class="prettyprint">double</code> to <code class="prettyprint">decimal</code>, the source value is converted to <code class="prettyprint">decimal</code> representation and rounded to the nearest number after the 28th decimal place if required (<a href="types.md#the-decimal-type">The decimal type</a>). If the source value is too small to represent as a <code class="prettyprint">decimal</code>, the result becomes zero. If the source value is NaN, infinity, or too large to represent as a <code class="prettyprint">decimal</code>, a <code class="prettyprint">System.OverflowException</code> is thrown.</li>
+<li> For a conversion from <code class="prettyprint">decimal</code> to <code class="prettyprint">float</code> or <code class="prettyprint">double</code>, the <code class="prettyprint">decimal</code> value is rounded to the nearest <code class="prettyprint">double</code> or <code class="prettyprint">float</code> value. While this conversion may lose precision, it never causes an exception to be thrown.</li>
+</ul>
+
+<h3 id="explicit-enumeration-conversions">Explicit enumeration conversions</h3>
+
+<p>The explicit enumeration conversions are:</p>
+
+<ul>
+<li> From <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code> to any <em>enum_type</em>.</li>
+<li> From any <em>enum_type</em> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">decimal</code>.</li>
+<li> From any <em>enum_type</em> to any other <em>enum_type</em>.</li>
+</ul>
+
+<p>An explicit enumeration conversion between two types is processed by treating any participating <em>enum_type</em> as the underlying type of that <em>enum_type</em>, and then performing an implicit or explicit numeric conversion between the resulting types. For example, given an <em>enum_type</em> <code class="prettyprint">E</code> with and underlying type of <code class="prettyprint">int</code>, a conversion from <code class="prettyprint">E</code> to <code class="prettyprint">byte</code> is processed as an explicit numeric conversion (<a href="conversions.md#explicit-numeric-conversions">Explicit numeric conversions</a>) from <code class="prettyprint">int</code> to <code class="prettyprint">byte</code>, and a conversion from <code class="prettyprint">byte</code> to <code class="prettyprint">E</code> is processed as an implicit numeric conversion (<a href="conversions.md#implicit-numeric-conversions">Implicit numeric conversions</a>) from <code class="prettyprint">byte</code> to <code class="prettyprint">int</code>.</p>
+
+<h3 id="explicit-nullable-conversions">Explicit nullable conversions</h3>
+
+<p><strong><em>Explicit nullable conversions</em></strong> permit predefined explicit conversions that operate on non-nullable value types to also be used with nullable forms of those types. For each of the predefined explicit conversions that convert from a non-nullable value type <code class="prettyprint">S</code> to a non-nullable value type <code class="prettyprint">T</code> (<a href="conversions.md#identity-conversion">Identity conversion</a>, <a href="conversions.md#implicit-numeric-conversions">Implicit numeric conversions</a>, <a href="conversions.md#implicit-enumeration-conversions">Implicit enumeration conversions</a>, <a href="conversions.md#explicit-numeric-conversions">Explicit numeric conversions</a>, and <a href="conversions.md#explicit-enumeration-conversions">Explicit enumeration conversions</a>), the following nullable conversions exist:</p>
+
+<ul>
+<li> An explicit conversion from <code class="prettyprint">S?</code> to <code class="prettyprint">T?</code>.</li>
+<li> An explicit conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T?</code>.</li>
+<li> An explicit conversion from <code class="prettyprint">S?</code> to <code class="prettyprint">T</code>.</li>
+</ul>
+
+<p>Evaluation of a nullable conversion based on an underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code> proceeds as follows:</p>
+
+<ul>
+<li> If the nullable conversion is from <code class="prettyprint">S?</code> to <code class="prettyprint">T?</code>:
+
+<ul>
+<li>If the source value is null (<code class="prettyprint">HasValue</code> property is false), the result is the null value of type <code class="prettyprint">T?</code>.</li>
+<li>Otherwise, the conversion is evaluated as an unwrapping from <code class="prettyprint">S?</code> to <code class="prettyprint">S</code>, followed by the underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code>, followed by a wrapping from <code class="prettyprint">T</code> to <code class="prettyprint">T?</code>.</li>
+</ul></li>
+<li> If the nullable conversion is from <code class="prettyprint">S</code> to <code class="prettyprint">T?</code>, the conversion is evaluated as the underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code> followed by a wrapping from <code class="prettyprint">T</code> to <code class="prettyprint">T?</code>.</li>
+<li> If the nullable conversion is from <code class="prettyprint">S?</code> to <code class="prettyprint">T</code>, the conversion is evaluated as an unwrapping from <code class="prettyprint">S?</code> to <code class="prettyprint">S</code> followed by the underlying conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code>.</li>
+</ul>
+
+<p>Note that an attempt to unwrap a nullable value will throw an exception if the value is <code class="prettyprint">null</code>.</p>
+
+<h3 id="explicit-reference-conversions">Explicit reference conversions</h3>
+
+<p>The explicit reference conversions are:</p>
+
+<ul>
+<li> From <code class="prettyprint">object</code> and <code class="prettyprint">dynamic</code> to any other <em>reference_type</em>.</li>
+<li> From any <em>class_type</em> <code class="prettyprint">S</code> to any <em>class_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">S</code> is a base class of <code class="prettyprint">T</code>.</li>
+<li> From any <em>class_type</em> <code class="prettyprint">S</code> to any <em>interface_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">S</code> is not sealed and provided <code class="prettyprint">S</code> does not implement <code class="prettyprint">T</code>.</li>
+<li> From any <em>interface_type</em> <code class="prettyprint">S</code> to any <em>class_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">T</code> is not sealed or provided <code class="prettyprint">T</code> implements <code class="prettyprint">S</code>.</li>
+<li> From any <em>interface_type</em> <code class="prettyprint">S</code> to any <em>interface_type</em> <code class="prettyprint">T</code>, provided <code class="prettyprint">S</code> is not derived from <code class="prettyprint">T</code>.</li>
+<li> From an <em>array_type</em> <code class="prettyprint">S</code> with an element type <code class="prettyprint">SE</code> to an <em>array_type</em> <code class="prettyprint">T</code> with an element type <code class="prettyprint">TE</code>, provided all of the following are true:
+
+<ul>
+<li><code class="prettyprint">S</code> and <code class="prettyprint">T</code> differ only in element type. In other words, <code class="prettyprint">S</code> and <code class="prettyprint">T</code> have the same number of dimensions.</li>
+<li>Both <code class="prettyprint">SE</code> and <code class="prettyprint">TE</code> are *reference_type*s.</li>
+<li>An explicit reference conversion exists from <code class="prettyprint">SE</code> to <code class="prettyprint">TE</code>.</li>
+</ul></li>
+<li> From <code class="prettyprint">System.Array</code> and the interfaces it implements to any <em>array_type</em>.</li>
+<li> From a single-dimensional array type <code class="prettyprint">S[]</code> to <code class="prettyprint">System.Collections.Generic.IList&lt;T&gt;</code> and its base interfaces, provided that there is an explicit reference conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code>.</li>
+<li> From <code class="prettyprint">System.Collections.Generic.IList&lt;S&gt;</code> and its base interfaces to a single-dimensional array type <code class="prettyprint">T[]</code>, provided that there is an explicit identity or reference conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code>.</li>
+<li> From <code class="prettyprint">System.Delegate</code> and the interfaces it implements to any <em>delegate_type</em>.</li>
+<li> From a reference type to a reference type <code class="prettyprint">T</code> if it has an explicit reference conversion to a reference type <code class="prettyprint">T0</code> and <code class="prettyprint">T0</code> has an identity conversion <code class="prettyprint">T</code>.</li>
+<li> From a reference type to an interface or delegate type <code class="prettyprint">T</code> if it has an explicit reference conversion to an interface or delegate type <code class="prettyprint">T0</code> and either <code class="prettyprint">T0</code> is variance-convertible to <code class="prettyprint">T</code> or <code class="prettyprint">T</code> is variance-convertible to <code class="prettyprint">T0</code> (<a href="interfaces.md#variance-conversion">Variance conversion</a>).</li>
+<li> From <code class="prettyprint">D&lt;S1...Sn&gt;</code> to <code class="prettyprint">D&lt;T1...Tn&gt;</code> where <code class="prettyprint">D&lt;X1...Xn&gt;</code> is a generic delegate type, <code class="prettyprint">D&lt;S1...Sn&gt;</code> is not compatible with or identical to <code class="prettyprint">D&lt;T1...Tn&gt;</code>, and for each type parameter <code class="prettyprint">Xi</code> of <code class="prettyprint">D</code> the following holds:
+
+<ul>
+<li>If <code class="prettyprint">Xi</code> is invariant, then <code class="prettyprint">Si</code> is identical to <code class="prettyprint">Ti</code>.</li>
+<li>If <code class="prettyprint">Xi</code> is covariant, then there is an implicit or explicit identity or reference conversion from <code class="prettyprint">Si</code> to <code class="prettyprint">Ti</code>.</li>
+<li>If <code class="prettyprint">Xi</code> is contravariant, then <code class="prettyprint">Si</code> and <code class="prettyprint">Ti</code> are either identical or both reference types.</li>
+</ul></li>
+<li> Explicit conversions involving type parameters that are known to be reference types. For more details on explicit conversions involving type parameters, see <a href="conversions.md#explicit-conversions-involving-type-parameters">Explicit conversions involving type parameters</a>.</li>
+</ul>
+
+<p>The explicit reference conversions are those conversions between reference-types that require run-time checks to ensure they are correct.</p>
+
+<p>For an explicit reference conversion to succeed at run-time, the value of the source operand must be <code class="prettyprint">null</code>, or the actual type of the object referenced by the source operand must be a type that can be converted to the destination type by an implicit reference conversion (<a href="conversions.md#implicit-reference-conversions">Implicit reference conversions</a>) or boxing conversion (<a href="conversions.md#boxing-conversions">Boxing conversions</a>). If an explicit reference conversion fails, a <code class="prettyprint">System.InvalidCastException</code> is thrown.</p>
+
+<p>Reference conversions, implicit or explicit, never change the referential identity of the object being converted. In other words, while a reference conversion may change the type of the reference, it never changes the type or value of the object being referred to.</p>
+
+<h3 id="unboxing-conversions">Unboxing conversions</h3>
+
+<p>An unboxing conversion permits a reference type to be explicitly converted to a <em>value_type</em>. An unboxing conversion exists from the types <code class="prettyprint">object</code>, <code class="prettyprint">dynamic</code> and <code class="prettyprint">System.ValueType</code> to any <em>non_nullable_value_type</em>, and from any <em>interface_type</em> to any <em>non_nullable_value_type</em> that implements the <em>interface_type</em>. Furthermore type <code class="prettyprint">System.Enum</code> can be unboxed to any <em>enum_type</em>.</p>
+
+<p>An unboxing conversion exists from a reference type to a <em>nullable_type</em> if an unboxing conversion exists from the reference type to the underlying <em>non_nullable_value_type</em> of the <em>nullable_type</em>.</p>
+
+<p>A value type <code class="prettyprint">S</code> has an unboxing conversion from an interface type <code class="prettyprint">I</code> if it has an unboxing conversion from an interface type <code class="prettyprint">I0</code> and <code class="prettyprint">I0</code> has an identity conversion to <code class="prettyprint">I</code>.</p>
+
+<p>A value type <code class="prettyprint">S</code> has an unboxing conversion from an interface type <code class="prettyprint">I</code> if it has an unboxing conversion from an interface or delegate type <code class="prettyprint">I0</code> and either <code class="prettyprint">I0</code> is variance-convertible to <code class="prettyprint">I</code> or <code class="prettyprint">I</code> is variance-convertible to <code class="prettyprint">I0</code> (<a href="interfaces.md#variance-conversion">Variance conversion</a>).</p>
+
+<p>An unboxing operation consists of first checking that the object instance is a boxed value of the given <em>value_type</em>, and then copying the value out of the instance. Unboxing a null reference to a <em>nullable_type</em> produces the null value of the <em>nullable_type</em>. A struct can be unboxed from the type <code class="prettyprint">System.ValueType</code>, since that is a base class for all structs (<a href="structs.md#inheritance">Inheritance</a>).</p>
+
+<p>Unboxing conversions are described further in <a href="types.md#unboxing-conversions">Unboxing conversions</a>.</p>
+
+<h3 id="explicit-dynamic-conversions">Explicit dynamic conversions</h3>
+
+<p>An explicit dynamic conversion exists from an expression of type <code class="prettyprint">dynamic</code> to any type <code class="prettyprint">T</code>. The conversion is dynamically bound (<a href="expressions.md#dynamic-binding">Dynamic binding</a>), which means that an explicit conversion will be sought at run-time from the run-time type of the expression to <code class="prettyprint">T</code>. If no conversion is found, a run-time exception is thrown.</p>
+
+<p>If dynamic binding of the conversion is not desired, the expression can be first converted to <code class="prettyprint">object</code>, and then to the desired type.</p>
+
+<p>Assume the following class is defined:
+&ldquo;`csharp
+class C
+{
+    int i;</p>
+
+<p>public C(int i) { this.i = i; }</p>
+
+<p>public static explicit operator C(string s) 
+    {
+        return new C(int.Parse(s));
+    }
+}
+&rdquo;`</p>
+
+<p>The following example illustrates explicit dynamic conversions:
+&ldquo;`csharp
+object o  = &quot;1&rdquo;;
+dynamic d = &ldquo;2&rdquo;;</p>
+
+<p>var c1 = &copy;o; // Compiles, but explicit reference conversion fails
+var c2 = &copy;d; // Compiles and user defined conversion succeeds
+&ldquo;`</p>
+
+<p>The best conversion of <code class="prettyprint">o</code> to <code class="prettyprint">C</code> is found at compile-time to be an explicit reference conversion. This fails at run-time, because <code class="prettyprint">&quot;1&quot;</code> is not in fact a <code class="prettyprint">C</code>. The conversion of <code class="prettyprint">d</code> to <code class="prettyprint">C</code> however, as an explicit dynamic conversion, is suspended to run-time, where a user defined conversion from the run-time type of <code class="prettyprint">d</code> &ndash; <code class="prettyprint">string</code> &ndash; to <code class="prettyprint">C</code> is found, and succeeds.</p>
+
+<h3 id="explicit-conversions-involving-type-parameters">Explicit conversions involving type parameters</h3>
+
+<p>The following explicit conversions exist for a given type parameter <code class="prettyprint">T</code>:</p>
+
+<ul>
+<li> From the effective base class <code class="prettyprint">C</code> of <code class="prettyprint">T</code> to <code class="prettyprint">T</code> and from any base class of <code class="prettyprint">C</code> to <code class="prettyprint">T</code>. At run-time, if <code class="prettyprint">T</code> is a value type, the conversion is executed as an unboxing conversion. Otherwise, the conversion is executed as an explicit reference conversion or identity conversion.</li>
+<li> From any interface type to <code class="prettyprint">T</code>. At run-time, if <code class="prettyprint">T</code> is a value type, the conversion is executed as an unboxing conversion. Otherwise, the conversion is executed as an explicit reference conversion or identity conversion.</li>
+<li> From <code class="prettyprint">T</code> to any <em>interface_type</em> <code class="prettyprint">I</code> provided there is not already an implicit conversion from <code class="prettyprint">T</code> to <code class="prettyprint">I</code>. At run-time, if <code class="prettyprint">T</code> is a value type, the conversion is executed as a boxing conversion followed by an explicit reference conversion. Otherwise, the conversion is executed as an explicit reference conversion or identity conversion.</li>
+<li> From a type parameter <code class="prettyprint">U</code> to <code class="prettyprint">T</code>, provided <code class="prettyprint">T</code> depends on <code class="prettyprint">U</code> (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>). At run-time, if <code class="prettyprint">U</code> is a value type, then <code class="prettyprint">T</code> and <code class="prettyprint">U</code> are necessarily the same type and no conversion is performed. Otherwise, if <code class="prettyprint">T</code> is a value type, the conversion is executed as an unboxing conversion. Otherwise, the conversion is executed as an explicit reference conversion or identity conversion.</li>
+</ul>
+
+<p>If <code class="prettyprint">T</code> is known to be a reference type, the conversions above are all classified as explicit reference conversions (<a href="conversions.md#explicit-reference-conversions">Explicit reference conversions</a>). If <code class="prettyprint">T</code> is not known to be a reference type, the conversions above are classified as unboxing conversions (<a href="conversions.md#unboxing-conversions">Unboxing conversions</a>).</p>
+
+<p>The above rules do not permit a direct explicit conversion from an unconstrained type parameter to a non-interface type, which might be surprising. The reason for this rule is to prevent confusion and make the semantics of such conversions clear. For example, consider the following declaration:
+<code class="prettyprint">csharp
+class X&lt;T&gt;
+{
+    public static long F(T t) {
+        return (long)t;                // Error 
+    }
+}
+</code></p>
+
+<p>If the direct explicit conversion of <code class="prettyprint">t</code> to <code class="prettyprint">int</code> were permitted, one might easily expect that <code class="prettyprint">X&lt;int&gt;.F(7)</code> would return <code class="prettyprint">7L</code>. However, it would not, because the standard numeric conversions are only considered when the types are known to be numeric at binding-time. In order to make the semantics clear, the above example must instead be written:
+<code class="prettyprint">csharp
+class X&lt;T&gt;
+{
+    public static long F(T t) {
+        return (long)(object)t;        // Ok, but will only work when T is long
+    }
+}
+</code></p>
+
+<p>This code will now compile but executing <code class="prettyprint">X&lt;int&gt;.F(7)</code> would then throw an exception at run-time, since a boxed <code class="prettyprint">int</code> cannot be converted directly to a <code class="prettyprint">long</code>.</p>
+
+<h3 id="user-defined-explicit-conversions">User-defined explicit conversions</h3>
+
+<p>A user-defined explicit conversion consists of an optional standard explicit conversion, followed by execution of a user-defined implicit or explicit conversion operator, followed by another optional standard explicit conversion. The exact rules for evaluating user-defined explicit conversions are described in <a href="conversions.md#processing-of-user-defined-explicit-conversions">Processing of user-defined explicit conversions</a>.</p>
+
+<h2 id="standard-conversions">Standard conversions</h2>
+
+<p>The standard conversions are those pre-defined conversions that can occur as part of a user-defined conversion.</p>
+
+<h3 id="standard-implicit-conversions">Standard implicit conversions</h3>
+
+<p>The following implicit conversions are classified as standard implicit conversions:</p>
+
+<ul>
+<li> Identity conversions (<a href="conversions.md#identity-conversion">Identity conversion</a>)</li>
+<li> Implicit numeric conversions (<a href="conversions.md#implicit-numeric-conversions">Implicit numeric conversions</a>)</li>
+<li> Implicit nullable conversions (<a href="conversions.md#implicit-nullable-conversions">Implicit nullable conversions</a>)</li>
+<li> Implicit reference conversions (<a href="conversions.md#implicit-reference-conversions">Implicit reference conversions</a>)</li>
+<li> Boxing conversions (<a href="conversions.md#boxing-conversions">Boxing conversions</a>)</li>
+<li> Implicit constant expression conversions (<a href="conversions.md#implicit-dynamic-conversions">Implicit dynamic conversions</a>)</li>
+<li> Implicit conversions involving type parameters (<a href="conversions.md#implicit-conversions-involving-type-parameters">Implicit conversions involving type parameters</a>)</li>
+</ul>
+
+<p>The standard implicit conversions specifically exclude user-defined implicit conversions.</p>
+
+<h3 id="standard-explicit-conversions">Standard explicit conversions</h3>
+
+<p>The standard explicit conversions are all standard implicit conversions plus the subset of the explicit conversions for which an opposite standard implicit conversion exists. In other words, if a standard implicit conversion exists from a type <code class="prettyprint">A</code> to a type <code class="prettyprint">B</code>, then a standard explicit conversion exists from type <code class="prettyprint">A</code> to type <code class="prettyprint">B</code> and from type <code class="prettyprint">B</code> to type <code class="prettyprint">A</code>.</p>
+
+<h2 id="user-defined-conversions">User-defined conversions</h2>
+
+<p>C# allows the pre-defined implicit and explicit conversions to be augmented by <strong><em>user-defined conversions</em></strong>. User-defined conversions are introduced by declaring conversion operators (<a href="classes.md#conversion-operators">Conversion operators</a>) in class and struct types.</p>
+
+<h3 id="permitted-user-defined-conversions">Permitted user-defined conversions</h3>
+
+<p>C# permits only certain user-defined conversions to be declared. In particular, it is not possible to redefine an already existing implicit or explicit conversion.</p>
+
+<p>For a given source type <code class="prettyprint">S</code> and target type <code class="prettyprint">T</code>, if <code class="prettyprint">S</code> or <code class="prettyprint">T</code> are nullable types, let <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> refer to their underlying types, otherwise <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> are equal to <code class="prettyprint">S</code> and <code class="prettyprint">T</code> respectively. A class or struct is permitted to declare a conversion from a source type <code class="prettyprint">S</code> to a target type <code class="prettyprint">T</code> only if all of the following are true:</p>
+
+<ul>
+<li> <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> are different types.</li>
+<li> Either <code class="prettyprint">S0</code> or <code class="prettyprint">T0</code> is the class or struct type in which the operator declaration takes place.</li>
+<li> Neither <code class="prettyprint">S0</code> nor <code class="prettyprint">T0</code> is an <em>interface_type</em>.</li>
+<li> Excluding user-defined conversions, a conversion does not exist from <code class="prettyprint">S</code> to <code class="prettyprint">T</code> or from <code class="prettyprint">T</code> to <code class="prettyprint">S</code>.</li>
+</ul>
+
+<p>The restrictions that apply to user-defined conversions are discussed further in <a href="classes.md#conversion-operators">Conversion operators</a>.</p>
+
+<h3 id="lifted-conversion-operators">Lifted conversion operators</h3>
+
+<p>Given a user-defined conversion operator that converts from a non-nullable value type <code class="prettyprint">S</code> to a non-nullable value type <code class="prettyprint">T</code>, a <strong><em>lifted conversion operator</em></strong> exists that converts from <code class="prettyprint">S?</code> to <code class="prettyprint">T?</code>. This lifted conversion operator performs an unwrapping from <code class="prettyprint">S?</code> to <code class="prettyprint">S</code> followed by the user-defined conversion from <code class="prettyprint">S</code> to <code class="prettyprint">T</code> followed by a wrapping from <code class="prettyprint">T</code> to <code class="prettyprint">T?</code>, except that a null valued <code class="prettyprint">S?</code> converts directly to a null valued <code class="prettyprint">T?</code>.</p>
+
+<p>A lifted conversion operator has the same implicit or explicit classification as its underlying user-defined conversion operator. The term &quot;user-defined conversion&rdquo; applies to the use of both user-defined and lifted conversion operators.</p>
+
+<h3 id="evaluation-of-user-defined-conversions">Evaluation of user-defined conversions</h3>
+
+<p>A user-defined conversion converts a value from its type, called the <strong><em>source type</em></strong>, to another type, called the <strong><em>target type</em></strong>. Evaluation of a user-defined conversion centers on finding the <strong><em>most specific</em></strong> user-defined conversion operator for the particular source and target types. This determination is broken into several steps:</p>
+
+<ul>
+<li> Finding the set of classes and structs from which user-defined conversion operators will be considered. This set consists of the source type and its base classes and the target type and its base classes (with the implicit assumptions that only classes and structs can declare user-defined operators, and that non-class types have no base classes). For the purposes of this step, if either the source or target type is a <em>nullable_type</em>, their underlying type is used instead.</li>
+<li> From that set of types, determining which user-defined and lifted conversion operators are applicable. For a conversion operator to be applicable, it must be possible to perform a standard conversion (<a href="conversions.md#standard-conversions">Standard conversions</a>) from the source type to the operand type of the operator, and it must be possible to perform a standard conversion from the result type of the operator to the target type.</li>
+<li> From the set of applicable user-defined operators, determining which operator is unambiguously the most specific. In general terms, the most specific operator is the operator whose operand type is &ldquo;closest&rdquo; to the source type and whose result type is &ldquo;closest&rdquo; to the target type. User-defined conversion operators are preferred over lifted conversion operators. The exact rules for establishing the most specific user-defined conversion operator are defined in the following sections.</li>
+</ul>
+
+<p>Once a most specific user-defined conversion operator has been identified, the actual execution of the user-defined conversion involves up to three steps:</p>
+
+<ul>
+<li> First, if required, performing a standard conversion from the source type to the operand type of the user-defined or lifted conversion operator.</li>
+<li> Next, invoking the user-defined or lifted conversion operator to perform the conversion.</li>
+<li> Finally, if required, performing a standard conversion from the result type of the user-defined or lifted conversion operator to the target type.</li>
+</ul>
+
+<p>Evaluation of a user-defined conversion never involves more than one user-defined or lifted conversion operator. In other words, a conversion from type <code class="prettyprint">S</code> to type <code class="prettyprint">T</code> will never first execute a user-defined conversion from <code class="prettyprint">S</code> to <code class="prettyprint">X</code> and then execute a user-defined conversion from <code class="prettyprint">X</code> to <code class="prettyprint">T</code>.</p>
+
+<p>Exact definitions of evaluation of user-defined implicit or explicit conversions are given in the following sections. The definitions make use of the following terms:</p>
+
+<ul>
+<li> If a standard implicit conversion (<a href="conversions.md#standard-implicit-conversions">Standard implicit conversions</a>) exists from a type <code class="prettyprint">A</code> to a type <code class="prettyprint">B</code>, and if neither <code class="prettyprint">A</code> nor <code class="prettyprint">B</code> are <em>interface_type*s, then <code class="prettyprint">A</code> is said to be *</em><em>encompassed by</em>** <code class="prettyprint">B</code>, and <code class="prettyprint">B</code> is said to <strong><em>encompass</em></strong> <code class="prettyprint">A</code>.</li>
+<li> The <strong><em>most encompassing type</em></strong> in a set of types is the one type that encompasses all other types in the set. If no single type encompasses all other types, then the set has no most encompassing type. In more intuitive terms, the most encompassing type is the &ldquo;largest&rdquo; type in the set—the one type to which each of the other types can be implicitly converted.</li>
+<li> The <strong><em>most encompassed type</em></strong> in a set of types is the one type that is encompassed by all other types in the set. If no single type is encompassed by all other types, then the set has no most encompassed type. In more intuitive terms, the most encompassed type is the &ldquo;smallest&rdquo; type in the set—the one type that can be implicitly converted to each of the other types.</li>
+</ul>
+
+<h3 id="processing-of-user-defined-implicit-conversions">Processing of user-defined implicit conversions</h3>
+
+<p>A user-defined implicit conversion from type <code class="prettyprint">S</code> to type <code class="prettyprint">T</code> is processed as follows:</p>
+
+<ul>
+<li> Determine the types <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code>. If <code class="prettyprint">S</code> or <code class="prettyprint">T</code> are nullable types, <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> are their underlying types, otherwise <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> are equal to <code class="prettyprint">S</code> and <code class="prettyprint">T</code> respectively.</li>
+<li> Find the set of types, <code class="prettyprint">D</code>, from which user-defined conversion operators will be considered. This set consists of <code class="prettyprint">S0</code> (if <code class="prettyprint">S0</code> is a class or struct), the base classes of <code class="prettyprint">S0</code> (if <code class="prettyprint">S0</code> is a class), and <code class="prettyprint">T0</code> (if <code class="prettyprint">T0</code> is a class or struct).</li>
+<li> Find the set of applicable user-defined and lifted conversion operators, <code class="prettyprint">U</code>. This set consists of the user-defined and lifted implicit conversion operators declared by the classes or structs in <code class="prettyprint">D</code> that convert from a type encompassing <code class="prettyprint">S</code> to a type encompassed by <code class="prettyprint">T</code>. If <code class="prettyprint">U</code> is empty, the conversion is undefined and a compile-time error occurs.</li>
+<li> Find the most specific source type, <code class="prettyprint">SX</code>, of the operators in <code class="prettyprint">U</code>:
+
+<ul>
+<li>If any of the operators in <code class="prettyprint">U</code> convert from <code class="prettyprint">S</code>, then <code class="prettyprint">SX</code> is <code class="prettyprint">S</code>.</li>
+<li>Otherwise, <code class="prettyprint">SX</code> is the most encompassed type in the combined set of source types of the operators in <code class="prettyprint">U</code>. If exactly one most encompassed type cannot be found, then the conversion is ambiguous and a compile-time error occurs.</li>
+</ul></li>
+<li> Find the most specific target type, <code class="prettyprint">TX</code>, of the operators in <code class="prettyprint">U</code>:
+
+<ul>
+<li>If any of the operators in <code class="prettyprint">U</code> convert to <code class="prettyprint">T</code>, then <code class="prettyprint">TX</code> is <code class="prettyprint">T</code>.</li>
+<li>Otherwise, <code class="prettyprint">TX</code> is the most encompassing type in the combined set of target types of the operators in <code class="prettyprint">U</code>. If exactly one most encompassing type cannot be found, then the conversion is ambiguous and a compile-time error occurs.</li>
+</ul></li>
+<li> Find the most specific conversion operator:
+
+<ul>
+<li>If <code class="prettyprint">U</code> contains exactly one user-defined conversion operator that converts from <code class="prettyprint">SX</code> to <code class="prettyprint">TX</code>, then this is the most specific conversion operator.</li>
+<li>Otherwise, if <code class="prettyprint">U</code> contains exactly one lifted conversion operator that converts from <code class="prettyprint">SX</code> to <code class="prettyprint">TX</code>, then this is the most specific conversion operator.</li>
+<li>Otherwise, the conversion is ambiguous and a compile-time error occurs.</li>
+</ul></li>
+<li> Finally, apply the conversion:
+
+<ul>
+<li>If <code class="prettyprint">S</code> is not <code class="prettyprint">SX</code>, then a standard implicit conversion from <code class="prettyprint">S</code> to <code class="prettyprint">SX</code> is performed.</li>
+<li>The most specific conversion operator is invoked to convert from <code class="prettyprint">SX</code> to <code class="prettyprint">TX</code>.</li>
+<li>If <code class="prettyprint">TX</code> is not <code class="prettyprint">T</code>, then a standard implicit conversion from <code class="prettyprint">TX</code> to <code class="prettyprint">T</code> is performed.</li>
+</ul></li>
+</ul>
+
+<h3 id="processing-of-user-defined-explicit-conversions">Processing of user-defined explicit conversions</h3>
+
+<p>A user-defined explicit conversion from type <code class="prettyprint">S</code> to type <code class="prettyprint">T</code> is processed as follows:</p>
+
+<ul>
+<li> Determine the types <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code>. If <code class="prettyprint">S</code> or <code class="prettyprint">T</code> are nullable types, <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> are their underlying types, otherwise <code class="prettyprint">S0</code> and <code class="prettyprint">T0</code> are equal to <code class="prettyprint">S</code> and <code class="prettyprint">T</code> respectively.</li>
+<li> Find the set of types, <code class="prettyprint">D</code>, from which user-defined conversion operators will be considered. This set consists of <code class="prettyprint">S0</code> (if <code class="prettyprint">S0</code> is a class or struct), the base classes of <code class="prettyprint">S0</code> (if <code class="prettyprint">S0</code> is a class), <code class="prettyprint">T0</code> (if <code class="prettyprint">T0</code> is a class or struct), and the base classes of <code class="prettyprint">T0</code> (if <code class="prettyprint">T0</code> is a class).</li>
+<li> Find the set of applicable user-defined and lifted conversion operators, <code class="prettyprint">U</code>. This set consists of the user-defined and lifted implicit or explicit conversion operators declared by the classes or structs in <code class="prettyprint">D</code> that convert from a type encompassing or encompassed by <code class="prettyprint">S</code> to a type encompassing or encompassed by <code class="prettyprint">T</code>. If <code class="prettyprint">U</code> is empty, the conversion is undefined and a compile-time error occurs.</li>
+<li> Find the most specific source type, <code class="prettyprint">SX</code>, of the operators in <code class="prettyprint">U</code>:
+
+<ul>
+<li>If any of the operators in <code class="prettyprint">U</code> convert from <code class="prettyprint">S</code>, then <code class="prettyprint">SX</code> is <code class="prettyprint">S</code>.</li>
+<li>Otherwise, if any of the operators in <code class="prettyprint">U</code> convert from types that encompass <code class="prettyprint">S</code>, then <code class="prettyprint">SX</code> is the most encompassed type in the combined set of source types of those operators. If no most encompassed type can be found, then the conversion is ambiguous and a compile-time error occurs.</li>
+<li>Otherwise, <code class="prettyprint">SX</code> is the most encompassing type in the combined set of source types of the operators in <code class="prettyprint">U</code>. If exactly one most encompassing type cannot be found, then the conversion is ambiguous and a compile-time error occurs.</li>
+</ul></li>
+<li> Find the most specific target type, <code class="prettyprint">TX</code>, of the operators in <code class="prettyprint">U</code>:
+
+<ul>
+<li>If any of the operators in <code class="prettyprint">U</code> convert to <code class="prettyprint">T</code>, then <code class="prettyprint">TX</code> is <code class="prettyprint">T</code>.</li>
+<li>Otherwise, if any of the operators in <code class="prettyprint">U</code> convert to types that are encompassed by <code class="prettyprint">T</code>, then <code class="prettyprint">TX</code> is the most encompassing type in the combined set of target types of those operators. If exactly one most encompassing type cannot be found, then the conversion is ambiguous and a compile-time error occurs.</li>
+<li>Otherwise, <code class="prettyprint">TX</code> is the most encompassed type in the combined set of target types of the operators in <code class="prettyprint">U</code>. If no most encompassed type can be found, then the conversion is ambiguous and a compile-time error occurs.</li>
+</ul></li>
+<li> Find the most specific conversion operator:
+
+<ul>
+<li>If <code class="prettyprint">U</code> contains exactly one user-defined conversion operator that converts from <code class="prettyprint">SX</code> to <code class="prettyprint">TX</code>, then this is the most specific conversion operator.</li>
+<li>Otherwise, if <code class="prettyprint">U</code> contains exactly one lifted conversion operator that converts from <code class="prettyprint">SX</code> to <code class="prettyprint">TX</code>, then this is the most specific conversion operator.</li>
+<li>Otherwise, the conversion is ambiguous and a compile-time error occurs.</li>
+</ul></li>
+<li> Finally, apply the conversion:
+
+<ul>
+<li>If <code class="prettyprint">S</code> is not <code class="prettyprint">SX</code>, then a standard explicit conversion from <code class="prettyprint">S</code> to <code class="prettyprint">SX</code> is performed.</li>
+<li>The most specific user-defined conversion operator is invoked to convert from <code class="prettyprint">SX</code> to <code class="prettyprint">TX</code>.</li>
+<li>If <code class="prettyprint">TX</code> is not <code class="prettyprint">T</code>, then a standard explicit conversion from <code class="prettyprint">TX</code> to <code class="prettyprint">T</code> is performed.</li>
+</ul></li>
+</ul>
+
+<h2 id="anonymous-function-conversions">Anonymous function conversions</h2>
+
+<p>An <em>anonymous_method_expression</em> or <em>lambda_expression</em> is classified as an anonymous function (<a href="expressions.md#anonymous-function-expressions">Anonymous function expressions</a>). The expression does not have a type but can be implicitly converted to a compatible delegate type or expression tree type. Specifically, an anonymous function <code class="prettyprint">F</code> is compatible with a delegate type <code class="prettyprint">D</code> provided:</p>
+
+<ul>
+<li> If <code class="prettyprint">F</code> contains an <em>anonymous_function_signature</em>, then <code class="prettyprint">D</code> and <code class="prettyprint">F</code> have the same number of parameters.</li>
+<li> If <code class="prettyprint">F</code> does not contain an <em>anonymous_function_signature</em>, then <code class="prettyprint">D</code> may have zero or more parameters of any type, as long as no parameter of <code class="prettyprint">D</code> has the <code class="prettyprint">out</code> parameter modifier.</li>
+<li> If <code class="prettyprint">F</code> has an explicitly typed parameter list, each parameter in <code class="prettyprint">D</code> has the same type and modifiers as the corresponding parameter in <code class="prettyprint">F</code>.</li>
+<li> If <code class="prettyprint">F</code> has an implicitly typed parameter list, <code class="prettyprint">D</code> has no <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameters.</li>
+<li> If the body of <code class="prettyprint">F</code> is an expression, and either <code class="prettyprint">D</code> has a <code class="prettyprint">void</code> return type or <code class="prettyprint">F</code> is async and <code class="prettyprint">D</code> has the return type <code class="prettyprint">Task</code>, then when each parameter of <code class="prettyprint">F</code> is given the type of the corresponding parameter in <code class="prettyprint">D</code>, the body of <code class="prettyprint">F</code> is a valid expression (wrt <a href="expressions.md#expressions">Expressions</a>) that would be permitted as a <em>statement_expression</em> (<a href="statements.md#expression-statements">Expression statements</a>).</li>
+<li> If the body of <code class="prettyprint">F</code> is a statement block, and either <code class="prettyprint">D</code> has a <code class="prettyprint">void</code> return type or <code class="prettyprint">F</code> is async and <code class="prettyprint">D</code> has the return type <code class="prettyprint">Task</code>, then when each parameter of <code class="prettyprint">F</code> is given the type of the corresponding parameter in <code class="prettyprint">D</code>, the body of <code class="prettyprint">F</code> is a valid statement block (wrt <a href="statements.md#blocks">Blocks</a>) in which no <code class="prettyprint">return</code> statement specifies an expression.</li>
+<li> If the body of <code class="prettyprint">F</code> is an expression, and <em>either</em> <code class="prettyprint">F</code> is non-async and <code class="prettyprint">D</code> has a non-void return type <code class="prettyprint">T</code>, <em>or</em> <code class="prettyprint">F</code> is async and <code class="prettyprint">D</code> has a return type <code class="prettyprint">Task&lt;T&gt;</code>, then when each parameter of <code class="prettyprint">F</code> is given the type of the corresponding parameter in <code class="prettyprint">D</code>, the body of <code class="prettyprint">F</code> is a valid expression (wrt <a href="expressions.md#expressions">Expressions</a>) that is implicitly convertible to <code class="prettyprint">T</code>.</li>
+<li> If the body of <code class="prettyprint">F</code> is a statement block, and <em>either</em> <code class="prettyprint">F</code> is non-async and <code class="prettyprint">D</code> has a non-void return type <code class="prettyprint">T</code>, <em>or</em> <code class="prettyprint">F</code> is async and <code class="prettyprint">D</code> has a return type <code class="prettyprint">Task&lt;T&gt;</code>, then when each parameter of <code class="prettyprint">F</code> is given the type of the corresponding parameter in <code class="prettyprint">D</code>, the body of <code class="prettyprint">F</code> is a valid statement block (wrt <a href="statements.md#blocks">Blocks</a>) with a non-reachable end point in which each <code class="prettyprint">return</code> statement specifies an expression that is implicitly convertible to <code class="prettyprint">T</code>.</li>
+</ul>
+
+<p>For the purpose of brevity, this section uses the short form for the task types <code class="prettyprint">Task</code> and <code class="prettyprint">Task&lt;T&gt;</code> (<a href="classes.md#async-functions">Async functions</a>).</p>
+
+<p>A lambda expression <code class="prettyprint">F</code> is compatible with an expression tree type <code class="prettyprint">Expression&lt;D&gt;</code> if <code class="prettyprint">F</code> is compatible with the delegate type <code class="prettyprint">D</code>. Note that this does not apply to anonymous methods, only lambda expressions.</p>
+
+<p>Certain lambda expressions cannot be converted to expression tree types: Even though the conversion <em>exists</em>, it fails at compile-time. This is the case if the lambda expression:</p>
+
+<ul>
+<li> Has a <em>block</em> body</li>
+<li> Contains simple or compound assignment operators</li>
+<li> Contains a dynamically bound expression</li>
+<li> Is async</li>
+</ul>
+
+<p>The examples that follow use a generic delegate type <code class="prettyprint">Func&lt;A,R&gt;</code> which represents a function that takes an argument of type <code class="prettyprint">A</code> and returns a value of type <code class="prettyprint">R</code>:
+<code class="prettyprint">csharp
+delegate R Func&lt;A,R&gt;(A arg);
+</code></p>
+
+<p>In the assignments
+&ldquo;`csharp
+Func<int,int> f1 = x =&gt; x + 1;                 // Ok</p>
+
+<p>Func<int,double> f2 = x =&gt; x + 1;              // Ok</p>
+
+<p>Func<double,int> f3 = x =&gt; x + 1;              // Error</p>
+
+<p>Func<int, Task<int>&gt; f4 = async x =&gt; x + 1;    // Ok
+&rdquo;`
+the parameter and return types of each anonymous function are determined from the type of the variable to which the anonymous function is assigned.</p>
+
+<p>The first assignment successfully converts the anonymous function to the delegate type <code class="prettyprint">Func&lt;int,int&gt;</code> because, when <code class="prettyprint">x</code> is given type <code class="prettyprint">int</code>, <code class="prettyprint">x+1</code> is a valid expression that is implicitly convertible to type <code class="prettyprint">int</code>.</p>
+
+<p>Likewise, the second assignment successfully converts the anonymous function to the delegate type <code class="prettyprint">Func&lt;int,double&gt;</code> because the result of <code class="prettyprint">x+1</code> (of type <code class="prettyprint">int</code>) is implicitly convertible to type <code class="prettyprint">double</code>.</p>
+
+<p>However, the third assignment is a compile-time error because, when <code class="prettyprint">x</code> is given type <code class="prettyprint">double</code>, the result of <code class="prettyprint">x+1</code> (of type <code class="prettyprint">double</code>) is not implicitly convertible to type <code class="prettyprint">int</code>.</p>
+
+<p>The fourth assignment successfully converts the anonymous async function to the delegate type <code class="prettyprint">Func&lt;int, Task&lt;int&gt;&gt;</code> because the result of <code class="prettyprint">x+1</code> (of type <code class="prettyprint">int</code>) is implicitly convertible to the result type <code class="prettyprint">int</code> of the task type <code class="prettyprint">Task&lt;int&gt;</code>.</p>
+
+<p>Anonymous functions may influence overload resolution, and participate in type inference. See <a href="expressions.md#function-members">Function members</a> for further details.</p>
+
+<h3 id="evaluation-of-anonymous-function-conversions-to-delegate-types">Evaluation of anonymous function conversions to delegate types</h3>
+
+<p>Conversion of an anonymous function to a delegate type produces a delegate instance which references the anonymous function and the (possibly empty) set of captured outer variables that are active at the time of the evaluation. When the delegate is invoked, the body of the anonymous function is executed. The code in the body is executed using the set of captured outer variables referenced by the delegate.</p>
+
+<p>The invocation list of a delegate produced from an anonymous function contains a single entry. The exact target object and target method of the delegate are unspecified. In particular, it is unspecified whether the target object of the delegate is <code class="prettyprint">null</code>, the <code class="prettyprint">this</code> value of the enclosing function member, or some other object.</p>
+
+<p>Conversions of semantically identical anonymous functions with the same (possibly empty) set of captured outer variable instances to the same delegate types are permitted (but not required) to return the same delegate instance. The term semantically identical is used here to mean that execution of the anonymous functions will, in all cases, produce the same effects given the same arguments. This rule permits code such as the following to be optimized.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">delegate</span> <span class="kt">double</span> <span class="nf">Function</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">);</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">double</span><span class="p">[]</span> <span class="nf">Apply</span><span class="p">(</span><span class="kt">double</span><span class="p">[]</span> <span class="n">a</span><span class="p">,</span> <span class="n">Function</span> <span class="n">f</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">double</span><span class="p">[]</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">double</span><span class="p">[</span><span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="nf">f</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">double</span><span class="p">[]</span> <span class="n">a</span><span class="p">,</span> <span class="kt">double</span><span class="p">[]</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">a</span> <span class="p">=</span> <span class="nf">Apply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">Math</span><span class="p">.</span><span class="nf">Sin</span><span class="p">(</span><span class="n">x</span><span class="p">));</span>
+        <span class="n">b</span> <span class="p">=</span> <span class="nf">Apply</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="kt">double</span> <span class="n">y</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">Math</span><span class="p">.</span><span class="nf">Sin</span><span class="p">(</span><span class="n">y</span><span class="p">));</span>
+        <span class="p">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Since the two anonymous function delegates have the same (empty) set of captured outer variables, and since the anonymous functions are semantically identical, the compiler is permitted to have the delegates refer to the same target method. Indeed, the compiler is permitted to return the very same delegate instance from both anonymous function expressions.</p>
+
+<h3 id="evaluation-of-anonymous-function-conversions-to-expression-tree-types">Evaluation of anonymous function conversions to expression tree types</h3>
+
+<p>Conversion of an anonymous function to an expression tree type produces an expression tree (<a href="types.md#expression-tree-types">Expression tree types</a>). More precisely, evaluation of the anonymous function conversion leads to the construction of an object structure that represents the structure of the anonymous function itself. The precise structure of the expression tree, as well as the exact process for creating it, are implementation defined.</p>
+
+<h3 id="implementation-example">Implementation example</h3>
+
+<p>This section describes a possible implementation of anonymous function conversions in terms of other C# constructs. The implementation described here is based on the same principles used by the Microsoft C# compiler, but it is by no means a mandated implementation, nor is it the only one possible. It only briefly mentions conversions to expression trees, as their exact semantics are outside the scope of this specification.</p>
+
+<p>The remainder of this section gives several examples of code that contains anonymous functions with different characteristics. For each example, a corresponding translation to code that uses only other C# constructs is provided. In the examples, the identifier <code class="prettyprint">D</code> is assumed by represent the following delegate type:
+<code class="prettyprint">csharp
+public delegate void D();
+</code></p>
+
+<p>The simplest form of an anonymous function is one that captures no outer variables:
+<code class="prettyprint">csharp
+class Test
+{
+    static void F() {
+        D d = () =&gt; { Console.WriteLine(&quot;test&quot;); };
+    }
+}
+</code></p>
+
+<p>This can be translated to a delegate instantiation that references a compiler generated static method in which the code of the anonymous function is placed:
+&ldquo;`csharp
+class Test
+{
+    static void F() {
+        D d = new D(__Method1);
+    }</p>
+
+<p>static void __Method1() {
+        Console.WriteLine(&quot;test&rdquo;);
+    }
+}
+&ldquo;`</p>
+
+<p>In the following example, the anonymous function references instance members of <code class="prettyprint">this</code>:
+&rdquo;`csharp
+class Test
+{
+    int x;</p>
+
+<p>void F() {
+        D d = () =&gt; { Console.WriteLine(x); };
+    }
+}
+&ldquo;`</p>
+
+<p>This can be translated to a compiler generated instance method containing the code of the anonymous function:
+&rdquo;`csharp
+class Test
+{
+    int x;</p>
+
+<p>void F() {
+        D d = new D(__Method1);
+    }</p>
+
+<p>void __Method1() {
+        Console.WriteLine(x);
+    }
+}
+&ldquo;`</p>
+
+<p>In this example, the anonymous function captures a local variable:
+<code class="prettyprint">csharp
+class Test
+{
+    void F() {
+        int y = 123;
+        D d = () =&gt; { Console.WriteLine(y); };
+    }
+}
+</code></p>
+
+<p>The lifetime of the local variable must now be extended to at least the lifetime of the anonymous function delegate. This can be achieved by &quot;hoisting&rdquo; the local variable into a field of a compiler generated class. Instantiation of the local variable (<a href="expressions.md#instantiation-of-local-variables">Instantiation of local variables</a>) then corresponds to creating an instance of the compiler generated class, and accessing the local variable corresponds to accessing a field in the instance of the compiler generated class. Furthermore, the anonymous function becomes an instance method of the compiler generated class:
+&ldquo;`csharp
+class Test
+{
+    void F() {
+        <strong>Locals1 __locals1 = new __Locals1();
+        __locals1.y = 123;
+        D d = new D(</strong>locals1.__Method1);
+    }</p>
+
+<p>class __Locals1
+    {
+        public int y;</p>
+
+<p>public void __Method1() {
+            Console.WriteLine(y);
+        }
+    }
+}
+&rdquo;`</p>
+
+<p>Finally, the following anonymous function captures <code class="prettyprint">this</code> as well as two local variables with different lifetimes:
+&ldquo;`csharp
+class Test
+{
+    int x;</p>
+
+<p>void F() {
+        int y = 123;
+        for (int i = 0; i &lt; 10; i++) {
+            int z = i * 2;
+            D d = () =&gt; { Console.WriteLine(x + y + z); };
+        }
+    }
+}
+&rdquo;`</p>
+
+<p>Here, a compiler generated class is created for each statement block in which locals are captured such that the locals in the different blocks can have independent lifetimes. An instance of <code class="prettyprint">__Locals2</code>, the compiler generated class for the inner statement block, contains the local variable <code class="prettyprint">z</code> and a field that references an instance of <code class="prettyprint">__Locals1</code>.  An instance of <code class="prettyprint">__Locals1</code>, the compiler generated class for the outer statement block, contains the local variable <code class="prettyprint">y</code> and a field that references <code class="prettyprint">this</code> of the enclosing function member. With these data structures it is possible to reach all captured outer variables through an instance of <code class="prettyprint">__Local2</code>, and the code of the anonymous function can thus be implemented as an instance method of that class.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">__Locals1</span> <span class="n">__locals1</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">__Locals1</span><span class="p">();</span>
+        <span class="n">__locals1</span><span class="p">.</span><span class="n">__this</span> <span class="p">=</span> <span class="k">this</span><span class="p">;</span>
+        <span class="n">__locals1</span><span class="p">.</span><span class="n">y</span> <span class="p">=</span> <span class="m">123</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">10</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">{</span>
+            <span class="n">__Locals2</span> <span class="n">__locals2</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">__Locals2</span><span class="p">();</span>
+            <span class="n">__locals2</span><span class="p">.</span><span class="n">__locals1</span> <span class="p">=</span> <span class="n">__locals1</span><span class="p">;</span>
+            <span class="n">__locals2</span><span class="p">.</span><span class="n">z</span> <span class="p">=</span> <span class="n">i</span> <span class="p">*</span> <span class="m">2</span><span class="p">;</span>
+            <span class="n">D</span> <span class="n">d</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">D</span><span class="p">(</span><span class="n">__locals2</span><span class="p">.</span><span class="n">__Method1</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">class</span> <span class="nc">__Locals1</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="n">Test</span> <span class="n">__this</span><span class="p">;</span>
+        <span class="k">public</span> <span class="kt">int</span> <span class="n">y</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">class</span> <span class="nc">__Locals2</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="n">__Locals1</span> <span class="n">__locals1</span><span class="p">;</span>
+        <span class="k">public</span> <span class="kt">int</span> <span class="n">z</span><span class="p">;</span>
+
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">__Method1</span><span class="p">()</span> <span class="p">{</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">__locals1</span><span class="p">.</span><span class="n">__this</span><span class="p">.</span><span class="n">x</span> <span class="p">+</span> <span class="n">__locals1</span><span class="p">.</span><span class="n">y</span> <span class="p">+</span> <span class="n">z</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The same technique applied here to capture local variables can also be used when converting anonymous functions to expression trees: References to the compiler generated objects can be stored in the expression tree, and access to the local variables can be represented as field accesses on these objects. The advantage of this approach is that it allows the &ldquo;lifted&rdquo; local variables to be shared between delegates and expression trees.</p>
+
+<h2 id="method-group-conversions">Method group conversions</h2>
+
+<p>An implicit conversion (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) exists from a method group (<a href="expressions.md#expression-classifications">Expression classifications</a>) to a compatible delegate type. Given a delegate type <code class="prettyprint">D</code> and an expression <code class="prettyprint">E</code> that is classified as a method group, an implicit conversion exists from <code class="prettyprint">E</code> to <code class="prettyprint">D</code> if <code class="prettyprint">E</code> contains at least one method that is applicable in its normal form (<a href="expressions.md#applicable-function-member">Applicable function member</a>) to an argument list constructed by use of the parameter types and modifiers of <code class="prettyprint">D</code>, as described in the following.</p>
+
+<p>The compile-time application of a conversion from a method group <code class="prettyprint">E</code> to a delegate type <code class="prettyprint">D</code> is described in the following. Note that the existence of an implicit conversion from <code class="prettyprint">E</code> to <code class="prettyprint">D</code> does not guarantee that the compile-time application of the conversion will succeed without error.</p>
+
+<ul>
+<li> A single method <code class="prettyprint">M</code> is selected corresponding to a method invocation (<a href="expressions.md#method-invocations">Method invocations</a>) of the form <code class="prettyprint">E(A)</code>, with the following modifications:
+
+<ul>
+<li>The argument list <code class="prettyprint">A</code> is a list of expressions, each classified as a variable and with the type and modifier (<code class="prettyprint">ref</code> or <code class="prettyprint">out</code>) of the corresponding parameter in the <em>formal_parameter_list</em> of <code class="prettyprint">D</code>.</li>
+<li>The candidate methods considered are only those methods that are applicable in their normal form (<a href="expressions.md#applicable-function-member">Applicable function member</a>), not those applicable only in their expanded form.</li>
+</ul></li>
+<li> If the algorithm of <a href="expressions.md#method-invocations">Method invocations</a> produces an error, then a compile-time error occurs. Otherwise the algorithm produces a single best method <code class="prettyprint">M</code> having the same number of parameters as <code class="prettyprint">D</code> and the conversion is considered to exist.</li>
+<li> The selected method <code class="prettyprint">M</code> must be compatible (<a href="delegates.md#delegate-compatibility">Delegate compatibility</a>) with the delegate type <code class="prettyprint">D</code>, or otherwise, a compile-time error occurs.</li>
+<li> If the selected method <code class="prettyprint">M</code> is an instance method, the instance expression associated with <code class="prettyprint">E</code> determines the target object of the delegate.</li>
+<li> If the selected method M is an extension method which is denoted by means of a member access on an instance expression, that instance expression determines the target object of the delegate.</li>
+<li> The result of the conversion is a value of type <code class="prettyprint">D</code>, namely a newly created delegate that refers to the selected method and target object.</li>
+<li> Note that this process can lead to the creation of a delegate to an extension method, if the algorithm of <a href="expressions.md#method-invocations">Method invocations</a> fails to find an instance method but succeeds in processing the invocation of <code class="prettyprint">E(A)</code> as an extension method invocation (<a href="expressions.md#extension-method-invocations">Extension method invocations</a>). A delegate thus created captures the extension method as well as its first argument.</li>
+</ul>
+
+<p>The following example demonstrates method group conversions:
+&ldquo;`csharp
+delegate string D1(object o);</p>
+
+<p>delegate object D2(string s);</p>
+
+<p>delegate object D3();</p>
+
+<p>delegate string D4(object o, params object[] a);</p>
+
+<p>delegate string D5(int i);</p>
+
+<p>class Test
+{
+    static string F(object o) {&hellip;}</p>
+
+<p>static void G() {
+        D1 d1 = F;            // Ok
+        D2 d2 = F;            // Ok
+        D3 d3 = F;            // Error &ndash; not applicable
+        D4 d4 = F;            // Error &ndash; not applicable in normal form
+        D5 d5 = F;            // Error &ndash; applicable but not compatible</p>
+
+<p>}
+}
+&rdquo;`</p>
+
+<p>The assignment to <code class="prettyprint">d1</code> implicitly converts the method group <code class="prettyprint">F</code> to a value of type <code class="prettyprint">D1</code>.</p>
+
+<p>The assignment to <code class="prettyprint">d2</code> shows how it is possible to create a delegate to a method that has less derived (contra-variant) parameter types and a more derived (covariant) return type.</p>
+
+<p>The assignment to <code class="prettyprint">d3</code> shows how no conversion exists if the method is not applicable.</p>
+
+<p>The assignment to <code class="prettyprint">d4</code> shows how the method must be applicable in its normal form.</p>
+
+<p>The assignment to <code class="prettyprint">d5</code> shows how parameter and return types of the delegate and method are allowed to differ only for reference types.</p>
+
+<p>As with all other implicit and explicit conversions, the cast operator can be used to explicitly perform a method group conversion. Thus, the example
+<code class="prettyprint">csharp
+object obj = new EventHandler(myDialog.OkClick);
+</code>
+could instead be written
+<code class="prettyprint">csharp
+object obj = (EventHandler)myDialog.OkClick;
+</code></p>
+
+<p>Method groups may influence overload resolution, and participate in type inference. See <a href="expressions.md#function-members">Function members</a> for further details.</p>
+
+<p>The run-time evaluation of a method group conversion proceeds as follows:</p>
+
+<ul>
+<li> If the method selected at compile-time is an instance method, or it is an extension method which is accessed as an instance method, the target object of the delegate is determined from the instance expression associated with <code class="prettyprint">E</code>:
+
+<ul>
+<li>The instance expression is evaluated. If this evaluation causes an exception, no further steps are executed.</li>
+<li>If the instance expression is of a <em>reference_type</em>, the value computed by the instance expression becomes the target object. If the selected method is an instance method and the target object is <code class="prettyprint">null</code>, a <code class="prettyprint">System.NullReferenceException</code> is thrown and no further steps are executed.</li>
+<li>If the instance expression is of a <em>value_type</em>, a boxing operation (<a href="types.md#boxing-conversions">Boxing conversions</a>) is performed to convert the value to an object, and this object becomes the target object.</li>
+</ul></li>
+<li> Otherwise the selected method is part of a static method call, and the target object of the delegate is <code class="prettyprint">null</code>.</li>
+<li> A new instance of the delegate type <code class="prettyprint">D</code> is allocated. If there is not enough memory available to allocate the new instance, a <code class="prettyprint">System.OutOfMemoryException</code> is thrown and no further steps are executed.</li>
+<li> The new delegate instance is initialized with a reference to the method that was determined at compile-time and a reference to the target object computed above.</li>
+</ul>

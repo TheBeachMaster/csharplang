@@ -1,0 +1,752 @@
+<h1 id="variables">Variables</h1>
+
+<p>Variables represent storage locations. Every variable has a type that determines what values can be stored in the variable. C# is a type-safe language, and the C# compiler guarantees that values stored in variables are always of the appropriate type. The value of a variable can be changed through assignment or through use of the <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators.</p>
+
+<p>A variable must be <strong><em>definitely assigned</em></strong> (<a href="variables.md#definite-assignment">Definite assignment</a>) before its value can be obtained.</p>
+
+<p>As described in the following sections, variables are either <strong><em>initially assigned</em></strong> or <strong><em>initially unassigned</em></strong>. An initially assigned variable has a well-defined initial value and is always considered definitely assigned. An initially unassigned variable has no initial value. For an initially unassigned variable to be considered definitely assigned at a certain location, an assignment to the variable must occur in every possible execution path leading to that location.</p>
+
+<h2 id="variable-categories">Variable categories</h2>
+
+<p>C# defines seven categories of variables: static variables, instance variables, array elements, value parameters, reference parameters, output parameters, and local variables. The sections that follow describe each of these categories.</p>
+
+<p>In the example
+&ldquo;`csharp
+class A
+{
+public static int x;
+int y;</p>
+
+<p>void F(int[] v, int a, ref int b, out int c) {
+int i = 1;
+c = a + b++;
+}
+}
+&rdquo;<code class="prettyprint">
+</code>x<code class="prettyprint">is a static variable,</code>y<code class="prettyprint">is an instance variable,</code>v[0]<code class="prettyprint">is an array element,</code>a<code class="prettyprint">is a value parameter,</code>b<code class="prettyprint">is a reference parameter,</code>c<code class="prettyprint">is an output parameter, and</code>i` is a local variable.</p>
+
+<h3 id="static-variables">Static variables</h3>
+
+<p>A field declared with the <code class="prettyprint">static</code> modifier is called a <strong><em>static variable</em></strong>. A static variable comes into existence before execution of the static constructor (<a href="classes.md#static-constructors">Static constructors</a>) for its containing type, and ceases to exist when the associated application domain ceases to exist.</p>
+
+<p>The initial value of a static variable is the default value (<a href="variables.md#default-values">Default values</a>) of the variable&rsquo;s type.</p>
+
+<p>For purposes of definite assignment checking, a static variable is considered initially assigned.</p>
+
+<h3 id="instance-variables">Instance variables</h3>
+
+<p>A field declared without the <code class="prettyprint">static</code> modifier is called an <strong><em>instance variable</em></strong>.</p>
+
+<h4 id="instance-variables-in-classes">Instance variables in classes</h4>
+
+<p>An instance variable of a class comes into existence when a new instance of that class is created, and ceases to exist when there are no references to that instance and the instance&rsquo;s destructor (if any) has executed.</p>
+
+<p>The initial value of an instance variable of a class is the default value (<a href="variables.md#default-values">Default values</a>) of the variable&rsquo;s type.</p>
+
+<p>For the purpose of definite assignment checking, an instance variable of a class is considered initially assigned.</p>
+
+<h4 id="instance-variables-in-structs">Instance variables in structs</h4>
+
+<p>An instance variable of a struct has exactly the same lifetime as the struct variable to which it belongs. In other words, when a variable of a struct type comes into existence or ceases to exist, so too do the instance variables of the struct.</p>
+
+<p>The initial assignment state of an instance variable of a struct is the same as that of the containing struct variable. In other words, when a struct variable is considered initially assigned, so too are its instance variables, and when a struct variable is considered initially unassigned, its instance variables are likewise unassigned.</p>
+
+<h3 id="array-elements">Array elements</h3>
+
+<p>The elements of an array come into existence when an array instance is created, and cease to exist when there are no references to that array instance.</p>
+
+<p>The initial value of each of the elements of an array is the default value (<a href="variables.md#default-values">Default values</a>) of the type of the array elements.</p>
+
+<p>For the purpose of definite assignment checking, an array element is considered initially assigned.</p>
+
+<h3 id="value-parameters">Value parameters</h3>
+
+<p>A parameter declared without a <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> modifier is a <strong><em>value parameter</em></strong>.</p>
+
+<p>A value parameter comes into existence upon invocation of the function member (method, instance constructor, accessor, or operator) or anonymous function to which the parameter belongs, and is initialized with the value of the argument given in the invocation. A value parameter normally ceases to exist upon return of the function member or anonymous function. However, if the value parameter is captured by an anonymous function (<a href="expressions.md#anonymous-function-expressions">Anonymous function expressions</a>), its life time extends at least until the delegate or expression tree created from that anonymous function is eligible for garbage collection.</p>
+
+<p>For the purpose of definite assignment checking, a value parameter is considered initially assigned.</p>
+
+<h3 id="reference-parameters">Reference parameters</h3>
+
+<p>A parameter declared with a <code class="prettyprint">ref</code> modifier is a <strong><em>reference parameter</em></strong>.</p>
+
+<p>A reference parameter does not create a new storage location. Instead, a reference parameter represents the same storage location as the variable given as the argument in the function member or anonymous function invocation. Thus, the value of a reference parameter is always the same as the underlying variable.</p>
+
+<p>The following definite assignment rules apply to reference parameters. Note the different rules for output parameters described in <a href="variables.md#output-parameters">Output parameters</a>.</p>
+
+<ul>
+<li> A variable must be definitely assigned (<a href="variables.md#definite-assignment">Definite assignment</a>) before it can be passed as a reference parameter in a function member or delegate invocation.</li>
+<li> Within a function member or anonymous function, a reference parameter is considered initially assigned.</li>
+</ul>
+
+<p>Within an instance method or instance accessor of a struct type, the <code class="prettyprint">this</code> keyword behaves exactly as a reference parameter of the struct type (<a href="expressions.md#this-access">This access</a>).</p>
+
+<h3 id="output-parameters">Output parameters</h3>
+
+<p>A parameter declared with an <code class="prettyprint">out</code> modifier is an <strong><em>output parameter</em></strong>.</p>
+
+<p>An output parameter does not create a new storage location. Instead, an output parameter represents the same storage location as the variable given as the argument in the function member or delegate invocation. Thus, the value of an output parameter is always the same as the underlying variable.</p>
+
+<p>The following definite assignment rules apply to output parameters. Note the different rules for reference parameters described in <a href="variables.md#reference-parameters">Reference parameters</a>.</p>
+
+<ul>
+<li> A variable need not be definitely assigned before it can be passed as an output parameter in a function member or delegate invocation.</li>
+<li> Following the normal completion of a function member or delegate invocation, each variable that was passed as an output parameter is considered assigned in that execution path.</li>
+<li> Within a function member or anonymous function, an output parameter is considered initially unassigned.</li>
+<li> Every output parameter of a function member or anonymous function must be definitely assigned (<a href="variables.md#definite-assignment">Definite assignment</a>) before the function member or anonymous function returns normally.</li>
+</ul>
+
+<p>Within an instance constructor of a struct type, the <code class="prettyprint">this</code> keyword behaves exactly as an output parameter of the struct type (<a href="expressions.md#this-access">This access</a>).</p>
+
+<h3 id="local-variables">Local variables</h3>
+
+<p>A <strong><em>local variable</em></strong> is declared by a <em>local_variable_declaration</em>, which may occur in a <em>block</em>, a <em>for_statement</em>, a <em>switch_statement</em> or a <em>using_statement</em>; or by a <em>foreach_statement</em> or a <em>specific_catch_clause</em> for a <em>try_statement</em>.</p>
+
+<p>The lifetime of a local variable is the portion of program execution during which storage is guaranteed to be reserved for it. This lifetime extends at least from entry into the <em>block</em>, <em>for_statement</em>, <em>switch_statement</em>, <em>using_statement</em>, <em>foreach_statement</em>, or <em>specific_catch_clause</em> with which it is associated, until execution of that <em>block</em>, <em>for_statement</em>, <em>switch_statement</em>, <em>using_statement</em>, <em>foreach_statement</em>, or <em>specific_catch_clause</em> ends in any way. (Entering an enclosed <em>block</em> or calling a method suspends, but does not end, execution of the current <em>block</em>, <em>for_statement</em>, <em>switch_statement</em>, <em>using_statement</em>, <em>foreach_statement</em>, or <em>specific_catch_clause</em>.) If the local variable is captured by an anonymous function (<a href="expressions.md#captured-outer-variables">Captured outer variables</a>), its lifetime extends at least until the delegate or expression tree created from the anonymous function, along with any other objects that come to reference the captured variable, are eligible for garbage collection.</p>
+
+<p>If the parent <em>block</em>, <em>for_statement</em>, <em>switch_statement</em>, <em>using_statement</em>, <em>foreach_statement</em>, or <em>specific_catch_clause</em> is entered recursively, a new instance of the local variable is created each time, and its <em>local_variable_initializer</em>, if any, is evaluated each time.</p>
+
+<p>A local variable introduced by a <em>local_variable_declaration</em> is not automatically initialized and thus has no default value. For the purpose of definite assignment checking, a local variable introduced by a <em>local_variable_declaration</em> is considered initially unassigned. A <em>local_variable_declaration</em> may include a <em>local_variable_initializer</em>, in which case the variable is considered definitely assigned only after the initializing expression (<a href="variables.md#declaration-statements">Declaration statements</a>).</p>
+
+<p>Within the scope of a local variableintroduced by a <em>local_variable_declaration</em>, it is a compile-time error to refer to that local variable in a textual position that precedes its <em>local_variable_declarator</em>. If the local variable declaration is implicit (<a href="statements.md#local-variable-declarations">Local variable declarations</a>), it is also an error to refer to the variable within its <em>local_variable_declarator</em>.</p>
+
+<p>A local variable introduced by a <em>foreach_statement</em> or a <em>specific_catch_clause</em> is considered definitely assigned in its entire scope.</p>
+
+<p>The actual lifetime of a local variable is implementation-dependent. For example, a compiler might statically determine that a local variable in a block is only used for a small portion of that block. Using this analysis, the compiler could generate code that results in the variable&rsquo;s storage having a shorter lifetime than its containing block.</p>
+
+<p>The storage referred to by a local reference variable is reclaimed independently of the lifetime of that local reference variable (<a href="basic-concepts.md#automatic-memory-management">Automatic memory management</a>).</p>
+
+<h2 id="default-values">Default values</h2>
+
+<p>The following categories of variables are automatically initialized to their default values:</p>
+
+<ul>
+<li> Static variables.</li>
+<li> Instance variables of class instances.</li>
+<li> Array elements.</li>
+</ul>
+
+<p>The default value of a variable depends on the type of the variable and is determined as follows:</p>
+
+<ul>
+<li> For a variable of a <em>value_type</em>, the default value is the same as the value computed by the <em>value_type</em>&lsquo;s default constructor (<a href="types.md#default-constructors">Default constructors</a>).</li>
+<li> For a variable of a <em>reference_type</em>, the default value is <code class="prettyprint">null</code>.</li>
+</ul>
+
+<p>Initialization to default values is typically done by having the memory manager or garbage collector initialize memory to all-bits-zero before it is allocated for use. For this reason, it is convenient to use all-bits-zero to represent the null reference.</p>
+
+<h2 id="definite-assignment">Definite assignment</h2>
+
+<p>At a given location in the executable code of a function member, a variable is said to be <strong><em>definitely assigned</em></strong> if the compiler can prove, by a particular static flow analysis (<a href="variables.md#precise-rules-for-determining-definite-assignment">Precise rules for determining definite assignment</a>), that the variable has been automatically initialized or has been the target of at least one assignment. Informally stated, the rules of definite assignment are:</p>
+
+<ul>
+<li> An initially assigned variable (<a href="variables.md#initially-assigned-variables">Initially assigned variables</a>) is always considered definitely assigned.</li>
+<li> An initially unassigned variable (<a href="variables.md#initially-unassigned-variables">Initially unassigned variables</a>) is considered definitely assigned at a given location if all possible execution paths leading to that location contain at least one of the following:
+
+<ul>
+<li>A simple assignment (<a href="expressions.md#simple-assignment">Simple assignment</a>) in which the variable is the left operand.</li>
+<li>An invocation expression (<a href="expressions.md#invocation-expressions">Invocation expressions</a>) or object creation expression (<a href="expressions.md#object-creation-expressions">Object creation expressions</a>) that passes the variable as an output parameter.</li>
+<li>For a local variable, a local variable declaration (<a href="statements.md#local-variable-declarations">Local variable declarations</a>) that includes a variable initializer.</li>
+</ul></li>
+</ul>
+
+<p>The formal specification underlying the above informal rules is described in <a href="variables.md#initially-assigned-variables">Initially assigned variables</a>, <a href="variables.md#initially-unassigned-variables">Initially unassigned variables</a>, and <a href="variables.md#precise-rules-for-determining-definite-assignment">Precise rules for determining definite assignment</a>.</p>
+
+<p>The definite assignment states of instance variables of a <em>struct_type</em> variable are tracked individually as well as collectively. In additional to the rules above, the following rules apply to <em>struct_type</em> variables and their instance variables:</p>
+
+<ul>
+<li> An instance variable is considered definitely assigned if its containing <em>struct_type</em> variable is considered definitely assigned.</li>
+<li> A <em>struct_type</em> variable is considered definitely assigned if each of its instance variables is considered definitely assigned.</li>
+</ul>
+
+<p>Definite assignment is a requirement in the following contexts:</p>
+
+<ul>
+<li> A variable must be definitely assigned at each location where its value is obtained. This ensures that undefined values never occur. The occurrence of a variable in an expression is considered to obtain the value of the variable, except when
+
+<ul>
+<li>the variable is the left operand of a simple assignment,</li>
+<li>the variable is passed as an output parameter, or</li>
+<li>the variable is a <em>struct_type</em> variable and occurs as the left operand of a member access.</li>
+</ul></li>
+<li> A variable must be definitely assigned at each location where it is passed as a reference parameter. This ensures that the function member being invoked can consider the reference parameter initially assigned.</li>
+<li> All output parameters of a function member must be definitely assigned at each location where the function member returns (through a <code class="prettyprint">return</code> statement or through execution reaching the end of the function member body). This ensures that function members do not return undefined values in output parameters, thus enabling the compiler to consider a function member invocation that takes a variable as an output parameter equivalent to an assignment to the variable.</li>
+<li> The <code class="prettyprint">this</code> variable of a <em>struct_type</em> instance constructor must be definitely assigned at each location where that instance constructor returns.</li>
+</ul>
+
+<h3 id="initially-assigned-variables">Initially assigned variables</h3>
+
+<p>The following categories of variables are classified as initially assigned:</p>
+
+<ul>
+<li> Static variables.</li>
+<li> Instance variables of class instances.</li>
+<li> Instance variables of initially assigned struct variables.</li>
+<li> Array elements.</li>
+<li> Value parameters.</li>
+<li> Reference parameters.</li>
+<li> Variables declared in a <code class="prettyprint">catch</code> clause or a <code class="prettyprint">foreach</code> statement.</li>
+</ul>
+
+<h3 id="initially-unassigned-variables">Initially unassigned variables</h3>
+
+<p>The following categories of variables are classified as initially unassigned:</p>
+
+<ul>
+<li> Instance variables of initially unassigned struct variables.</li>
+<li> Output parameters, including the <code class="prettyprint">this</code> variable of struct instance constructors.</li>
+<li> Local variables, except those declared in a <code class="prettyprint">catch</code> clause or a <code class="prettyprint">foreach</code> statement.</li>
+</ul>
+
+<h3 id="precise-rules-for-determining-definite-assignment">Precise rules for determining definite assignment</h3>
+
+<p>In order to determine that each used variable is definitely assigned, the compiler must use a process that is equivalent to the one described in this section.</p>
+
+<p>The compiler processes the body of each function member that has one or more initially unassigned variables. For each initially unassigned variable <em>v</em>, the compiler determines a <strong><em>definite assignment state</em></strong> for <em>v</em> at each of the following points in the function member:</p>
+
+<ul>
+<li> At the beginning of each statement</li>
+<li> At the end point (<a href="statements.md#end-points-and-reachability">End points and reachability</a>) of each statement</li>
+<li> On each arc which transfers control to another statement or to the end point of a statement</li>
+<li> At the beginning of each expression</li>
+<li> At the end of each expression</li>
+</ul>
+
+<p>The definite assignment state of <em>v</em> can be either:</p>
+
+<ul>
+<li> Definitely assigned. This indicates that on all possible control flows to this point, <em>v</em> has been assigned a value.</li>
+<li> Not definitely assigned. For the state of a variable at the end of an expression of type <code class="prettyprint">bool</code>, the state of a variable that isn&rsquo;t definitely assigned may (but doesn&rsquo;t necessarily) fall into one of the following sub-states:
+
+<ul>
+<li>Definitely assigned after true expression. This state indicates that <em>v</em> is definitely assigned if the boolean expression evaluated as true, but is not necessarily assigned if the boolean expression evaluated as false.</li>
+<li>Definitely assigned after false expression. This state indicates that <em>v</em> is definitely assigned if the boolean expression evaluated as false, but is not necessarily assigned if the boolean expression evaluated as true.</li>
+</ul></li>
+</ul>
+
+<p>The following rules govern how the state of a variable <em>v</em> is determined at each location.</p>
+
+<h4 id="general-rules-for-statements">General rules for statements</h4>
+
+<ul>
+<li> <em>v</em> is not definitely assigned at the beginning of a function member body.</li>
+<li> <em>v</em> is definitely assigned at the beginning of any unreachable statement.</li>
+<li> The definite assignment state of <em>v</em> at the beginning of any other statement is determined by checking the definite assignment state of <em>v</em> on all control flow transfers that target the beginning of that statement. If (and only if) <em>v</em> is definitely assigned on all such control flow transfers, then <em>v</em> is definitely assigned at the beginning of the statement. The set of possible control flow transfers is determined in the same way as for checking statement reachability (<a href="statements.md#end-points-and-reachability">End points and reachability</a>).</li>
+<li> The definite assignment state of <em>v</em> at the end point of a block, <code class="prettyprint">checked</code>, <code class="prettyprint">unchecked</code>, <code class="prettyprint">if</code>, <code class="prettyprint">while</code>, <code class="prettyprint">do</code>, <code class="prettyprint">for</code>, <code class="prettyprint">foreach</code>, <code class="prettyprint">lock</code>, <code class="prettyprint">using</code>, or <code class="prettyprint">switch</code> statement is determined by checking the definite assignment state of <em>v</em> on all control flow transfers that target the end point of that statement. If <em>v</em> is definitely assigned on all such control flow transfers, then <em>v</em> is definitely assigned at the end point of the statement. Otherwise; <em>v</em> is not definitely assigned at the end point of the statement. The set of possible control flow transfers is determined in the same way as for checking statement reachability (<a href="statements.md#end-points-and-reachability">End points and reachability</a>).</li>
+</ul>
+
+<h4 id="block-statements-checked-and-unchecked-statements">Block statements, checked, and unchecked statements</h4>
+
+<p>The definite assignment state of <em>v</em> on the control transfer to the first statement of the statement list in the block (or to the end point of the block, if the statement list is empty) is the same as the definite assignment statement of <em>v</em> before the block, <code class="prettyprint">checked</code>, or <code class="prettyprint">unchecked</code> statement.</p>
+
+<h4 id="expression-statements">Expression statements</h4>
+
+<p>For an expression statement <em>stmt</em> that consists of the expression <em>expr</em>:</p>
+
+<ul>
+<li> <em>v</em> has the same definite assignment state at the beginning of <em>expr</em> as at the beginning of <em>stmt</em>.</li>
+<li> If <em>v</em> if definitely assigned at the end of <em>expr</em>, it is definitely assigned at the end point of <em>stmt</em>; otherwise; it is not definitely assigned at the end point of <em>stmt</em>.</li>
+</ul>
+
+<h4 id="declaration-statements">Declaration statements</h4>
+
+<ul>
+<li> If <em>stmt</em> is a declaration statement without initializers, then <em>v</em> has the same definite assignment state at the end point of <em>stmt</em> as at the beginning of <em>stmt</em>.</li>
+<li> If <em>stmt</em> is a declaration statement with initializers, then the definite assignment state for <em>v</em> is determined as if <em>stmt</em> were a statement list, with one assignment statement for each declaration with an initializer (in the order of declaration).</li>
+</ul>
+
+<h4 id="if-statements">If statements</h4>
+
+<p>For an <code class="prettyprint">if</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+if ( expr ) then_stmt else else_stmt
+</code></p>
+
+<ul>
+<li> <em>v</em> has the same definite assignment state at the beginning of <em>expr</em> as at the beginning of <em>stmt</em>.</li>
+<li> If <em>v</em> is definitely assigned at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to <em>then_stmt</em> and to either <em>else_stmt</em> or to the end-point of <em>stmt</em> if there is no else clause.</li>
+<li> If <em>v</em> has the state &ldquo;definitely assigned after true expression&rdquo; at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to <em>then_stmt</em>, and not definitely assigned on the control flow transfer to either <em>else_stmt</em> or to the end-point of <em>stmt</em> if there is no else clause.</li>
+<li> If <em>v</em> has the state &ldquo;definitely assigned after false expression&rdquo; at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to <em>else_stmt</em>, and not definitely assigned on the control flow transfer to <em>then_stmt</em>. It is definitely assigned at the end-point of <em>stmt</em> if and only if it is definitely assigned at the end-point of <em>then_stmt</em>.</li>
+<li> Otherwise, <em>v</em> is considered not definitely assigned on the control flow transfer to either the <em>then_stmt</em> or <em>else_stmt</em>, or to the end-point of <em>stmt</em> if there is no else clause.</li>
+</ul>
+
+<h4 id="switch-statements">Switch statements</h4>
+
+<p>In a <code class="prettyprint">switch</code> statement <em>stmt</em> with a controlling expression <em>expr</em>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>expr</em> is the same as the state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> on the control flow transfer to a reachable switch block statement list is the same as the definite assignment state of <em>v</em> at the end of <em>expr</em>.</li>
+</ul>
+
+<h4 id="while-statements">While statements</h4>
+
+<p>For a <code class="prettyprint">while</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+while ( expr ) while_body
+</code></p>
+
+<ul>
+<li> <em>v</em> has the same definite assignment state at the beginning of <em>expr</em> as at the beginning of <em>stmt</em>.</li>
+<li> If <em>v</em> is definitely assigned at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to <em>while_body</em> and to the end point of <em>stmt</em>.</li>
+<li> If <em>v</em> has the state &ldquo;definitely assigned after true expression&rdquo; at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to <em>while_body</em>, but not definitely assigned at the end-point of <em>stmt</em>.</li>
+<li> If <em>v</em> has the state &ldquo;definitely assigned after false expression&rdquo; at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to the end point of <em>stmt</em>, but not definitely assigned on the control flow transfer to <em>while_body</em>.</li>
+</ul>
+
+<h4 id="do-statements">Do statements</h4>
+
+<p>For a <code class="prettyprint">do</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+do do_body while ( expr ) ;
+</code></p>
+
+<ul>
+<li> <em>v</em> has the same definite assignment state on the control flow transfer from the beginning of <em>stmt</em> to <em>do_body</em> as at the beginning of <em>stmt</em>.</li>
+<li> <em>v</em> has the same definite assignment state at the beginning of <em>expr</em> as at the end point of <em>do_body</em>.</li>
+<li> If <em>v</em> is definitely assigned at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to the end point of <em>stmt</em>.</li>
+<li> If <em>v</em> has the state &ldquo;definitely assigned after false expression&rdquo; at the end of <em>expr</em>, then it is definitely assigned on the control flow transfer to the end point of <em>stmt</em>.</li>
+</ul>
+
+<h4 id="for-statements">For statements</h4>
+
+<p>Definite assignment checking for a <code class="prettyprint">for</code> statement of the form:
+<code class="prettyprint">csharp
+for ( for_initializer ; for_condition ; for_iterator ) embedded_statement
+</code>
+is done as if the statement were written:
+<code class="prettyprint">csharp
+{
+for_initializer ;
+while ( for_condition ) {
+embedded_statement ;
+for_iterator ;
+}
+}
+</code></p>
+
+<p>If the <em>for_condition</em> is omitted from the <code class="prettyprint">for</code> statement, then evaluation of definite assignment proceeds as if <em>for_condition</em> were replaced with <code class="prettyprint">true</code> in the above expansion.</p>
+
+<h4 id="break-continue-and-goto-statements">Break, continue, and goto statements</h4>
+
+<p>The definite assignment state of <em>v</em> on the control flow transfer caused by a <code class="prettyprint">break</code>, <code class="prettyprint">continue</code>, or <code class="prettyprint">goto</code> statement is the same as the definite assignment state of <em>v</em> at the beginning of the statement.</p>
+
+<h4 id="throw-statements">Throw statements</h4>
+
+<p>For a statement <em>stmt</em> of the form
+<code class="prettyprint">csharp
+throw expr ;
+</code></p>
+
+<p>The definite assignment state of <em>v</em> at the beginning of <em>expr</em> is the same as the definite assignment state of <em>v</em> at the beginning of <em>stmt</em>.</p>
+
+<h4 id="return-statements">Return statements</h4>
+
+<p>For a statement <em>stmt</em> of the form
+<code class="prettyprint">csharp
+return expr ;
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>expr</em> is the same as the definite assignment state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> If <em>v</em> is an output parameter, then it must be definitely assigned either:
+
+<ul>
+<li>after <em>expr</em></li>
+<li>or at the end of the <code class="prettyprint">finally</code> block of a <code class="prettyprint">try</code>-<code class="prettyprint">finally</code> or <code class="prettyprint">try</code>-<code class="prettyprint">catch</code>-<code class="prettyprint">finally</code> that encloses the <code class="prettyprint">return</code> statement.</li>
+</ul></li>
+</ul>
+
+<p>For a statement stmt of the form:
+<code class="prettyprint">csharp
+return ;
+</code></p>
+
+<ul>
+<li> If <em>v</em> is an output parameter, then it must be definitely assigned either:
+
+<ul>
+<li>before <em>stmt</em></li>
+<li>or at the end of the <code class="prettyprint">finally</code> block of a <code class="prettyprint">try</code>-<code class="prettyprint">finally</code> or <code class="prettyprint">try</code>-<code class="prettyprint">catch</code>-<code class="prettyprint">finally</code> that encloses the <code class="prettyprint">return</code> statement.</li>
+</ul></li>
+</ul>
+
+<h4 id="try-catch-statements">Try-catch statements</h4>
+
+<p>For a statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+try try_block
+catch(...) catch_block_1
+...
+catch(...) catch_block_n
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>try_block</em> is the same as the definite assignment state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>catch_block_i</em> (for any <em>i</em>) is the same as the definite assignment state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> at the end-point of <em>stmt</em> is definitely assigned if (and only if) <em>v</em> is definitely assigned at the end-point of <em>try_block</em> and every <em>catch_block_i</em> (for every <em>i</em> from 1 to <em>n</em>).</li>
+</ul>
+
+<h4 id="try-finally-statements">Try-finally statements</h4>
+
+<p>For a <code class="prettyprint">try</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+try try_block finally finally_block
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>try_block</em> is the same as the definite assignment state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>finally_block</em> is the same as the definite assignment state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> at the end-point of <em>stmt</em> is definitely assigned if (and only if) at least one of the following is true:
+
+<ul>
+<li><em>v</em> is definitely assigned at the end-point of <em>try_block</em></li>
+<li><em>v</em> is definitely assigned at the end-point of <em>finally_block</em></li>
+</ul></li>
+</ul>
+
+<p>If a control flow transfer (for example, a <code class="prettyprint">goto</code> statement) is made that begins within <em>try_block</em>, and ends outside of <em>try_block</em>, then <em>v</em> is also considered definitely assigned on that control flow transfer if <em>v</em> is definitely assigned at the end-point of <em>finally_block</em>. (This is not an only if—if <em>v</em> is definitely assigned for another reason on this control flow transfer, then it is still considered definitely assigned.)</p>
+
+<h4 id="try-catch-finally-statements">Try-catch-finally statements</h4>
+
+<p>Definite assignment analysis for a <code class="prettyprint">try</code>-<code class="prettyprint">catch</code>-<code class="prettyprint">finally</code> statement of the form:
+<code class="prettyprint">csharp
+try try_block
+catch(...) catch_block_1
+...
+catch(...) catch_block_n
+finally *finally_block*
+</code>
+is done as if the statement were a <code class="prettyprint">try</code>-<code class="prettyprint">finally</code> statement enclosing a <code class="prettyprint">try</code>-<code class="prettyprint">catch</code> statement:
+<code class="prettyprint">csharp
+try {
+try try_block
+catch(...) catch_block_1
+...
+catch(...) catch_block_n
+}
+finally finally_block
+</code></p>
+
+<p>The following example demonstrates how the different blocks of a <code class="prettyprint">try</code> statement (<a href="statements.md#the-try-statement">The try statement</a>) affect definite assignment.
+&ldquo;`csharp
+class A
+{
+static void F() {
+int i, j;
+try {
+goto LABEL;
+// neither i nor j definitely assigned
+i = 1;
+// i definitely assigned
+}</p>
+
+<p>catch {
+// neither i nor j definitely assigned
+i = 3;
+// i definitely assigned
+}</p>
+
+<p>finally {
+// neither i nor j definitely assigned
+j = 5;
+// j definitely assigned
+}
+// i and j definitely assigned
+LABEL:;
+// j definitely assigned</p>
+
+<p>}
+}
+&rdquo;`</p>
+
+<h4 id="foreach-statements">Foreach statements</h4>
+
+<p>For a <code class="prettyprint">foreach</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+foreach ( type identifier in expr ) embedded_statement
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>expr</em> is the same as the state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> on the control flow transfer to <em>embedded_statement</em> or to the end point of <em>stmt</em> is the same as the state of <em>v</em> at the end of <em>expr</em>.</li>
+</ul>
+
+<h4 id="using-statements">Using statements</h4>
+
+<p>For a <code class="prettyprint">using</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+using ( resource_acquisition ) embedded_statement
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>resource_acquisition</em> is the same as the state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> on the control flow transfer to <em>embedded_statement</em> is the same as the state of <em>v</em> at the end of <em>resource_acquisition</em>.</li>
+</ul>
+
+<h4 id="lock-statements">Lock statements</h4>
+
+<p>For a <code class="prettyprint">lock</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+lock ( expr ) embedded_statement
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>expr</em> is the same as the state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> on the control flow transfer to <em>embedded_statement</em> is the same as the state of <em>v</em> at the end of <em>expr</em>.</li>
+</ul>
+
+<h4 id="yield-statements">Yield statements</h4>
+
+<p>For a <code class="prettyprint">yield return</code> statement <em>stmt</em> of the form:
+<code class="prettyprint">csharp
+yield return expr ;
+</code></p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>expr</em> is the same as the state of <em>v</em> at the beginning of <em>stmt</em>.</li>
+<li> The definite assignment state of <em>v</em> at the end of <em>stmt</em> is the same as the state of <em>v</em> at the end of <em>expr</em>.</li>
+<li> A <code class="prettyprint">yield break</code> statement has no effect on the definite assignment state.</li>
+</ul>
+
+<h4 id="general-rules-for-simple-expressions">General rules for simple expressions</h4>
+
+<p>The following rule applies to these kinds of expressions: literals (<a href="expressions.md#literals">Literals</a>), simple names (<a href="expressions.md#simple-names">Simple names</a>), member access expressions (<a href="expressions.md#member-access">Member access</a>), non-indexed base access expressions (<a href="expressions.md#base-access">Base access</a>), <code class="prettyprint">typeof</code> expressions (<a href="expressions.md#the-typeof-operator">The typeof operator</a>), default value expressions (<a href="expressions.md#default-value-expressions">Default value expressions</a>) and <code class="prettyprint">nameof</code> expressions (<a href="expressions.md#nameof-expressions">Nameof expressions</a>).</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the end of such an expression is the same as the definite assignment state of <em>v</em> at the beginning of the expression.</li>
+</ul>
+
+<h4 id="general-rules-for-expressions-with-embedded-expressions">General rules for expressions with embedded expressions</h4>
+
+<p>The following rules apply to these kinds of expressions: parenthesized expressions (<a href="expressions.md#parenthesized-expressions">Parenthesized expressions</a>), element access expressions (<a href="expressions.md#element-access">Element access</a>), base access expressions with indexing (<a href="expressions.md#base-access">Base access</a>), increment and decrement expressions (<a href="expressions.md#postfix-increment-and-decrement-operators">Postfix increment and decrement operators</a>, <a href="expressions.md#prefix-increment-and-decrement-operators">Prefix increment and decrement operators</a>), cast expressions (<a href="expressions.md#cast-expressions">Cast expressions</a>), unary <code class="prettyprint">+</code>, <code class="prettyprint">-</code>, <code class="prettyprint">~</code>, <code class="prettyprint">*</code> expressions, binary <code class="prettyprint">+</code>, <code class="prettyprint">-</code>, <code class="prettyprint">*</code>, <code class="prettyprint">/</code>, <code class="prettyprint">%</code>, <code class="prettyprint">&lt;&lt;</code>, <code class="prettyprint">&gt;
+    &gt;</code>, <code class="prettyprint">&lt;</code>, <code class="prettyprint">&lt;=</code>, <code class="prettyprint">&gt;</code>, <code class="prettyprint">&gt;=</code>, <code class="prettyprint">==</code>, <code class="prettyprint">!=</code>, <code class="prettyprint">is</code>, <code class="prettyprint">as</code>, <code class="prettyprint">&amp;</code>, <code class="prettyprint">|</code>, <code class="prettyprint">^</code> expressions (<a href="expressions.md#arithmetic-operators">Arithmetic operators</a>, <a href="expressions.md#shift-operators">Shift operators</a>, <a href="expressions.md#relational-and-type-testing-operators">Relational and type-testing operators</a>, <a href="expressions.md#logical-operators">Logical operators</a>), compound assignment expressions (<a href="expressions.md#compound-assignment">Compound assignment</a>), <code class="prettyprint">checked</code> and <code class="prettyprint">unchecked</code> expressions (<a href="expressions.md#the-checked-and-unchecked-operators">The checked and unchecked operators</a>), plus array and delegate creation expressions (<a href="expressions.md#the-new-operator">The new operator</a>).</p>
+
+<p>Each of these expressions has one or more sub-expressions that are unconditionally evaluated in a fixed order. For example, the binary <code class="prettyprint">%</code> operator evaluates the left hand side of the operator, then the right hand side. An indexing operation evaluates the indexed expression, and then evaluates each of the index expressions, in order from left to right. For an expression <em>expr</em>, which has sub-expressions <em>e1, e2, &hellip;, eN</em>, evaluated in that order:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>e1</em> is the same as the definite assignment state at the beginning of <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> at the beginning of <em>ei</em> (<em>i</em> greater than one) is the same as the definite assignment state at the end of the previous sub-expression.</li>
+<li> The definite assignment state of <em>v</em> at the end of <em>expr</em> is the same as the definite assignment state at the end of <em>eN</em></li>
+</ul>
+
+<h4 id="invocation-expressions-and-object-creation-expressions">Invocation expressions and object creation expressions</h4>
+
+<p>For an invocation expression <em>expr</em> of the form:
+<code class="prettyprint">csharp
+primary_expression ( arg1 , arg2 , ... , argN )
+</code>
+or an object creation expression of the form:
+<code class="prettyprint">csharp
+new type ( arg1 , arg2 , ... , argN )
+</code></p>
+
+<ul>
+<li> For an invocation expression, the definite assignment state of <em>v</em> before <em>primary_expression</em> is the same as the state of <em>v</em> before <em>expr</em>.</li>
+<li> For an invocation expression, the definite assignment state of <em>v</em> before <em>arg1</em> is the same as the state of <em>v</em> after <em>primary_expression</em>.</li>
+<li> For an object creation expression, the definite assignment state of <em>v</em> before <em>arg1</em> is the same as the state of <em>v</em> before <em>expr</em>.</li>
+<li> For each argument <em>argi</em>, the definite assignment state of <em>v</em> after <em>argi</em> is determined by the normal expression rules, ignoring any <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> modifiers.</li>
+<li> For each argument <em>argi</em> for any <em>i</em> greater than one, the definite assignment state of <em>v</em> before <em>argi</em> is the same as the state of <em>v</em> after the previous <em>arg</em>.</li>
+<li> If the variable <em>v</em> is passed as an <code class="prettyprint">out</code> argument (i.e., an argument of the form <code class="prettyprint">out v</code>) in any of the arguments, then the state of <em>v</em> after <em>expr</em> is definitely assigned. Otherwise; the state of <em>v</em> after <em>expr</em> is the same as the state of <em>v</em> after <em>argN</em>.</li>
+<li> For array initializers (<a href="expressions.md#array-creation-expressions">Array creation expressions</a>), object initializers (<a href="expressions.md#object-initializers">Object initializers</a>), collection initializers (<a href="expressions.md#collection-initializers">Collection initializers</a>) and anonymous object initializers (<a href="expressions.md#anonymous-object-creation-expressions">Anonymous object creation expressions</a>), the definite assignment state is determined by the expansion that these constructs are defined in terms of.</li>
+</ul>
+
+<h4 id="simple-assignment-expressions">Simple assignment expressions</h4>
+
+<p>For an expression <em>expr</em> of the form <code class="prettyprint">w = expr_rhs</code>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> before <em>expr_rhs</em> is the same as the definite assignment state of <em>v</em> before <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> after <em>expr</em> is determined by:
+
+<ul>
+<li>If <em>w</em> is the same variable as <em>v</em>, then the definite assignment state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, if the assignment occurs within the instance constructor of a struct type, if <em>w</em> is a property access designating an automatically implemented property <em>P</em> on the instance being constructed and <em>v</em> is the hidden backing field of <em>P</em>, then the definite assignment state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, the definite assignment state of <em>v</em> after <em>expr</em> is the same as the definite assignment state of <em>v</em> after <em>expr_rhs</em>.</li>
+</ul></li>
+</ul>
+
+<h4 id="conditional-and-expressions">&amp;&amp; (conditional AND) expressions</h4>
+
+<p>For an expression <em>expr</em> of the form <code class="prettyprint">expr_first &amp;&amp; expr_second</code>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> before <em>expr_first</em> is the same as the definite assignment state of <em>v</em> before <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> before <em>expr_second</em> is definitely assigned if the state of <em>v</em> after <em>expr_first</em> is either definitely assigned or &ldquo;definitely assigned after true expression&rdquo;. Otherwise, it is not definitely assigned.</li>
+<li> The definite assignment state of <em>v</em> after <em>expr</em> is determined by:
+
+<ul>
+<li>If <em>expr_first</em> is a constant expression with the value <code class="prettyprint">false</code>, then the definite assignment state of <em>v</em> after <em>expr</em> is the same as the definite assignment state of <em>v</em> after <em>expr_first</em>.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_first</em> is definitely assigned, then the state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_second</em> is definitely assigned, and the state of <em>v</em> after <em>expr_first</em> is &ldquo;definitely assigned after false expression&rdquo;, then the state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_second</em> is definitely assigned or &ldquo;definitely assigned after true expression&rdquo;, then the state of <em>v</em> after <em>expr</em> is &ldquo;definitely assigned after true expression&rdquo;.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_first</em> is &ldquo;definitely assigned after false expression&rdquo;, and the state of <em>v</em> after <em>expr_second</em> is &ldquo;definitely assigned after false expression&rdquo;, then the state of <em>v</em> after <em>expr</em> is &ldquo;definitely assigned after false expression&rdquo;.</li>
+<li>Otherwise, the state of <em>v</em> after <em>expr</em> is not definitely assigned.</li>
+</ul></li>
+</ul>
+
+<p>In the example
+<code class="prettyprint">csharp
+class A
+{
+    static void F(int x, int y) {
+        int i;
+        if (x &gt;= 0 &amp;&amp; (i = y) &gt;= 0) {
+            // i definitely assigned
+        }
+        else {
+            // i not definitely assigned
+        }
+        // i not definitely assigned
+    }
+}
+</code>
+the variable <code class="prettyprint">i</code> is considered definitely assigned in one of the embedded statements of an <code class="prettyprint">if</code> statement but not in the other. In the <code class="prettyprint">if</code> statement in method <code class="prettyprint">F</code>, the variable <code class="prettyprint">i</code> is definitely assigned in the first embedded statement because execution of the expression <code class="prettyprint">(i = y)</code> always precedes execution of this embedded statement. In contrast, the variable <code class="prettyprint">i</code> is not definitely assigned in the second embedded statement, since <code class="prettyprint">x &gt;= 0</code> might have tested false, resulting in the variable <code class="prettyprint">i</code> being unassigned.</p>
+
+<h4 id="conditional-or-expressions">|| (conditional OR) expressions</h4>
+
+<p>For an expression <em>expr</em> of the form <code class="prettyprint">expr_first || expr_second</code>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> before <em>expr_first</em> is the same as the definite assignment state of <em>v</em> before <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> before <em>expr_second</em> is definitely assigned if the state of <em>v</em> after <em>expr_first</em> is either definitely assigned or &ldquo;definitely assigned after false expression&rdquo;. Otherwise, it is not definitely assigned.</li>
+<li> The definite assignment statement of <em>v</em> after <em>expr</em> is determined by:
+
+<ul>
+<li>If <em>expr_first</em> is a constant expression with the value <code class="prettyprint">true</code>, then the definite assignment state of <em>v</em> after <em>expr</em> is the same as the definite assignment state of <em>v</em> after <em>expr_first</em>.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_first</em> is definitely assigned, then the state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_second</em> is definitely assigned, and the state of <em>v</em> after <em>expr_first</em> is &ldquo;definitely assigned after true expression&rdquo;, then the state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_second</em> is definitely assigned or &ldquo;definitely assigned after false expression&rdquo;, then the state of <em>v</em> after <em>expr</em> is &ldquo;definitely assigned after false expression&rdquo;.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_first</em> is &ldquo;definitely assigned after true expression&rdquo;, and the state of <em>v</em> after <em>expr_second</em> is &ldquo;definitely assigned after true expression&rdquo;, then the state of <em>v</em> after <em>expr</em> is &ldquo;definitely assigned after true expression&rdquo;.</li>
+<li>Otherwise, the state of <em>v</em> after <em>expr</em> is not definitely assigned.</li>
+</ul></li>
+</ul>
+
+<p>In the example
+<code class="prettyprint">csharp
+class A
+{
+    static void G(int x, int y) {
+        int i;
+        if (x &gt;= 0 || (i = y) &gt;= 0) {
+            // i not definitely assigned
+        }
+        else {
+            // i definitely assigned
+        }
+        // i not definitely assigned
+    }
+}
+</code>
+the variable <code class="prettyprint">i</code> is considered definitely assigned in one of the embedded statements of an <code class="prettyprint">if</code> statement but not in the other. In the <code class="prettyprint">if</code> statement in method <code class="prettyprint">G</code>, the variable <code class="prettyprint">i</code> is definitely assigned in the second embedded statement because execution of the expression <code class="prettyprint">(i = y)</code> always precedes execution of this embedded statement. In contrast, the variable <code class="prettyprint">i</code> is not definitely assigned in the first embedded statement, since <code class="prettyprint">x &gt;= 0</code> might have tested true, resulting in the variable <code class="prettyprint">i</code> being unassigned.</p>
+
+<h4 id="logical-negation-expressions">! (logical negation) expressions</h4>
+
+<p>For an expression <em>expr</em> of the form <code class="prettyprint">! expr_operand</code>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> before <em>expr_operand</em> is the same as the definite assignment state of <em>v</em> before <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> after <em>expr</em> is determined by:
+
+<ul>
+<li>If the state of <em>v</em> after <em>expr_operand *is definitely assigned, then the state of *v</em> after <em>expr</em> is definitely assigned.</li>
+<li>If the state of <em>v</em> after <em>expr_operand *is not definitely assigned, then the state of *v</em> after <em>expr</em> is not definitely assigned.</li>
+<li>If the state of <em>v</em> after <em>expr_operand *is &ldquo;definitely assigned after false expression&rdquo;, then the state of *v</em> after <em>expr</em> is &ldquo;definitely assigned after true expression&rdquo;.</li>
+<li>If the state of <em>v</em> after <em>expr_operand *is &ldquo;definitely assigned after true expression&rdquo;, then the state of *v</em> after <em>expr</em> is &ldquo;definitely assigned after false expression&rdquo;.</li>
+</ul></li>
+</ul>
+
+<h4 id="null-coalescing-expressions">?? (null coalescing) expressions</h4>
+
+<p>For an expression <em>expr</em> of the form <code class="prettyprint">expr_first ?? expr_second</code>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> before <em>expr_first</em> is the same as the definite assignment state of <em>v</em> before <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> before <em>expr_second</em> is the same as the definite assignment state of <em>v</em> after <em>expr_first</em>.</li>
+<li> The definite assignment statement of <em>v</em> after <em>expr</em> is determined by:
+
+<ul>
+<li>If <em>expr_first</em> is a constant expression (<a href="expressions.md#constant-expressions">Constant expressions</a>) with value null, then the the state of <em>v</em> after <em>expr</em> is the same as the state of <em>v</em> after <em>expr_second</em>.</li>
+</ul></li>
+<li> Otherwise, the state of <em>v</em> after <em>expr</em> is the same as the definite assignment state of <em>v</em> after <em>expr_first</em>.</li>
+</ul>
+
+<h4 id="conditional-expressions">?: (conditional) expressions</h4>
+
+<p>For an expression <em>expr</em> of the form <code class="prettyprint">expr_cond ? expr_true : expr_false</code>:</p>
+
+<ul>
+<li> The definite assignment state of <em>v</em> before <em>expr_cond</em> is the same as the state of <em>v</em> before <em>expr</em>.</li>
+<li> The definite assignment state of <em>v</em> before <em>expr_true</em> is definitely assigned if and only if one of the following holds:
+
+<ul>
+<li><em>expr_cond</em> is a constant expression with the value <code class="prettyprint">false</code></li>
+<li>the state of <em>v</em> after <em>expr_cond</em> is definitely assigned or &ldquo;definitely assigned after true expression&rdquo;.</li>
+</ul></li>
+<li> The definite assignment state of <em>v</em> before <em>expr_false</em> is definitely assigned if and only if one of the following holds:
+
+<ul>
+<li><em>expr_cond</em> is a constant expression with the value <code class="prettyprint">true</code></li>
+</ul></li>
+<li> the state of <em>v</em> after <em>expr_cond</em> is definitely assigned or &ldquo;definitely assigned after false expression&rdquo;.</li>
+<li> The definite assignment state of <em>v</em> after <em>expr</em> is determined by:
+
+<ul>
+<li>If <em>expr_cond</em> is a constant expression (<a href="expressions.md#constant-expressions">Constant expressions</a>) with value <code class="prettyprint">true</code> then the state of <em>v</em> after <em>expr</em> is the same as the state of <em>v</em> after <em>expr_true</em>.</li>
+<li>Otherwise, if <em>expr_cond</em> is a constant expression (<a href="expressions.md#constant-expressions">Constant expressions</a>) with value <code class="prettyprint">false</code> then the state of <em>v</em> after <em>expr</em> is the same as the state of <em>v</em> after <em>expr_false</em>.</li>
+<li>Otherwise, if the state of <em>v</em> after <em>expr_true</em> is definitely assigned and the state of <em>v</em> after <em>expr_false</em> is definitely assigned, then the state of <em>v</em> after <em>expr</em> is definitely assigned.</li>
+<li>Otherwise, the state of <em>v</em> after <em>expr</em> is not definitely assigned.</li>
+</ul></li>
+</ul>
+
+<h4 id="anonymous-functions">Anonymous functions</h4>
+
+<p>For a <em>lambda_expression</em> or <em>anonymous_method_expression</em> <em>expr</em> with a body (either <em>block</em> or <em>expression</em>) <em>body</em>:</p>
+
+<ul>
+<li> The definite assignment state of an outer variable <em>v</em> before <em>body</em> is the same as the state of <em>v</em> before <em>expr</em>. That is, definite assignment state of outer variables is inherited from the context of the anonymous function.</li>
+<li> The definite assignment state of an outer variable <em>v</em> after <em>expr</em> is the same as the state of <em>v</em> before <em>expr</em>.</li>
+</ul>
+
+<p>The example
+&ldquo;`csharp
+delegate bool Filter(int i);</p>
+
+<p>void F() {
+    int max;</p>
+
+<p>// Error, max is not definitely assigned
+    Filter f = (int n) =&gt; n &lt; max;</p>
+
+<p>max = 5;
+    DoWork(f);
+}
+<code class="prettyprint">
+generates a compile-time error since `max` is not definitely assigned where the anonymous function is declared. The example
+</code>csharp
+delegate void D();</p>
+
+<p>void F() {
+    int n;
+    D d = () =&gt; { n = 1; };</p>
+
+<p>d();</p>
+
+<p>// Error, n is not definitely assigned
+    Console.WriteLine(n);
+}
+&rdquo;<code class="prettyprint">
+also generates a compile-time error since the assignment to</code>n<code class="prettyprint">in the anonymous function has no affect on the definite assignment state of</code>n` outside the anonymous function.</p>
+
+<h2 id="variable-references">Variable references</h2>
+
+<p>A <em>variable_reference</em> is an <em>expression</em> that is classified as a variable. A <em>variable_reference</em> denotes a storage location that can be accessed both to fetch the current value and to store a new value.</p>
+<pre class="highlight plaintext"><code>variable_reference
+    : expression
+    ;
+</code></pre>
+<p>In C and C++, a <em>variable_reference</em> is known as an <em>lvalue</em>.</p>
+
+<h2 id="atomicity-of-variable-references">Atomicity of variable references</h2>
+
+<p>Reads and writes of the following data types are atomic: <code class="prettyprint">bool</code>, <code class="prettyprint">char</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">sbyte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">int</code>, <code class="prettyprint">float</code>, and reference types. In addition, reads and writes of enum types with an underlying type in the previous list are also atomic. Reads and writes of other types, including <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">double</code>, and <code class="prettyprint">decimal</code>, as well as user-defined types, are not guaranteed to be atomic. Aside from the library functions designed for that purpose, there is no guarantee of atomic read-modify-write, such as in the case of increment or decrement.</p>

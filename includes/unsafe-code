@@ -1,0 +1,1082 @@
+<h1 id="unsafe-code">Unsafe code</h1>
+
+<p>The core C# language, as defined in the preceding chapters, differs notably from C and C++ in its omission of pointers as a data type. Instead, C# provides references and the ability to create objects that are managed by a garbage collector. This design, coupled with other features, makes C# a much safer language than C or C++. In the core C# language it is simply not possible to have an uninitialized variable, a &ldquo;dangling&rdquo; pointer, or an expression that indexes an array beyond its bounds. Whole categories of bugs that routinely plague C and C++ programs are thus eliminated.</p>
+
+<p>While practically every pointer type construct in C or C++ has a reference type counterpart in C#, nonetheless, there are situations where access to pointer types becomes a necessity. For example, interfacing with the underlying operating system, accessing a memory-mapped device, or implementing a time-critical algorithm may not be possible or practical without access to pointers. To address this need, C# provides the ability to write <strong><em>unsafe code</em></strong>.</p>
+
+<p>In unsafe code it is possible to declare and operate on pointers, to perform conversions between pointers and integral types, to take the address of variables, and so forth. In a sense, writing unsafe code is much like writing C code within a C# program.</p>
+
+<p>Unsafe code is in fact a &ldquo;safe&rdquo; feature from the perspective of both developers and users. Unsafe code must be clearly marked with the modifier <code class="prettyprint">unsafe</code>, so developers can&rsquo;t possibly use unsafe features accidentally, and the execution engine works to ensure that unsafe code cannot be executed in an untrusted environment.</p>
+
+<h2 id="unsafe-contexts">Unsafe contexts</h2>
+
+<p>The unsafe features of C# are available only in unsafe contexts. An unsafe context is introduced by including an <code class="prettyprint">unsafe</code> modifier in the declaration of a type or member, or by employing an <em>unsafe_statement</em>:</p>
+
+<ul>
+<li> A declaration of a class, struct, interface, or delegate may include an <code class="prettyprint">unsafe</code> modifier, in which case the entire textual extent of that type declaration (including the body of the class, struct, or interface) is considered an unsafe context.</li>
+<li> A declaration of a field, method, property, event, indexer, operator, instance constructor, destructor, or static constructor may include an <code class="prettyprint">unsafe</code> modifier, in which case the entire textual extent of that member declaration is considered an unsafe context.</li>
+<li> An <em>unsafe_statement</em> enables the use of an unsafe context within a <em>block</em>. The entire textual extent of the associated <em>block</em> is considered an unsafe context.</li>
+</ul>
+
+<p>The associated grammar productions are shown below.</p>
+<pre class="highlight shell"><code>class_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+struct_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+interface_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+delegate_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+field_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+method_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+property_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+event_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+indexer_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+operator_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+constructor_modifier_unsafe
+    : <span class="s1">'unsafe'</span>
+    ;
+
+destructor_declaration_unsafe
+    : attributes? <span class="s1">'extern'</span>? <span class="s1">'unsafe'</span>? <span class="s1">'~'</span> identifier <span class="s1">'('</span> <span class="s1">')'</span> destructor_body
+    | attributes? <span class="s1">'unsafe'</span>? <span class="s1">'extern'</span>? <span class="s1">'~'</span> identifier <span class="s1">'('</span> <span class="s1">')'</span> destructor_body
+    ;
+
+static_constructor_modifiers_unsafe
+    : <span class="s1">'extern'</span>? <span class="s1">'unsafe'</span>? <span class="s1">'static'</span>
+    | <span class="s1">'unsafe'</span>? <span class="s1">'extern'</span>? <span class="s1">'static'</span>
+    | <span class="s1">'extern'</span>? <span class="s1">'static'</span> <span class="s1">'unsafe'</span>?
+    | <span class="s1">'unsafe'</span>? <span class="s1">'static'</span> <span class="s1">'extern'</span>?
+    | <span class="s1">'static'</span> <span class="s1">'extern'</span>? <span class="s1">'unsafe'</span>?
+    | <span class="s1">'static'</span> <span class="s1">'unsafe'</span>? <span class="s1">'extern'</span>?
+    ;
+
+embedded_statement_unsafe
+    : unsafe_statement
+    | fixed_statement
+    ;
+
+unsafe_statement
+    : <span class="s1">'unsafe'</span> block
+    ;
+</code></pre>
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">unsafe</span> <span class="k">struct</span> <span class="nc">Node</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Value</span><span class="p">;</span>
+    <span class="k">public</span> <span class="n">Node</span><span class="p">*</span> <span class="n">Left</span><span class="p">;</span>
+    <span class="k">public</span> <span class="n">Node</span><span class="p">*</span> <span class="n">Right</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<p>the <code class="prettyprint">unsafe</code> modifier specified in the struct declaration causes the entire textual extent of the struct declaration to become an unsafe context. Thus, it is possible to declare the <code class="prettyprint">Left</code> and <code class="prettyprint">Right</code> fields to be of a pointer type. The example above could also be written</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">struct</span> <span class="nc">Node</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Value</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">unsafe</span> <span class="n">Node</span><span class="p">*</span> <span class="n">Left</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">unsafe</span> <span class="n">Node</span><span class="p">*</span> <span class="n">Right</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<p>Here, the <code class="prettyprint">unsafe</code> modifiers in the field declarations cause those declarations to be considered unsafe contexts.</p>
+
+<p>Other than establishing an unsafe context, thus permitting the use of pointer types, the <code class="prettyprint">unsafe</code> modifier has no effect on a type or a member. In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">A</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">unsafe</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">char</span><span class="p">*</span> <span class="n">p</span><span class="p">;</span>
+        <span class="p">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">B</span><span class="p">:</span> <span class="n">A</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">F</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">base</span><span class="p">.</span><span class="nf">F</span><span class="p">();</span>
+        <span class="p">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>the <code class="prettyprint">unsafe</code> modifier on the <code class="prettyprint">F</code> method in <code class="prettyprint">A</code> simply causes the textual extent of <code class="prettyprint">F</code> to become an unsafe context in which the unsafe features of the language can be used. In the override of <code class="prettyprint">F</code> in <code class="prettyprint">B</code>, there is no need to re-specify the <code class="prettyprint">unsafe</code> modifier &ndash; unless, of course, the <code class="prettyprint">F</code> method in <code class="prettyprint">B</code> itself needs access to unsafe features.</p>
+
+<p>The situation is slightly different when a pointer type is part of the method&rsquo;s signature</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">public</span> <span class="k">unsafe</span> <span class="k">class</span> <span class="nc">A</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">char</span><span class="p">*</span> <span class="n">p</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">B</span><span class="p">:</span> <span class="n">A</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">unsafe</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">char</span><span class="p">*</span> <span class="n">p</span><span class="p">)</span> <span class="p">{...}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Here, because <code class="prettyprint">F</code>&lsquo;s signature includes a pointer type, it can only be written in an unsafe context. However, the unsafe context can be introduced by either making the entire class unsafe, as is the case in <code class="prettyprint">A</code>, or by including an <code class="prettyprint">unsafe</code> modifier in the method declaration, as is the case in <code class="prettyprint">B</code>.</p>
+
+<h2 id="pointer-types">Pointer types</h2>
+
+<p>In an unsafe context, a <em>type</em> (<a href="types.md#types">Types</a>) may be a <em>pointer_type</em> as well as a <em>value_type</em> or a <em>reference_type</em>. However, a <em>pointer_type</em> may also be used in a <code class="prettyprint">typeof</code> expression (<a href="expressions.md#anonymous-object-creation-expressions">Anonymous object creation expressions</a>) outside of an unsafe context as such usage is not unsafe.</p>
+<pre class="highlight shell"><code>type_unsafe
+    : pointer_type
+    ;
+</code></pre>
+<p>A <em>pointer_type</em> is written as an <em>unmanaged_type</em> or the keyword <code class="prettyprint">void</code>, followed by a <code class="prettyprint">*</code> token:</p>
+<pre class="highlight shell"><code>pointer_type
+    : unmanaged_type <span class="s1">'*'</span>
+    | <span class="s1">'void'</span> <span class="s1">'*'</span>
+    ;
+
+unmanaged_type
+    : <span class="nb">type</span>
+    ;
+</code></pre>
+<p>The type specified before the <code class="prettyprint">*</code> in a pointer type is called the <strong><em>referent type</em></strong> of the pointer type. It represents the type of the variable to which a value of the pointer type points.</p>
+
+<p>Unlike references (values of reference types), pointers are not tracked by the garbage collector &ndash; the garbage collector has no knowledge of pointers and the data to which they point. For this reason a pointer is not permitted to point to a reference or to a struct that contains references, and the referent type of a pointer must be an <em>unmanaged_type</em>.</p>
+
+<p>An <em>unmanaged_type</em> is any type that isn&rsquo;t a <em>reference_type</em> or constructed type, and doesn&rsquo;t contain <em>reference_type</em> or constructed type fields at any level of nesting. In other words, an <em>unmanaged_type</em> is one of the following:</p>
+
+<ul>
+<li> <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, <code class="prettyprint">decimal</code>, or <code class="prettyprint">bool</code>.</li>
+<li> Any <em>enum_type</em>.</li>
+<li> Any <em>pointer_type</em>.</li>
+<li> Any user-defined <em>struct_type</em> that is not a constructed type and contains fields of *unmanaged_type*s only.</li>
+</ul>
+
+<p>The intuitive rule for mixing of pointers and references is that referents of references (objects) are permitted to contain pointers, but referents of pointers are not permitted to contain references.</p>
+
+<p>Some examples of pointer types are given in the table below:</p>
+
+<table><thead>
+<tr>
+<th><strong>Example</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">byte*</code></td>
+<td>Pointer to <code class="prettyprint">byte</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">char*</code></td>
+<td>Pointer to <code class="prettyprint">char</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">int**</code></td>
+<td>Pointer to pointer to <code class="prettyprint">int</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">int*[]</code></td>
+<td>Single-dimensional array of pointers to <code class="prettyprint">int</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">void*</code></td>
+<td>Pointer to unknown type</td>
+</tr>
+</tbody></table>
+
+<p>For a given implementation, all pointer types must have the same size and representation.</p>
+
+<p>Unlike C and C++, when multiple pointers are declared in the same declaration, in C# the <code class="prettyprint">*</code> is written along with the underlying type only, not as a prefix punctuator on each pointer name. For example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">int</span><span class="p">*</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span><span class="p">;</span>    <span class="c1">// NOT as int *pi, *pj;</span>
+</code></pre>
+<p>The value of a pointer having type <code class="prettyprint">T*</code> represents the address of a variable of type <code class="prettyprint">T</code>. The pointer indirection operator <code class="prettyprint">*</code> (<a href="unsafe-code.md#pointer-indirection">Pointer indirection</a>) may be used to access this variable. For example, given a variable <code class="prettyprint">P</code> of type <code class="prettyprint">int*</code>, the expression <code class="prettyprint">*P</code> denotes the <code class="prettyprint">int</code> variable found at the address contained in <code class="prettyprint">P</code>.</p>
+
+<p>Like an object reference, a pointer may be <code class="prettyprint">null</code>. Applying the indirection operator to a <code class="prettyprint">null</code> pointer results in implementation-defined behavior. A pointer with value <code class="prettyprint">null</code> is represented by all-bits-zero.</p>
+
+<p>The <code class="prettyprint">void*</code> type represents a pointer to an unknown type. Because the referent type is unknown, the indirection operator cannot be applied to a pointer of type <code class="prettyprint">void*</code>, nor can any arithmetic be performed on such a pointer. However, a pointer of type <code class="prettyprint">void*</code> can be cast to any other pointer type (and vice versa).</p>
+
+<p>Pointer types are a separate category of types. Unlike reference types and value types, pointer types do not inherit from <code class="prettyprint">object</code> and no conversions exist between pointer types and <code class="prettyprint">object</code>. In particular, boxing and unboxing (<a href="types.md#boxing-and-unboxing">Boxing and unboxing</a>) are not supported for pointers. However, conversions are permitted between different pointer types and between pointer types and the integral types. This is described in <a href="unsafe-code.md#pointer-conversions">Pointer conversions</a>.</p>
+
+<p>A <em>pointer_type</em> cannot be used as a type argument (<a href="types.md#constructed-types">Constructed types</a>), and type inference (<a href="expressions.md#type-inference">Type inference</a>) fails on generic method calls that would have inferred a type argument to be a pointer type.</p>
+
+<p>A <em>pointer_type</em> may be used as the type of a volatile field (<a href="classes.md#volatile-fields">Volatile fields</a>).</p>
+
+<p>Although pointers can be passed as <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameters, doing so can cause undefined behavior, since the pointer may well be set to point to a local variable which no longer exists when the called method returns, or the fixed object to which it used to point, is no longer fixed. For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">int</span> <span class="k">value</span> <span class="p">=</span> <span class="m">20</span><span class="p">;</span>
+
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="k">out</span> <span class="kt">int</span><span class="p">*</span> <span class="n">pi1</span><span class="p">,</span> <span class="k">ref</span> <span class="kt">int</span><span class="p">*</span> <span class="n">pi2</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">10</span><span class="p">;</span>
+        <span class="n">pi1</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">i</span><span class="p">;</span>
+
+        <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">pj</span> <span class="p">=</span> <span class="p">&amp;</span><span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// ...</span>
+            <span class="n">pi2</span> <span class="p">=</span> <span class="n">pj</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">10</span><span class="p">;</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">int</span><span class="p">*</span> <span class="n">px1</span><span class="p">;</span>
+            <span class="kt">int</span><span class="p">*</span> <span class="n">px2</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">i</span><span class="p">;</span>
+
+            <span class="nf">F</span><span class="p">(</span><span class="k">out</span> <span class="n">px1</span><span class="p">,</span> <span class="k">ref</span> <span class="n">px2</span><span class="p">);</span>
+
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"*px1 = {0}, *px2 = {1}"</span><span class="p">,</span>
+                <span class="p">*</span><span class="n">px1</span><span class="p">,</span> <span class="p">*</span><span class="n">px2</span><span class="p">);</span>    <span class="c1">// undefined behavior</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>A method can return a value of some type, and that type can be a pointer. For example, when given a pointer to a contiguous sequence of <code class="prettyprint">int</code>s, that sequence&rsquo;s element count, and some other <code class="prettyprint">int</code> value, the following method returns the address of that value in that sequence, if a match occurs; otherwise it returns <code class="prettyprint">null</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">unsafe</span> <span class="k">static</span> <span class="kt">int</span><span class="p">*</span> <span class="nf">Find</span><span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">pi</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">,</span> <span class="kt">int</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">size</span><span class="p">;</span> <span class="p">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(*</span><span class="n">pi</span> <span class="p">==</span> <span class="k">value</span><span class="p">)</span> 
+            <span class="k">return</span> <span class="n">pi</span><span class="p">;</span>
+        <span class="p">++</span><span class="n">pi</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">null</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<p>In an unsafe context, several constructs are available for operating on pointers:</p>
+
+<ul>
+<li> The <code class="prettyprint">*</code> operator may be used to perform pointer indirection (<a href="unsafe-code.md#pointer-indirection">Pointer indirection</a>).</li>
+<li> The <code class="prettyprint">-&gt;</code> operator may be used to access a member of a struct through a pointer (<a href="unsafe-code.md#pointer-member-access">Pointer member access</a>).</li>
+<li> The <code class="prettyprint">[]</code> operator may be used to index a pointer (<a href="unsafe-code.md#pointer-element-access">Pointer element access</a>).</li>
+<li> The <code class="prettyprint">&amp;</code> operator may be used to obtain the address of a variable (<a href="unsafe-code.md#the-address-of-operator">The address-of operator</a>).</li>
+<li> The <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators may be used to increment and decrement pointers (<a href="unsafe-code.md#pointer-increment-and-decrement">Pointer increment and decrement</a>).</li>
+<li> The <code class="prettyprint">+</code> and <code class="prettyprint">-</code> operators may be used to perform pointer arithmetic (<a href="unsafe-code.md#pointer-arithmetic">Pointer arithmetic</a>).</li>
+<li> The <code class="prettyprint">==</code>, <code class="prettyprint">!=</code>, <code class="prettyprint">&lt;</code>, <code class="prettyprint">&gt;</code>, <code class="prettyprint">&lt;=</code>, and <code class="prettyprint">=&gt;</code> operators may be used to compare pointers (<a href="unsafe-code.md#pointer-comparison">Pointer comparison</a>).</li>
+<li> The <code class="prettyprint">stackalloc</code> operator may be used to allocate memory from the call stack (<a href="unsafe-code.md#fixed-size-buffers">Fixed size buffers</a>).</li>
+<li> The <code class="prettyprint">fixed</code> statement may be used to temporarily fix a variable so its address can be obtained (<a href="unsafe-code.md#the-fixed-statement">The fixed statement</a>).</li>
+</ul>
+
+<h2 id="fixed-and-moveable-variables">Fixed and moveable variables</h2>
+
+<p>The address-of operator (<a href="unsafe-code.md#the-address-of-operator">The address-of operator</a>) and the <code class="prettyprint">fixed</code> statement (<a href="unsafe-code.md#the-fixed-statement">The fixed statement</a>) divide variables into two categories: <strong><em>Fixed variables</em></strong> and <strong><em>moveable variables</em></strong>.</p>
+
+<p>Fixed variables reside in storage locations that are unaffected by operation of the garbage collector. (Examples of fixed variables include local variables, value parameters, and variables created by dereferencing pointers.) On the other hand, moveable variables reside in storage locations that are subject to relocation or disposal by the garbage collector. (Examples of moveable variables include fields in objects and elements of arrays.)</p>
+
+<p>The <code class="prettyprint">&amp;</code> operator (<a href="unsafe-code.md#the-address-of-operator">The address-of operator</a>) permits the address of a fixed variable to be obtained without restrictions. However, because a moveable variable is subject to relocation or disposal by the garbage collector, the address of a moveable variable can only be obtained using a <code class="prettyprint">fixed</code> statement (<a href="unsafe-code.md#the-fixed-statement">The fixed statement</a>), and that address remains valid only for the duration of that <code class="prettyprint">fixed</code> statement.</p>
+
+<p>In precise terms, a fixed variable is one of the following:</p>
+
+<ul>
+<li> A variable resulting from a <em>simple_name</em> (<a href="expressions.md#simple-names">Simple names</a>) that refers to a local variable or a value parameter, unless the variable is captured by an anonymous function.</li>
+<li> A variable resulting from a <em>member_access</em> (<a href="expressions.md#member-access">Member access</a>) of the form <code class="prettyprint">V.I</code>, where <code class="prettyprint">V</code> is a fixed variable of a <em>struct_type</em>.</li>
+<li> A variable resulting from a <em>pointer_indirection_expression</em> (<a href="unsafe-code.md#pointer-indirection">Pointer indirection</a>) of the form <code class="prettyprint">*P</code>, a <em>pointer_member_access</em> (<a href="unsafe-code.md#pointer-member-access">Pointer member access</a>) of the form <code class="prettyprint">P-&gt;I</code>, or a <em>pointer_element_access</em> (<a href="unsafe-code.md#pointer-element-access">Pointer element access</a>) of the form <code class="prettyprint">P[E]</code>.</li>
+</ul>
+
+<p>All other variables are classified as moveable variables.</p>
+
+<p>Note that a static field is classified as a moveable variable. Also note that a <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameter is classified as a moveable variable, even if the argument given for the parameter is a fixed variable. Finally, note that a variable produced by dereferencing a pointer is always classified as a fixed variable.</p>
+
+<h2 id="pointer-conversions">Pointer conversions</h2>
+
+<p>In an unsafe context, the set of available implicit conversions (<a href="conversions.md#implicit-conversions">Implicit conversions</a>) is extended to include the following implicit pointer conversions:</p>
+
+<ul>
+<li> From any <em>pointer_type</em> to the type <code class="prettyprint">void*</code>.</li>
+<li> From the <code class="prettyprint">null</code> literal to any <em>pointer_type</em>.</li>
+</ul>
+
+<p>Additionally, in an unsafe context, the set of available explicit conversions (<a href="conversions.md#explicit-conversions">Explicit conversions</a>) is extended to include the following explicit pointer conversions:</p>
+
+<ul>
+<li> From any <em>pointer_type</em> to any other <em>pointer_type</em>.</li>
+<li> From <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, or <code class="prettyprint">ulong</code> to any <em>pointer_type</em>.</li>
+<li> From any <em>pointer_type</em> to <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, or <code class="prettyprint">ulong</code>.</li>
+</ul>
+
+<p>Finally, in an unsafe context, the set of standard implicit conversions (<a href="conversions.md#standard-implicit-conversions">Standard implicit conversions</a>) includes the following pointer conversion:</p>
+
+<ul>
+<li> From any <em>pointer_type</em> to the type <code class="prettyprint">void*</code>.</li>
+</ul>
+
+<p>Conversions between two pointer types never change the actual pointer value. In other words, a conversion from one pointer type to another has no effect on the underlying address given by the pointer.</p>
+
+<p>When one pointer type is converted to another, if the resulting pointer is not correctly aligned for the pointed-to type, the behavior is undefined if the result is dereferenced. In general, the concept &ldquo;correctly aligned&rdquo; is transitive: if a pointer to type <code class="prettyprint">A</code> is correctly aligned for a pointer to type <code class="prettyprint">B</code>, which, in turn, is correctly aligned for a pointer to type <code class="prettyprint">C</code>, then a pointer to type <code class="prettyprint">A</code> is correctly aligned for a pointer to type <code class="prettyprint">C</code>.</p>
+
+<p>Consider the following case in which a variable having one type is accessed via a pointer to a different type:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">char</span> <span class="n">c</span> <span class="p">=</span> <span class="sc">'A'</span><span class="p">;</span>
+<span class="kt">char</span><span class="p">*</span> <span class="n">pc</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">c</span><span class="p">;</span>
+<span class="k">void</span><span class="p">*</span> <span class="n">pv</span> <span class="p">=</span> <span class="n">pc</span><span class="p">;</span>
+<span class="kt">int</span><span class="p">*</span> <span class="n">pi</span> <span class="p">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">*)</span><span class="n">pv</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="p">*</span><span class="n">pi</span><span class="p">;</span>         <span class="c1">// undefined</span>
+<span class="p">*</span><span class="n">pi</span> <span class="p">=</span> <span class="m">123456</span><span class="p">;</span>        <span class="c1">// undefined</span>
+</code></pre>
+<p>When a pointer type is converted to a pointer to byte, the result points to the lowest addressed byte of the variable. Successive increments of the result, up to the size of the variable, yield pointers to the remaining bytes of that variable. For example, the following method displays each of the eight bytes in a double as a hexadecimal value:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+      <span class="kt">double</span> <span class="n">d</span> <span class="p">=</span> <span class="m">123.456</span><span class="n">e23</span><span class="p">;</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+           <span class="kt">byte</span><span class="p">*</span> <span class="n">pb</span> <span class="p">=</span> <span class="p">(</span><span class="kt">byte</span><span class="p">*)&amp;</span><span class="n">d</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">);</span> <span class="p">++</span><span class="n">i</span><span class="p">)</span>
+               <span class="n">Console</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="s">"{0:X2} "</span><span class="p">,</span> <span class="p">*</span><span class="n">pb</span><span class="p">++);</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Of course, the output produced depends on endianness.</p>
+
+<p>Mappings between pointers and integers are implementation-defined. However, on 32* and 64-bit CPU architectures with a linear address space, conversions of pointers to or from integral types typically behave exactly like conversions of <code class="prettyprint">uint</code> or <code class="prettyprint">ulong</code> values, respectively, to or from those integral types.</p>
+
+<h3 id="pointer-arrays">Pointer arrays</h3>
+
+<p>In an unsafe context, arrays of pointers can be constructed. Only some of the conversions that apply to other array types are allowed on pointer arrays:</p>
+
+<ul>
+<li> The implicit reference conversion (<a href="conversions.md#implicit-reference-conversions">Implicit reference conversions</a>) from any <em>array_type</em> to <code class="prettyprint">System.Array</code> and the interfaces it implements also applies to pointer arrays. However, any attempt to access the array elements through <code class="prettyprint">System.Array</code> or the interfaces it implements will result in an exception at run-time, as pointer types are not convertible to <code class="prettyprint">object</code>.</li>
+<li> The implicit and explicit reference conversions (<a href="conversions.md#implicit-reference-conversions">Implicit reference conversions</a>, <a href="conversions.md#explicit-reference-conversions">Explicit reference conversions</a>) from a single-dimensional array type <code class="prettyprint">S[]</code> to <code class="prettyprint">System.Collections.Generic.IList&lt;T&gt;</code> and its generic base interfaces never apply to pointer arrays, since pointer types cannot be used as type arguments, and there are no conversions from pointer types to non-pointer types.</li>
+<li> The explicit reference conversion (<a href="conversions.md#explicit-reference-conversions">Explicit reference conversions</a>) from <code class="prettyprint">System.Array</code> and the interfaces it implements to any <em>array_type</em> applies to pointer arrays.</li>
+<li> The explicit reference conversions (<a href="conversions.md#explicit-reference-conversions">Explicit reference conversions</a>) from <code class="prettyprint">System.Collections.Generic.IList&lt;S&gt;</code> and its base interfaces to a single-dimensional array type <code class="prettyprint">T[]</code> never applies to pointer arrays, since pointer types cannot be used as type arguments, and there are no conversions from pointer types to non-pointer types.</li>
+</ul>
+
+<p>These restrictions mean that the expansion for the <code class="prettyprint">foreach</code> statement over arrays described in <a href="statements.md#the-foreach-statement">The foreach statement</a> cannot be applied to pointer arrays. Instead, a foreach statement of the form</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">foreach</span> <span class="p">(</span><span class="n">V</span> <span class="n">v</span> <span class="k">in</span> <span class="n">x</span><span class="p">)</span> <span class="n">embedded_statement</span>
+</code></pre>
+<p>where the type of <code class="prettyprint">x</code> is an array type of the form <code class="prettyprint">T[,,...,]</code>, <code class="prettyprint">N</code> is the number of dimensions minus 1 and <code class="prettyprint">T</code> or <code class="prettyprint">V</code> is a pointer type, is expanded using nested for-loops as follows:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="p">{</span>
+    <span class="n">T</span><span class="p">[,,...,]</span> <span class="n">a</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i0</span> <span class="p">=</span> <span class="n">a</span><span class="p">.</span><span class="nf">GetLowerBound</span><span class="p">(</span><span class="m">0</span><span class="p">);</span> <span class="n">i0</span> <span class="p">&lt;=</span> <span class="n">a</span><span class="p">.</span><span class="nf">GetUpperBound</span><span class="p">(</span><span class="m">0</span><span class="p">);</span> <span class="n">i0</span><span class="p">++)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i1</span> <span class="p">=</span> <span class="n">a</span><span class="p">.</span><span class="nf">GetLowerBound</span><span class="p">(</span><span class="m">1</span><span class="p">);</span> <span class="n">i1</span> <span class="p">&lt;=</span> <span class="n">a</span><span class="p">.</span><span class="nf">GetUpperBound</span><span class="p">(</span><span class="m">1</span><span class="p">);</span> <span class="n">i1</span><span class="p">++)</span>
+    <span class="p">...</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">iN</span> <span class="p">=</span> <span class="n">a</span><span class="p">.</span><span class="nf">GetLowerBound</span><span class="p">(</span><span class="n">N</span><span class="p">);</span> <span class="n">iN</span> <span class="p">&lt;=</span> <span class="n">a</span><span class="p">.</span><span class="nf">GetUpperBound</span><span class="p">(</span><span class="n">N</span><span class="p">);</span> <span class="n">iN</span><span class="p">++)</span> <span class="p">{</span>
+        <span class="n">V</span> <span class="n">v</span> <span class="p">=</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span><span class="n">a</span><span class="p">.</span><span class="nf">GetValue</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span><span class="n">i1</span><span class="p">,...,</span><span class="n">iN</span><span class="p">);</span>
+        <span class="n">embedded_statement</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The variables <code class="prettyprint">a</code>, <code class="prettyprint">i0</code>, <code class="prettyprint">i1</code>, &hellip;, <code class="prettyprint">iN</code> are not visible to or accessible to <code class="prettyprint">x</code> or the <em>embedded_statement</em> or any other source code of the program. The variable <code class="prettyprint">v</code> is read-only in the embedded statement. If there is not an explicit conversion (<a href="unsafe-code.md#pointer-conversions">Pointer conversions</a>) from <code class="prettyprint">T</code> (the element type) to <code class="prettyprint">V</code>, an error is produced and no further steps are taken. If <code class="prettyprint">x</code> has the value <code class="prettyprint">null</code>, a <code class="prettyprint">System.NullReferenceException</code> is thrown at run-time.</p>
+
+<h2 id="pointers-in-expressions">Pointers in expressions</h2>
+
+<p>In an unsafe context, an expression may yield a result of a pointer type, but outside an unsafe context it is a compile-time error for an expression to be of a pointer type. In precise terms, outside an unsafe context a compile-time error occurs if any <em>simple_name</em> (<a href="expressions.md#simple-names">Simple names</a>), <em>member_access</em> (<a href="expressions.md#member-access">Member access</a>), <em>invocation_expression</em> (<a href="expressions.md#invocation-expressions">Invocation expressions</a>), or <em>element_access</em> (<a href="expressions.md#element-access">Element access</a>) is of a pointer type.</p>
+
+<p>In an unsafe context, the <em>primary_no_array_creation_expression</em> (<a href="expressions.md#primary-expressions">Primary expressions</a>) and <em>unary_expression</em> (<a href="expressions.md#unary-operators">Unary operators</a>) productions permit the following additional constructs:</p>
+<pre class="highlight shell"><code>primary_no_array_creation_expression_unsafe
+    : pointer_member_access
+    | pointer_element_access
+    | sizeof_expression
+    ;
+
+unary_expression_unsafe
+    : pointer_indirection_expression
+    | addressof_expression
+    ;
+</code></pre>
+<p>These constructs are described in the following sections. The precedence and associativity of the unsafe operators is implied by the grammar.</p>
+
+<h3 id="pointer-indirection">Pointer indirection</h3>
+
+<p>A <em>pointer_indirection_expression</em> consists of an asterisk (<code class="prettyprint">*</code>) followed by a <em>unary_expression</em>.</p>
+<pre class="highlight shell"><code>pointer_indirection_expression
+    : <span class="s1">'*'</span> unary_expression
+    ;
+</code></pre>
+<p>The unary <code class="prettyprint">*</code> operator denotes pointer indirection and is used to obtain the variable to which a pointer points. The result of evaluating <code class="prettyprint">*P</code>, where <code class="prettyprint">P</code> is an expression of a pointer type <code class="prettyprint">T*</code>, is a variable of type <code class="prettyprint">T</code>. It is a compile-time error to apply the unary <code class="prettyprint">*</code> operator to an expression of type <code class="prettyprint">void*</code> or to an expression that isn&rsquo;t of a pointer type.</p>
+
+<p>The effect of applying the unary <code class="prettyprint">*</code> operator to a <code class="prettyprint">null</code> pointer is implementation-defined. In particular, there is no guarantee that this operation throws a <code class="prettyprint">System.NullReferenceException</code>.</p>
+
+<p>If an invalid value has been assigned to the pointer, the behavior of the unary <code class="prettyprint">*</code> operator is undefined. Among the invalid values for dereferencing a pointer by the unary <code class="prettyprint">*</code> operator are an address inappropriately aligned for the type pointed to (see example in <a href="unsafe-code.md#pointer-conversions">Pointer conversions</a>), and the address of a variable after the end of its lifetime.</p>
+
+<p>For purposes of definite assignment analysis, a variable produced by evaluating an expression of the form <code class="prettyprint">*P</code> is considered initially assigned (<a href="variables.md#initially-assigned-variables">Initially assigned variables</a>).</p>
+
+<h3 id="pointer-member-access">Pointer member access</h3>
+
+<p>A <em>pointer_member_access</em> consists of a <em>primary_expression</em>, followed by a &ldquo;<code class="prettyprint">-&gt;</code>&rdquo; token, followed by an <em>identifier</em> and an optional <em>type_argument_list</em>.</p>
+<pre class="highlight shell"><code>pointer_member_access
+    : primary_expression <span class="s1">'-&gt;'</span> identifier
+    ;
+</code></pre>
+<p>In a pointer member access of the form <code class="prettyprint">P-&gt;I</code>, <code class="prettyprint">P</code> must be an expression of a pointer type other than <code class="prettyprint">void*</code>, and <code class="prettyprint">I</code> must denote an accessible member of the type to which <code class="prettyprint">P</code> points.</p>
+
+<p>A pointer member access of the form <code class="prettyprint">P-&gt;I</code> is evaluated exactly as <code class="prettyprint">(*P).I</code>. For a description of the pointer indirection operator (<code class="prettyprint">*</code>), see <a href="unsafe-code.md#pointer-indirection">Pointer indirection</a>. For a description of the member access operator (<code class="prettyprint">.</code>), see <a href="expressions.md#member-access">Member access</a>.</p>
+
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="nc">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">x</span><span class="p">;</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">y</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">string</span> <span class="nf">ToString</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s">"("</span> <span class="p">+</span> <span class="n">x</span> <span class="p">+</span> <span class="s">","</span> <span class="p">+</span> <span class="n">y</span> <span class="p">+</span> <span class="s">")"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Point</span> <span class="n">point</span><span class="p">;</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="n">Point</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">point</span><span class="p">;</span>
+            <span class="n">p</span><span class="p">-&gt;</span><span class="n">x</span> <span class="p">=</span> <span class="m">10</span><span class="p">;</span>
+            <span class="n">p</span><span class="p">-&gt;</span><span class="n">y</span> <span class="p">=</span> <span class="m">20</span><span class="p">;</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">p</span><span class="p">-&gt;</span><span class="nf">ToString</span><span class="p">());</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>the <code class="prettyprint">-&gt;</code> operator is used to access fields and invoke a method of a struct through a pointer. Because the operation <code class="prettyprint">P-&gt;I</code> is precisely equivalent to <code class="prettyprint">(*P).I</code>, the <code class="prettyprint">Main</code> method could equally well have been written:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Point</span> <span class="n">point</span><span class="p">;</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="n">Point</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">point</span><span class="p">;</span>
+            <span class="p">(*</span><span class="n">p</span><span class="p">).</span><span class="n">x</span> <span class="p">=</span> <span class="m">10</span><span class="p">;</span>
+            <span class="p">(*</span><span class="n">p</span><span class="p">).</span><span class="n">y</span> <span class="p">=</span> <span class="m">20</span><span class="p">;</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">((*</span><span class="n">p</span><span class="p">).</span><span class="nf">ToString</span><span class="p">());</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="pointer-element-access">Pointer element access</h3>
+
+<p>A <em>pointer_element_access</em> consists of a <em>primary_no_array_creation_expression</em> followed by an expression enclosed in &ldquo;<code class="prettyprint">[</code>&rdquo; and &ldquo;<code class="prettyprint">]</code>&rdquo;.</p>
+<pre class="highlight shell"><code>pointer_element_access
+    : primary_no_array_creation_expression <span class="s1">'['</span> expression <span class="s1">']'</span>
+    ;
+</code></pre>
+<p>In a pointer element access of the form <code class="prettyprint">P[E]</code>, <code class="prettyprint">P</code> must be an expression of a pointer type other than <code class="prettyprint">void*</code>, and <code class="prettyprint">E</code> must be an expression that can be implicitly converted to <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, or <code class="prettyprint">ulong</code>.</p>
+
+<p>A pointer element access of the form <code class="prettyprint">P[E]</code> is evaluated exactly as <code class="prettyprint">*(P + E)</code>. For a description of the pointer indirection operator (<code class="prettyprint">*</code>), see <a href="unsafe-code.md#pointer-indirection">Pointer indirection</a>. For a description of the pointer addition operator (<code class="prettyprint">+</code>), see <a href="unsafe-code.md#pointer-arithmetic">Pointer arithmetic</a>.</p>
+
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">char</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="k">stackalloc</span> <span class="kt">char</span><span class="p">[</span><span class="m">256</span><span class="p">];</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">256</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>a pointer element access is used to initialize the character buffer in a <code class="prettyprint">for</code> loop. Because the operation <code class="prettyprint">P[E]</code> is precisely equivalent to <code class="prettyprint">*(P + E)</code>, the example could equally well have been written:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">char</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="k">stackalloc</span> <span class="kt">char</span><span class="p">[</span><span class="m">256</span><span class="p">];</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">256</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="p">*(</span><span class="n">p</span> <span class="p">+</span> <span class="n">i</span><span class="p">)</span> <span class="p">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The pointer element access operator does not check for out-of-bounds errors and the behavior when accessing an out-of-bounds element is undefined. This is the same as C and C++.</p>
+
+<h3 id="the-address-of-operator">The address-of operator</h3>
+
+<p>An <em>addressof_expression</em> consists of an ampersand (<code class="prettyprint">&amp;</code>) followed by a <em>unary_expression</em>.</p>
+<pre class="highlight shell"><code>addressof_expression
+    : <span class="s1">'&amp;'</span> unary_expression
+    ;
+</code></pre>
+<p>Given an expression <code class="prettyprint">E</code> which is of a type <code class="prettyprint">T</code> and is classified as a fixed variable (<a href="unsafe-code.md#fixed-and-moveable-variables">Fixed and moveable variables</a>), the construct <code class="prettyprint">&amp;E</code> computes the address of the variable given by <code class="prettyprint">E</code>. The type of the result is <code class="prettyprint">T*</code> and is classified as a value. A compile-time error occurs if <code class="prettyprint">E</code> is not classified as a variable, if <code class="prettyprint">E</code> is classified as a read-only local variable, or if <code class="prettyprint">E</code> denotes a moveable variable. In the last case, a fixed statement (<a href="unsafe-code.md#the-fixed-statement">The fixed statement</a>) can be used to temporarily &ldquo;fix&rdquo; the variable before obtaining its address. As stated in <a href="expressions.md#member-access">Member access</a>, outside an instance constructor or static constructor for a struct or class that defines a <code class="prettyprint">readonly</code> field, that field is considered a value, not a variable. As such, its address cannot be taken. Similarly, the address of a constant cannot be taken.</p>
+
+<p>The <code class="prettyprint">&amp;</code> operator does not require its argument to be definitely assigned, but following an <code class="prettyprint">&amp;</code> operation, the variable to which the operator is applied is considered definitely assigned in the execution path in which the operation occurs. It is the responsibility of the programmer to ensure that correct initialization of the variable actually does take place in this situation.</p>
+
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">i</span><span class="p">;</span>
+            <span class="p">*</span><span class="n">p</span> <span class="p">=</span> <span class="m">123</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code class="prettyprint">i</code> is considered definitely assigned following the <code class="prettyprint">&amp;i</code> operation used to initialize <code class="prettyprint">p</code>. The assignment to <code class="prettyprint">*p</code> in effect initializes <code class="prettyprint">i</code>, but the inclusion of this initialization is the responsibility of the programmer, and no compile-time error would occur if the assignment was removed.</p>
+
+<p>The rules of definite assignment for the <code class="prettyprint">&amp;</code> operator exist such that redundant initialization of local variables can be avoided. For example, many external APIs take a pointer to a structure which is filled in by the API. Calls to such APIs typically pass the address of a local struct variable, and without the rule, redundant initialization of the struct variable would be required.</p>
+
+<h3 id="pointer-increment-and-decrement">Pointer increment and decrement</h3>
+
+<p>In an unsafe context, the <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators (<a href="expressions.md#postfix-increment-and-decrement-operators">Postfix increment and decrement operators</a> and <a href="expressions.md#prefix-increment-and-decrement-operators">Prefix increment and decrement operators</a>) can be applied to pointer variables of all types except <code class="prettyprint">void*</code>. Thus, for every pointer type <code class="prettyprint">T*</code>, the following operators are implicitly defined:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">++(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">--(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">);</span>
+</code></pre>
+<p>The operators produce the same results as <code class="prettyprint">x + 1</code> and <code class="prettyprint">x - 1</code>, respectively (<a href="unsafe-code.md#pointer-arithmetic">Pointer arithmetic</a>). In other words, for a pointer variable of type <code class="prettyprint">T*</code>, the <code class="prettyprint">++</code> operator adds <code class="prettyprint">sizeof(T)</code> to the address contained in the variable, and the <code class="prettyprint">--</code> operator subtracts <code class="prettyprint">sizeof(T)</code> from the address contained in the variable.</p>
+
+<p>If a pointer increment or decrement operation overflows the domain of the pointer type, the result is implementation-defined, but no exceptions are produced.</p>
+
+<h3 id="pointer-arithmetic">Pointer arithmetic</h3>
+
+<p>In an unsafe context, the <code class="prettyprint">+</code> and <code class="prettyprint">-</code> operators (<a href="expressions.md#addition-operator">Addition operator</a> and <a href="expressions.md#subtraction-operator">Subtraction operator</a>) can be applied to values of all pointer types except <code class="prettyprint">void*</code>. Thus, for every pointer type <code class="prettyprint">T*</code>, the following operators are implicitly defined:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">uint</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">long</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">ulong</span> <span class="n">y</span><span class="p">);</span>
+
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="kt">uint</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="kt">long</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">+(</span><span class="kt">ulong</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">uint</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">long</span> <span class="n">y</span><span class="p">);</span>
+<span class="n">T</span><span class="p">*</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="kt">ulong</span> <span class="n">y</span><span class="p">);</span>
+
+<span class="kt">long</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">T</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+</code></pre>
+<p>Given an expression <code class="prettyprint">P</code> of a pointer type <code class="prettyprint">T*</code> and an expression <code class="prettyprint">N</code> of type <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, or <code class="prettyprint">ulong</code>, the expressions <code class="prettyprint">P + N</code> and <code class="prettyprint">N + P</code> compute the pointer value of type <code class="prettyprint">T*</code> that results from adding <code class="prettyprint">N * sizeof(T)</code> to the address given by <code class="prettyprint">P</code>. Likewise, the expression <code class="prettyprint">P - N</code> computes the pointer value of type <code class="prettyprint">T*</code> that results from subtracting <code class="prettyprint">N * sizeof(T)</code> from the address given by <code class="prettyprint">P</code>.</p>
+
+<p>Given two expressions, <code class="prettyprint">P</code> and <code class="prettyprint">Q</code>, of a pointer type <code class="prettyprint">T*</code>, the expression <code class="prettyprint">P - Q</code> computes the difference between the addresses given by <code class="prettyprint">P</code> and <code class="prettyprint">Q</code> and then divides that difference by <code class="prettyprint">sizeof(T)</code>. The type of the result is always <code class="prettyprint">long</code>. In effect, <code class="prettyprint">P - Q</code> is computed as <code class="prettyprint">((long)(P) - (long)(Q)) / sizeof(T)</code>.</p>
+
+<p>For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">int</span><span class="p">*</span> <span class="n">values</span> <span class="p">=</span> <span class="k">stackalloc</span> <span class="kt">int</span><span class="p">[</span><span class="m">20</span><span class="p">];</span>
+            <span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">values</span><span class="p">[</span><span class="m">1</span><span class="p">];</span>
+            <span class="kt">int</span><span class="p">*</span> <span class="n">q</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">values</span><span class="p">[</span><span class="m">15</span><span class="p">];</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"p - q = {0}"</span><span class="p">,</span> <span class="n">p</span> <span class="p">-</span> <span class="n">q</span><span class="p">);</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"q - p = {0}"</span><span class="p">,</span> <span class="n">q</span> <span class="p">-</span> <span class="n">p</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>which produces the output:</p>
+<pre class="highlight shell"><code>p - q <span class="o">=</span> -14
+q - p <span class="o">=</span> 14
+</code></pre>
+<p>If a pointer arithmetic operation overflows the domain of the pointer type, the result is truncated in an implementation-defined fashion, but no exceptions are produced.</p>
+
+<h3 id="pointer-comparison">Pointer comparison</h3>
+
+<p>In an unsafe context, the <code class="prettyprint">==</code>, <code class="prettyprint">!=</code>, <code class="prettyprint">&lt;</code>, <code class="prettyprint">&gt;</code>, <code class="prettyprint">&lt;=</code>, and <code class="prettyprint">=&gt;</code> operators (<a href="expressions.md#relational-and-type-testing-operators">Relational and type-testing operators</a>) can be applied to values of all pointer types. The pointer comparison operators are:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="kt">bool</span> <span class="k">operator</span> <span class="p">==(</span><span class="k">void</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="k">operator</span> <span class="p">!=(</span><span class="k">void</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="k">operator</span> <span class="p">&lt;(</span><span class="k">void</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="k">operator</span> <span class="p">&gt;(</span><span class="k">void</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="k">operator</span> <span class="p">&lt;=(</span><span class="k">void</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="k">operator</span> <span class="p">&gt;=(</span><span class="k">void</span><span class="p">*</span> <span class="n">x</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">y</span><span class="p">);</span>
+</code></pre>
+<p>Because an implicit conversion exists from any pointer type to the <code class="prettyprint">void*</code> type, operands of any pointer type can be compared using these operators. The comparison operators compare the addresses given by the two operands as if they were unsigned integers.</p>
+
+<h3 id="the-sizeof-operator">The sizeof operator</h3>
+
+<p>The <code class="prettyprint">sizeof</code> operator returns the number of bytes occupied by a variable of a given type. The type specified as an operand to <code class="prettyprint">sizeof</code> must be an <em>unmanaged_type</em> (<a href="unsafe-code.md#pointer-types">Pointer types</a>).</p>
+<pre class="highlight shell"><code>sizeof_expression
+    : <span class="s1">'sizeof'</span> <span class="s1">'('</span> unmanaged_type <span class="s1">')'</span>
+    ;
+</code></pre>
+<p>The result of the <code class="prettyprint">sizeof</code> operator is a value of type <code class="prettyprint">int</code>. For certain predefined types, the <code class="prettyprint">sizeof</code> operator yields a constant value as shown in the table below.</p>
+
+<table><thead>
+<tr>
+<th><strong>Expression</strong></th>
+<th><strong>Result</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code class="prettyprint">sizeof(sbyte)</code></td>
+<td><code class="prettyprint">1</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(byte)</code></td>
+<td><code class="prettyprint">1</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(short)</code></td>
+<td><code class="prettyprint">2</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(ushort)</code></td>
+<td><code class="prettyprint">2</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(int)</code></td>
+<td><code class="prettyprint">4</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(uint)</code></td>
+<td><code class="prettyprint">4</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(long)</code></td>
+<td><code class="prettyprint">8</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(ulong)</code></td>
+<td><code class="prettyprint">8</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(char)</code></td>
+<td><code class="prettyprint">2</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(float)</code></td>
+<td><code class="prettyprint">4</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(double)</code></td>
+<td><code class="prettyprint">8</code></td>
+</tr>
+<tr>
+<td><code class="prettyprint">sizeof(bool)</code></td>
+<td><code class="prettyprint">1</code></td>
+</tr>
+</tbody></table>
+
+<p>For all other types, the result of the <code class="prettyprint">sizeof</code> operator is implementation-defined and is classified as a value, not a constant.</p>
+
+<p>The order in which members are packed into a struct is unspecified.</p>
+
+<p>For alignment purposes, there may be unnamed padding at the beginning of a struct, within a struct, and at the end of the struct. The contents of the bits used as padding are indeterminate.</p>
+
+<p>When applied to an operand that has struct type, the result is the total number of bytes in a variable of that type, including any padding.</p>
+
+<h2 id="the-fixed-statement">The fixed statement</h2>
+
+<p>In an unsafe context, the <em>embedded_statement</em> (<a href="statements.md#statements">Statements</a>) production permits an additional construct, the <code class="prettyprint">fixed</code> statement, which is used to &ldquo;fix&rdquo; a moveable variable such that its address remains constant for the duration of the statement.</p>
+<pre class="highlight shell"><code>fixed_statement
+    : <span class="s1">'fixed'</span> <span class="s1">'('</span> pointer_type fixed_pointer_declarators <span class="s1">')'</span> embedded_statement
+    ;
+
+fixed_pointer_declarators
+    : fixed_pointer_declarator <span class="o">(</span><span class="s1">','</span>  fixed_pointer_declarator<span class="o">)</span><span class="k">*</span>
+    ;
+
+fixed_pointer_declarator
+    : identifier <span class="s1">'='</span> fixed_pointer_initializer
+    ;
+
+fixed_pointer_initializer
+    : <span class="s1">'&amp;'</span> variable_reference
+    | expression
+    ;
+</code></pre>
+<p>Each <em>fixed_pointer_declarator</em> declares a local variable of the given <em>pointer_type</em> and initializes that local variable with the address computed by the corresponding <em>fixed_pointer_initializer</em>. A local variable declared in a <code class="prettyprint">fixed</code> statement is accessible in any <em>fixed_pointer_initializer*s occurring to the right of that variable&rsquo;s declaration, and in the *embedded_statement</em> of the <code class="prettyprint">fixed</code> statement. A local variable declared by a <code class="prettyprint">fixed</code> statement is considered read-only. A compile-time error occurs if the embedded statement attempts to modify this local variable (via assignment or the <code class="prettyprint">++</code> and <code class="prettyprint">--</code> operators) or pass it as a <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameter.</p>
+
+<p>A <em>fixed_pointer_initializer</em> can be one of the following:</p>
+
+<ul>
+<li> The token &ldquo;<code class="prettyprint">&amp;</code>&rdquo; followed by a <em>variable_reference</em> (<a href="variables.md#precise-rules-for-determining-definite-assignment">Precise rules for determining definite assignment</a>) to a moveable variable (<a href="unsafe-code.md#fixed-and-moveable-variables">Fixed and moveable variables</a>) of an unmanaged type <code class="prettyprint">T</code>, provided the type <code class="prettyprint">T*</code> is implicitly convertible to the pointer type given in the <code class="prettyprint">fixed</code> statement. In this case, the initializer computes the address of the given variable, and the variable is guaranteed to remain at a fixed address for the duration of the <code class="prettyprint">fixed</code> statement.</li>
+<li> An expression of an <em>array_type</em> with elements of an unmanaged type <code class="prettyprint">T</code>, provided the type <code class="prettyprint">T*</code> is implicitly convertible to the pointer type given in the <code class="prettyprint">fixed</code> statement. In this case, the initializer computes the address of the first element in the array, and the entire array is guaranteed to remain at a fixed address for the duration of the <code class="prettyprint">fixed</code> statement. If the array expression is null or if the array has zero elements, the initializer computes an address equal to zero.</li>
+<li> An expression of type <code class="prettyprint">string</code>, provided the type <code class="prettyprint">char*</code> is implicitly convertible to the pointer type given in the <code class="prettyprint">fixed</code> statement. In this case, the initializer computes the address of the first character in the string, and the entire string is guaranteed to remain at a fixed address for the duration of the <code class="prettyprint">fixed</code> statement. The behavior of the <code class="prettyprint">fixed</code> statement is implementation-defined if the string expression is null.</li>
+<li> A <em>simple_name</em> or <em>member_access</em> that references a fixed size buffer member of a moveable variable, provided the type of the fixed size buffer member is implicitly convertible to the pointer type given in the <code class="prettyprint">fixed</code> statement. In this case, the initializer computes a pointer to the first element of the fixed size buffer (<a href="unsafe-code.md#fixed-size-buffers-in-expressions">Fixed size buffers in expressions</a>), and the fixed size buffer is guaranteed to remain at a fixed address for the duration of the <code class="prettyprint">fixed</code> statement.</li>
+</ul>
+
+<p>For each address computed by a <em>fixed_pointer_initializer</em> the <code class="prettyprint">fixed</code> statement ensures that the variable referenced by the address is not subject to relocation or disposal by the garbage collector for the duration of the <code class="prettyprint">fixed</code> statement. For example, if the address computed by a <em>fixed_pointer_initializer</em> references a field of an object or an element of an array instance, the <code class="prettyprint">fixed</code> statement guarantees that the containing object instance is not relocated or disposed of during the lifetime of the statement.</p>
+
+<p>It is the programmer&rsquo;s responsibility to ensure that pointers created by <code class="prettyprint">fixed</code> statements do not survive beyond execution of those statements. For example, when pointers created by <code class="prettyprint">fixed</code> statements are passed to external APIs, it is the programmer&rsquo;s responsibility to ensure that the APIs retain no memory of these pointers.</p>
+
+<p>Fixed objects may cause fragmentation of the heap (because they can&rsquo;t be moved). For that reason, objects should be fixed only when absolutely necessary and then only for the shortest amount of time possible.</p>
+
+<p>The example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">int</span> <span class="n">x</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">y</span><span class="p">;</span>
+
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">*</span><span class="n">p</span> <span class="p">=</span> <span class="m">1</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Test</span> <span class="n">t</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Test</span><span class="p">();</span>
+        <span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">10</span><span class="p">];</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">x</span><span class="p">)</span> <span class="nf">F</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">t</span><span class="p">.</span><span class="n">y</span><span class="p">)</span> <span class="nf">F</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="p">&amp;</span><span class="n">a</span><span class="p">[</span><span class="m">0</span><span class="p">])</span> <span class="nf">F</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">a</span><span class="p">)</span> <span class="nf">F</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>demonstrates several uses of the <code class="prettyprint">fixed</code> statement. The first statement fixes and obtains the address of a static field, the second statement fixes and obtains the address of an instance field, and the third statement fixes and obtains the address of an array element. In each case it would have been an error to use the regular <code class="prettyprint">&amp;</code> operator since the variables are all classified as moveable variables.</p>
+
+<p>The fourth <code class="prettyprint">fixed</code> statement in the example above produces a similar result to the third.</p>
+
+<p>This example of the <code class="prettyprint">fixed</code> statement uses <code class="prettyprint">string</code>:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">string</span> <span class="n">name</span> <span class="p">=</span> <span class="s">"xx"</span><span class="p">;</span>
+
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">F</span><span class="p">(</span><span class="kt">char</span><span class="p">*</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">!=</span> <span class="sc">'\0'</span><span class="p">;</span> <span class="p">++</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">char</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">name</span><span class="p">)</span> <span class="nf">F</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">char</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="s">"xx"</span><span class="p">)</span> <span class="nf">F</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>In an unsafe context array elements of single-dimensional arrays are stored in increasing index order, starting with index <code class="prettyprint">0</code> and ending with index <code class="prettyprint">Length - 1</code>. For multi-dimensional arrays, array elements are stored such that the indices of the rightmost dimension are increased first, then the next left dimension, and so on to the left. Within a <code class="prettyprint">fixed</code> statement that obtains a pointer <code class="prettyprint">p</code> to an array instance <code class="prettyprint">a</code>, the pointer values ranging from <code class="prettyprint">p</code> to <code class="prettyprint">p + a.Length - 1</code> represent addresses of the elements in the array. Likewise, the variables ranging from <code class="prettyprint">p[0]</code> to <code class="prettyprint">p[a.Length - 1]</code> represent the actual array elements. Given the way in which arrays are stored, we can treat an array of any dimension as though it were linear.</p>
+
+<p>For example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span><span class="p">[,,]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">2</span><span class="p">,</span><span class="m">3</span><span class="p">,</span><span class="m">4</span><span class="p">];</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">a</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">a</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span> <span class="p">++</span><span class="n">i</span><span class="p">)</span>    <span class="c1">// treat as linear</span>
+                    <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="n">i</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">2</span><span class="p">;</span> <span class="p">++</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">j</span> <span class="p">&lt;</span> <span class="m">3</span><span class="p">;</span> <span class="p">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">k</span> <span class="p">&lt;</span> <span class="m">4</span><span class="p">;</span> <span class="p">++</span><span class="n">k</span><span class="p">)</span>
+                    <span class="n">Console</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="s">"[{0},{1},{2}] = {3,2} "</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]);</span>
+                <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">();</span>
+            <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>which produces the output:</p>
+<pre class="highlight shell"><code><span class="o">[</span>0,0,0] <span class="o">=</span>  0 <span class="o">[</span>0,0,1] <span class="o">=</span>  1 <span class="o">[</span>0,0,2] <span class="o">=</span>  2 <span class="o">[</span>0,0,3] <span class="o">=</span>  3
+<span class="o">[</span>0,1,0] <span class="o">=</span>  4 <span class="o">[</span>0,1,1] <span class="o">=</span>  5 <span class="o">[</span>0,1,2] <span class="o">=</span>  6 <span class="o">[</span>0,1,3] <span class="o">=</span>  7
+<span class="o">[</span>0,2,0] <span class="o">=</span>  8 <span class="o">[</span>0,2,1] <span class="o">=</span>  9 <span class="o">[</span>0,2,2] <span class="o">=</span> 10 <span class="o">[</span>0,2,3] <span class="o">=</span> 11
+<span class="o">[</span>1,0,0] <span class="o">=</span> 12 <span class="o">[</span>1,0,1] <span class="o">=</span> 13 <span class="o">[</span>1,0,2] <span class="o">=</span> 14 <span class="o">[</span>1,0,3] <span class="o">=</span> 15
+<span class="o">[</span>1,1,0] <span class="o">=</span> 16 <span class="o">[</span>1,1,1] <span class="o">=</span> 17 <span class="o">[</span>1,1,2] <span class="o">=</span> 18 <span class="o">[</span>1,1,3] <span class="o">=</span> 19
+<span class="o">[</span>1,2,0] <span class="o">=</span> 20 <span class="o">[</span>1,2,1] <span class="o">=</span> 21 <span class="o">[</span>1,2,2] <span class="o">=</span> 22 <span class="o">[</span>1,2,3] <span class="o">=</span> 23
+</code></pre>
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Fill</span><span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">,</span> <span class="kt">int</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(;</span> <span class="n">count</span> <span class="p">!=</span> <span class="m">0</span><span class="p">;</span> <span class="n">count</span><span class="p">--)</span> <span class="p">*</span><span class="n">p</span><span class="p">++</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kt">int</span><span class="p">[]</span> <span class="n">a</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="m">100</span><span class="p">];</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="k">fixed</span> <span class="p">(</span><span class="kt">int</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">a</span><span class="p">)</span> <span class="nf">Fill</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="m">100</span><span class="p">,</span> <span class="p">-</span><span class="m">1</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>a <code class="prettyprint">fixed</code> statement is used to fix an array so its address can be passed to a method that takes a pointer.</p>
+
+<p>In the example:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">unsafe</span> <span class="k">struct</span> <span class="nc">Font</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">fixed</span> <span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="m">32</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">PutString</span><span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">,</span> <span class="kt">char</span><span class="p">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">bufSize</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">len</span> <span class="p">=</span> <span class="n">s</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="p">&gt;</span> <span class="n">bufSize</span><span class="p">)</span> <span class="n">len</span> <span class="p">=</span> <span class="n">bufSize</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="n">len</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">bufSize</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="m">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">Font</span> <span class="n">f</span><span class="p">;</span>
+
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Test</span> <span class="n">test</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Test</span><span class="p">();</span>
+        <span class="n">test</span><span class="p">.</span><span class="n">f</span><span class="p">.</span><span class="n">size</span> <span class="p">=</span> <span class="m">10</span><span class="p">;</span>
+        <span class="k">fixed</span> <span class="p">(</span><span class="kt">char</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">test</span><span class="p">.</span><span class="n">f</span><span class="p">.</span><span class="n">name</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">PutString</span><span class="p">(</span><span class="s">"Times New Roman"</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="m">32</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>a fixed statement is used to fix a fixed size buffer of a struct so its address can be used as a pointer.</p>
+
+<p>A <code class="prettyprint">char*</code> value produced by fixing a string instance always points to a null-terminated string. Within a fixed statement that obtains a pointer <code class="prettyprint">p</code> to a string instance <code class="prettyprint">s</code>, the pointer values ranging from <code class="prettyprint">p</code> to <code class="prettyprint">p + s.Length - 1</code> represent addresses of the characters in the string, and the pointer value <code class="prettyprint">p + s.Length</code> always points to a null character (the character with value <code class="prettyprint">&#39;\0&#39;</code>).</p>
+
+<p>Modifying objects of managed type through fixed pointers can results in undefined behavior. For example, because strings are immutable, it is the programmer&rsquo;s responsibility to ensure that the characters referenced by a pointer to a fixed string are not modified.</p>
+
+<p>The automatic null-termination of strings is particularly convenient when calling external APIs that expect &ldquo;C-style&rdquo; strings. Note, however, that a string instance is permitted to contain null characters. If such null characters are present, the string will appear truncated when treated as a null-terminated <code class="prettyprint">char*</code>.</p>
+
+<h2 id="fixed-size-buffers">Fixed size buffers</h2>
+
+<p>Fixed size buffers are used to declare &ldquo;C style&rdquo; in-line arrays as members of structs, and are primarily useful for interfacing with unmanaged APIs.</p>
+
+<h3 id="fixed-size-buffer-declarations">Fixed size buffer declarations</h3>
+
+<p>A <strong><em>fixed size buffer</em></strong> is a member that represents storage for a fixed length buffer of variables of a given type. A fixed size buffer declaration introduces one or more fixed size buffers of a given element type. Fixed size buffers are only permitted in struct declarations and can only occur in unsafe contexts (<a href="unsafe-code.md#unsafe-contexts">Unsafe contexts</a>).</p>
+<pre class="highlight shell"><code>struct_member_declaration_unsafe
+    : fixed_size_buffer_declaration
+    ;
+
+fixed_size_buffer_declaration
+    : attributes? fixed_size_buffer_modifier<span class="k">*</span> <span class="s1">'fixed'</span> buffer_element_type fixed_size_buffer_declarator+ <span class="s1">';'</span>
+    ;
+
+fixed_size_buffer_modifier
+    : <span class="s1">'new'</span>
+    | <span class="s1">'public'</span>
+    | <span class="s1">'protected'</span>
+    | <span class="s1">'internal'</span>
+    | <span class="s1">'private'</span>
+    | <span class="s1">'unsafe'</span>
+    ;
+
+buffer_element_type
+    : <span class="nb">type</span>
+    ;
+
+fixed_size_buffer_declarator
+    : identifier <span class="s1">'['</span> constant_expression <span class="s1">']'</span>
+    ;
+</code></pre>
+<p>A fixed size buffer declaration may include a set of attributes (<a href="attributes.md#attributes">Attributes</a>), a <code class="prettyprint">new</code> modifier (<a href="classes.md#modifiers">Modifiers</a>), a valid combination of the four access modifiers (<a href="classes.md#type-parameters-and-constraints">Type parameters and constraints</a>) and an <code class="prettyprint">unsafe</code> modifier (<a href="unsafe-code.md#unsafe-contexts">Unsafe contexts</a>). The attributes and modifiers apply to all of the members declared by the fixed size buffer declaration. It is an error for the same modifier to appear multiple times in a fixed size buffer declaration.</p>
+
+<p>A fixed size buffer declaration is not permitted to include the <code class="prettyprint">static</code> modifier.</p>
+
+<p>The buffer element type of a fixed size buffer declaration specifies the element type of the buffer(s) introduced by the declaration. The buffer element type must be one of the predefined types <code class="prettyprint">sbyte</code>, <code class="prettyprint">byte</code>, <code class="prettyprint">short</code>, <code class="prettyprint">ushort</code>, <code class="prettyprint">int</code>, <code class="prettyprint">uint</code>, <code class="prettyprint">long</code>, <code class="prettyprint">ulong</code>, <code class="prettyprint">char</code>, <code class="prettyprint">float</code>, <code class="prettyprint">double</code>, or <code class="prettyprint">bool</code>.</p>
+
+<p>The buffer element type is followed by a list of fixed size buffer declarators, each of which introduces a new member. A fixed size buffer declarator consists of an identifier that names the member, followed by a constant expression enclosed in <code class="prettyprint">[</code> and <code class="prettyprint">]</code> tokens. The constant expression denotes the number of elements in the member introduced by that fixed size buffer declarator. The type of the constant expression must be implicitly convertible to type <code class="prettyprint">int</code>, and the value must be a non-zero positive integer.</p>
+
+<p>The elements of a fixed size buffer are guaranteed to be laid out sequentially in memory.</p>
+
+<p>A fixed size buffer declaration that declares multiple fixed size buffers is equivalent to multiple declarations of a single fixed size buffer declation with the same attributes, and element types. For example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">unsafe</span> <span class="k">struct</span> <span class="nc">A</span>
+<span class="p">{</span>
+   <span class="k">public</span> <span class="k">fixed</span> <span class="kt">int</span> <span class="n">x</span><span class="p">[</span><span class="m">5</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="m">10</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="m">100</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre>
+<p>is equivalent to</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">unsafe</span> <span class="k">struct</span> <span class="nc">A</span>
+<span class="p">{</span>
+   <span class="k">public</span> <span class="k">fixed</span> <span class="kt">int</span> <span class="n">x</span><span class="p">[</span><span class="m">5</span><span class="p">];</span>
+   <span class="k">public</span> <span class="k">fixed</span> <span class="kt">int</span> <span class="n">y</span><span class="p">[</span><span class="m">10</span><span class="p">];</span>
+   <span class="k">public</span> <span class="k">fixed</span> <span class="kt">int</span> <span class="n">z</span><span class="p">[</span><span class="m">100</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="fixed-size-buffers-in-expressions">Fixed size buffers in expressions</h3>
+
+<p>Member lookup (<a href="expressions.md#operators">Operators</a>) of a fixed size buffer member proceeds exactly like member lookup of a field.</p>
+
+<p>A fixed size buffer can be referenced in an expression using a <em>simple_name</em> (<a href="expressions.md#type-inference">Type inference</a>) or a <em>member_access</em> (<a href="expressions.md#compile-time-checking-of-dynamic-overload-resolution">Compile-time checking of dynamic overload resolution</a>).</p>
+
+<p>When a fixed size buffer member is referenced as a simple name, the effect is the same as a member access of the form <code class="prettyprint">this.I</code>, where <code class="prettyprint">I</code> is the fixed size buffer member.</p>
+
+<p>In a member access of the form <code class="prettyprint">E.I</code>, if <code class="prettyprint">E</code> is of a struct type and a member lookup of <code class="prettyprint">I</code> in that struct type identifies a fixed size member, then <code class="prettyprint">E.I</code> is evaluated an classified as follows:</p>
+
+<ul>
+<li> If the expression <code class="prettyprint">E.I</code> does not occur in an unsafe context, a compile-time error occurs.</li>
+<li> If <code class="prettyprint">E</code> is classified as a value, a compile-time error occurs.</li>
+<li> Otherwise, if <code class="prettyprint">E</code> is a moveable variable (<a href="unsafe-code.md#fixed-and-moveable-variables">Fixed and moveable variables</a>) and the expression <code class="prettyprint">E.I</code> is not a <em>fixed_pointer_initializer</em> (<a href="unsafe-code.md#the-fixed-statement">The fixed statement</a>), a compile-time error occurs.</li>
+<li> Otherwise, <code class="prettyprint">E</code> references a fixed variable and the result of the expression is a pointer to the first element of the fixed size buffer member <code class="prettyprint">I</code> in <code class="prettyprint">E</code>. The result is of type <code class="prettyprint">S*</code>, where <code class="prettyprint">S</code> is the element type of <code class="prettyprint">I</code>, and is classified as a value.</li>
+</ul>
+
+<p>The subsequent elements of the fixed size buffer can be accessed using pointer operations from the first element. Unlike access to arrays, access to the elements of a fixed size buffer is an unsafe operation and is not range checked.</p>
+
+<p>The following example declares and uses a struct with a fixed size buffer member.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">unsafe</span> <span class="k">struct</span> <span class="nc">Font</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">fixed</span> <span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="m">32</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">PutString</span><span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">,</span> <span class="kt">char</span><span class="p">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">bufSize</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">len</span> <span class="p">=</span> <span class="n">s</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="p">&gt;</span> <span class="n">bufSize</span><span class="p">)</span> <span class="n">len</span> <span class="p">=</span> <span class="n">bufSize</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="n">len</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="n">bufSize</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="m">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">unsafe</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Font</span> <span class="n">f</span><span class="p">;</span>
+        <span class="n">f</span><span class="p">.</span><span class="n">size</span> <span class="p">=</span> <span class="m">10</span><span class="p">;</span>
+        <span class="nf">PutString</span><span class="p">(</span><span class="s">"Times New Roman"</span><span class="p">,</span> <span class="n">f</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="m">32</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="definite-assignment-checking">Definite assignment checking</h3>
+
+<p>Fixed size buffers are not subject to definite assignment checking (<a href="variables.md#definite-assignment">Definite assignment</a>), and fixed size buffer members are ignored for purposes of definite assignment checking of struct type variables.</p>
+
+<p>When the outermost containing struct variable of a fixed size buffer member is a static variable, an instance variable of a class instance, or an array element, the elements of the fixed size buffer are automatically initialized to their default values (<a href="variables.md#default-values">Default values</a>). In all other cases, the initial content of a fixed size buffer is undefined.</p>
+
+<h2 id="stack-allocation">Stack allocation</h2>
+
+<p>In an unsafe context, a local variable declaration (<a href="statements.md#local-variable-declarations">Local variable declarations</a>) may include a stack allocation initializer which allocates memory from the call stack.</p>
+<pre class="highlight shell"><code>local_variable_initializer_unsafe
+    : stackalloc_initializer
+    ;
+
+stackalloc_initializer
+    : <span class="s1">'stackalloc'</span> unmanaged_type <span class="s1">'['</span> expression <span class="s1">']'</span>
+    ;
+</code></pre>
+<p>The <em>unmanaged_type</em> indicates the type of the items that will be stored in the newly allocated location, and the <em>expression</em> indicates the number of these items. Taken together, these specify the required allocation size. Since the size of a stack allocation cannot be negative, it is a compile-time error to specify the number of items as a <em>constant_expression</em> that evaluates to a negative value.</p>
+
+<p>A stack allocation initializer of the form <code class="prettyprint">stackalloc T[E]</code> requires <code class="prettyprint">T</code> to be an unmanaged type (<a href="unsafe-code.md#pointer-types">Pointer types</a>) and <code class="prettyprint">E</code> to be an expression of type <code class="prettyprint">int</code>. The construct allocates <code class="prettyprint">E * sizeof(T)</code> bytes from the call stack and returns a pointer, of type <code class="prettyprint">T*</code>, to the newly allocated block. If <code class="prettyprint">E</code> is a negative value, then the behavior is undefined. If <code class="prettyprint">E</code> is zero, then no allocation is made, and the pointer returned is implementation-defined. If there is not enough memory available to allocate a block of the given size, a <code class="prettyprint">System.StackOverflowException</code> is thrown.</p>
+
+<p>The content of the newly allocated memory is undefined.</p>
+
+<p>Stack allocation initializers are not permitted in <code class="prettyprint">catch</code> or <code class="prettyprint">finally</code> blocks (<a href="statements.md#the-try-statement">The try statement</a>).</p>
+
+<p>There is no way to explicitly free memory allocated using <code class="prettyprint">stackalloc</code>. All stack allocated memory blocks created during the execution of a function member are automatically discarded when that function member returns. This corresponds to the <code class="prettyprint">alloca</code> function, an extension commonly found in C and C++ implementations.</p>
+
+<p>In the example</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">string</span> <span class="nf">IntToString</span><span class="p">(</span><span class="kt">int</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">n</span> <span class="p">=</span> <span class="k">value</span> <span class="p">&gt;=</span> <span class="m">0</span><span class="p">?</span> <span class="k">value</span><span class="p">:</span> <span class="p">-</span><span class="k">value</span><span class="p">;</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">char</span><span class="p">*</span> <span class="n">buffer</span> <span class="p">=</span> <span class="k">stackalloc</span> <span class="kt">char</span><span class="p">[</span><span class="m">16</span><span class="p">];</span>
+            <span class="kt">char</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">buffer</span> <span class="p">+</span> <span class="m">16</span><span class="p">;</span>
+            <span class="k">do</span> <span class="p">{</span>
+                <span class="p">*--</span><span class="n">p</span> <span class="p">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)(</span><span class="n">n</span> <span class="p">%</span> <span class="m">10</span> <span class="p">+</span> <span class="sc">'0'</span><span class="p">);</span>
+                <span class="n">n</span> <span class="p">/=</span> <span class="m">10</span><span class="p">;</span>
+            <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">n</span> <span class="p">!=</span> <span class="m">0</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">)</span> <span class="p">*--</span><span class="n">p</span> <span class="p">=</span> <span class="sc">'-'</span><span class="p">;</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="kt">string</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">buffer</span> <span class="p">+</span> <span class="m">16</span> <span class="p">-</span> <span class="n">p</span><span class="p">));</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">IntToString</span><span class="p">(</span><span class="m">12345</span><span class="p">));</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="nf">IntToString</span><span class="p">(-</span><span class="m">999</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>a <code class="prettyprint">stackalloc</code> initializer is used in the <code class="prettyprint">IntToString</code> method to allocate a buffer of 16 characters on the stack. The buffer is automatically discarded when the method returns.</p>
+
+<h2 id="dynamic-memory-allocation">Dynamic memory allocation</h2>
+
+<p>Except for the <code class="prettyprint">stackalloc</code> operator, C# provides no predefined constructs for managing non-garbage collected memory. Such services are typically provided by supporting class libraries or imported directly from the underlying operating system. For example, the <code class="prettyprint">Memory</code> class below illustrates how the heap functions of an underlying operating system might be accessed from C#:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Runtime.InteropServices</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">unsafe</span> <span class="k">class</span> <span class="nc">Memory</span>
+<span class="p">{</span>
+    <span class="c1">// Handle for the process heap. This handle is used in all calls to the</span>
+    <span class="c1">// HeapXXX APIs in the methods below.</span>
+    <span class="k">static</span> <span class="kt">int</span> <span class="n">ph</span> <span class="p">=</span> <span class="nf">GetProcessHeap</span><span class="p">();</span>
+
+    <span class="c1">// Private instance constructor to prevent instantiation.</span>
+    <span class="k">private</span> <span class="nf">Memory</span><span class="p">()</span> <span class="p">{}</span>
+
+    <span class="c1">// Allocates a memory block of the given size. The allocated memory is</span>
+    <span class="c1">// automatically initialized to zero.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span><span class="p">*</span> <span class="nf">Alloc</span><span class="p">(</span><span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">void</span><span class="p">*</span> <span class="n">result</span> <span class="p">=</span> <span class="nf">HeapAlloc</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">HEAP_ZERO_MEMORY</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">OutOfMemoryException</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Copies count bytes from src to dst. The source and destination</span>
+    <span class="c1">// blocks are permitted to overlap.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Copy</span><span class="p">(</span><span class="k">void</span><span class="p">*</span> <span class="n">src</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">dst</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">byte</span><span class="p">*</span> <span class="n">ps</span> <span class="p">=</span> <span class="p">(</span><span class="kt">byte</span><span class="p">*)</span><span class="n">src</span><span class="p">;</span>
+        <span class="kt">byte</span><span class="p">*</span> <span class="n">pd</span> <span class="p">=</span> <span class="p">(</span><span class="kt">byte</span><span class="p">*)</span><span class="n">dst</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ps</span> <span class="p">&gt;</span> <span class="n">pd</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(;</span> <span class="n">count</span> <span class="p">!=</span> <span class="m">0</span><span class="p">;</span> <span class="n">count</span><span class="p">--)</span> <span class="p">*</span><span class="n">pd</span><span class="p">++</span> <span class="p">=</span> <span class="p">*</span><span class="n">ps</span><span class="p">++;</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">ps</span> <span class="p">&lt;</span> <span class="n">pd</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">ps</span> <span class="p">+=</span> <span class="n">count</span><span class="p">,</span> <span class="n">pd</span> <span class="p">+=</span> <span class="n">count</span><span class="p">;</span> <span class="n">count</span> <span class="p">!=</span> <span class="m">0</span><span class="p">;</span> <span class="n">count</span><span class="p">--)</span> <span class="p">*--</span><span class="n">pd</span> <span class="p">=</span> <span class="p">*--</span><span class="n">ps</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Frees a memory block.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">Free</span><span class="p">(</span><span class="k">void</span><span class="p">*</span> <span class="n">block</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="nf">HeapFree</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">block</span><span class="p">))</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Re-allocates a memory block. If the reallocation request is for a</span>
+    <span class="c1">// larger size, the additional region of memory is automatically</span>
+    <span class="c1">// initialized to zero.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span><span class="p">*</span> <span class="nf">ReAlloc</span><span class="p">(</span><span class="k">void</span><span class="p">*</span> <span class="n">block</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">void</span><span class="p">*</span> <span class="n">result</span> <span class="p">=</span> <span class="nf">HeapReAlloc</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">HEAP_ZERO_MEMORY</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">OutOfMemoryException</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Returns the size of a memory block.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">int</span> <span class="nf">SizeOf</span><span class="p">(</span><span class="k">void</span><span class="p">*</span> <span class="n">block</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">result</span> <span class="p">=</span> <span class="nf">HeapSize</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">block</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="p">==</span> <span class="p">-</span><span class="m">1</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Heap API flags</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">HEAP_ZERO_MEMORY</span> <span class="p">=</span> <span class="m">0x00000008</span><span class="p">;</span>
+
+    <span class="c1">// Heap API functions</span>
+    <span class="p">[</span><span class="nf">DllImport</span><span class="p">(</span><span class="s">"kernel32"</span><span class="p">)]</span>
+    <span class="k">static</span> <span class="k">extern</span> <span class="kt">int</span> <span class="nf">GetProcessHeap</span><span class="p">();</span>
+
+    <span class="p">[</span><span class="nf">DllImport</span><span class="p">(</span><span class="s">"kernel32"</span><span class="p">)]</span>
+    <span class="k">static</span> <span class="k">extern</span> <span class="k">void</span><span class="p">*</span> <span class="nf">HeapAlloc</span><span class="p">(</span><span class="kt">int</span> <span class="n">hHeap</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="nf">DllImport</span><span class="p">(</span><span class="s">"kernel32"</span><span class="p">)]</span>
+    <span class="k">static</span> <span class="k">extern</span> <span class="kt">bool</span> <span class="nf">HeapFree</span><span class="p">(</span><span class="kt">int</span> <span class="n">hHeap</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">block</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="nf">DllImport</span><span class="p">(</span><span class="s">"kernel32"</span><span class="p">)]</span>
+    <span class="k">static</span> <span class="k">extern</span> <span class="k">void</span><span class="p">*</span> <span class="nf">HeapReAlloc</span><span class="p">(</span><span class="kt">int</span> <span class="n">hHeap</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">block</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="nf">DllImport</span><span class="p">(</span><span class="s">"kernel32"</span><span class="p">)]</span>
+    <span class="k">static</span> <span class="k">extern</span> <span class="kt">int</span> <span class="nf">HeapSize</span><span class="p">(</span><span class="kt">int</span> <span class="n">hHeap</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="k">void</span><span class="p">*</span> <span class="n">block</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+<p>An example that uses the <code class="prettyprint">Memory</code> class is given below:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">class</span> <span class="nc">Test</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">unsafe</span> <span class="p">{</span>
+            <span class="kt">byte</span><span class="p">*</span> <span class="n">buffer</span> <span class="p">=</span> <span class="p">(</span><span class="kt">byte</span><span class="p">*)</span><span class="n">Memory</span><span class="p">.</span><span class="nf">Alloc</span><span class="p">(</span><span class="m">256</span><span class="p">);</span>
+            <span class="k">try</span> <span class="p">{</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">256</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="p">(</span><span class="kt">byte</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+                <span class="kt">byte</span><span class="p">[]</span> <span class="n">array</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="p">[</span><span class="m">256</span><span class="p">];</span>
+                <span class="k">fixed</span> <span class="p">(</span><span class="kt">byte</span><span class="p">*</span> <span class="n">p</span> <span class="p">=</span> <span class="n">array</span><span class="p">)</span> <span class="n">Memory</span><span class="p">.</span><span class="nf">Copy</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="m">256</span><span class="p">);</span> 
+            <span class="p">}</span>
+            <span class="k">finally</span> <span class="p">{</span>
+                <span class="n">Memory</span><span class="p">.</span><span class="nf">Free</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="p">&lt;</span> <span class="m">256</span><span class="p">;</span> <span class="n">i</span><span class="p">++)</span> <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The example allocates 256 bytes of memory through <code class="prettyprint">Memory.Alloc</code> and initializes the memory block with values increasing from 0 to 255. It then allocates a 256 element byte array and uses <code class="prettyprint">Memory.Copy</code> to copy the contents of the memory block into the byte array. Finally, the memory block is freed using <code class="prettyprint">Memory.Free</code> and the contents of the byte array are output on the console.</p>

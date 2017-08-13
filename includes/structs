@@ -1,0 +1,596 @@
+<h1 id="structs">Structs</h1>
+
+<p>Structs are similar to classes in that they represent data structures that can contain data members and function members. However, unlike classes, structs are value types and do not require heap allocation. A variable of a struct type directly contains the data of the struct, whereas a variable of a class type contains a reference to the data, the latter known as an object.</p>
+
+<p>Structs are particularly useful for small data structures that have value semantics. Complex numbers, points in a coordinate system, or key-value pairs in a dictionary are all good examples of structs. Key to these data structures is that they have few data members, that they do not require use of inheritance or referential identity, and that they can be conveniently implemented using value semantics where assignment copies the value instead of the reference.</p>
+
+<p>As described in <a href="types.md#simple-types">Simple types</a>, the simple types provided by C#, such as <code class="prettyprint">int</code>, <code class="prettyprint">double</code>, and <code class="prettyprint">bool</code>, are in fact all struct types. Just as these predefined types are structs, it is also possible to use structs and operator overloading to implement new &ldquo;primitive&rdquo; types in the C# language. Two examples of such types are given at the end of this chapter (<a href="structs.md#struct-examples">Struct examples</a>).</p>
+
+<h2 id="struct-declarations">Struct declarations</h2>
+
+<p>A <em>struct_declaration</em> is a <em>type_declaration</em> (<a href="namespaces.md#type-declarations">Type declarations</a>) that declares a new struct:</p>
+<pre class="highlight plaintext"><code>struct_declaration
+    : attributes? struct_modifier* 'partial'? 'struct' identifier type_parameter_list?
+      struct_interfaces? type_parameter_constraints_clause* struct_body ';'?
+    ;
+</code></pre>
+<p>A <em>struct_declaration</em> consists of an optional set of <em>attributes</em> (<a href="attributes.md#attributes">Attributes</a>), followed by an optional set of <em>struct_modifier*s (<a href="structs.md#struct-modifiers">Struct modifiers</a>), followed by an optional <code class="prettyprint">partial</code> modifier, followed by the keyword <code class="prettyprint">struct</code> and an *identifier</em> that names the struct, followed by an optional <em>type_parameter_list</em> specification (<a href="classes.md#type-parameters">Type parameters</a>), followed by an optional <em>struct_interfaces</em> specification (<a href="structs.md#partial-modifier">Partial modifier</a>) ), followed by an optional <em>type_parameter_constraints_clause*s specification (<a href="classes.md#type-parameter-constraints">Type parameter constraints</a>), followed by a *struct_body</em> (<a href="structs.md#struct-body">Struct body</a>), optionally followed by a semicolon.</p>
+
+<h3 id="struct-modifiers">Struct modifiers</h3>
+
+<p>A <em>struct_declaration</em> may optionally include a sequence of struct modifiers:</p>
+<pre class="highlight plaintext"><code>struct_modifier
+    : 'new'
+    | 'public'
+    | 'protected'
+    | 'internal'
+    | 'private'
+    | struct_modifier_unsafe
+    ;
+</code></pre>
+<p>It is a compile-time error for the same modifier to appear multiple times in a struct declaration.</p>
+
+<p>The modifiers of a struct declaration have the same meaning as those of a class declaration (<a href="classes.md#class-declarations">Class declarations</a>).</p>
+
+<h3 id="partial-modifier">Partial modifier</h3>
+
+<p>The <code class="prettyprint">partial</code> modifier indicates that this <em>struct_declaration</em> is a partial type declaration. Multiple partial struct declarations with the same name within an enclosing namespace or type declaration combine to form one struct declaration, following the rules specified in <a href="classes.md#partial-types">Partial types</a>.</p>
+
+<h3 id="struct-interfaces">Struct interfaces</h3>
+
+<p>A struct declaration may include a <em>struct_interfaces</em> specification, in which case the struct is said to directly implement the given interface types.</p>
+<pre class="highlight plaintext"><code>struct_interfaces
+    : ':' interface_type_list
+    ;
+</code></pre>
+<p>Interface implementations are discussed further in <a href="interfaces.md#interface-implementations">Interface implementations</a>.</p>
+
+<h3 id="struct-body">Struct body</h3>
+
+<p>The <em>struct_body</em> of a struct defines the members of the struct.</p>
+<pre class="highlight plaintext"><code>struct_body
+    : '{' struct_member_declaration* '}'
+    ;
+</code></pre>
+<h2 id="struct-members">Struct members</h2>
+
+<p>The members of a struct consist of the members introduced by its *struct_member_declaration*s and the members inherited from the type <code class="prettyprint">System.ValueType</code>.</p>
+<pre class="highlight plaintext"><code>struct_member_declaration
+    : constant_declaration
+    | field_declaration
+    | method_declaration
+    | property_declaration
+    | event_declaration
+    | indexer_declaration
+    | operator_declaration
+    | constructor_declaration
+    | static_constructor_declaration
+    | type_declaration
+    | struct_member_declaration_unsafe
+    ;
+</code></pre>
+<p>Except for the differences noted in <a href="structs.md#class-and-struct-differences">Class and struct differences</a>, the descriptions of class members provided in <a href="classes.md#class-members">Class members</a> through <a href="classes.md#iterators">Iterators</a> apply to struct members as well.</p>
+
+<h2 id="class-and-struct-differences">Class and struct differences</h2>
+
+<p>Structs differ from classes in several important ways:</p>
+
+<ul>
+<li> Structs are value types (<a href="structs.md#value-semantics">Value semantics</a>).</li>
+<li> All struct types implicitly inherit from the class <code class="prettyprint">System.ValueType</code> (<a href="structs.md#inheritance">Inheritance</a>).</li>
+<li> Assignment to a variable of a struct type creates a copy of the value being assigned (<a href="structs.md#assignment">Assignment</a>).</li>
+<li> The default value of a struct is the value produced by setting all value type fields to their default value and all reference type fields to <code class="prettyprint">null</code> (<a href="structs.md#default-values">Default values</a>).</li>
+<li> Boxing and unboxing operations are used to convert between a struct type and <code class="prettyprint">object</code> (<a href="structs.md#boxing-and-unboxing">Boxing and unboxing</a>).</li>
+<li> The meaning of <code class="prettyprint">this</code> is different for structs (<a href="expressions.md#this-access">This access</a>).</li>
+<li> Instance field declarations for a struct are not permitted to include variable initializers (<a href="structs.md#field-initializers">Field initializers</a>).</li>
+<li> A struct is not permitted to declare a parameterless instance constructor (<a href="structs.md#constructors">Constructors</a>).</li>
+<li> A struct is not permitted to declare a destructor (<a href="structs.md#destructors">Destructors</a>).</li>
+</ul>
+
+<h3 id="value-semantics">Value semantics</h3>
+
+<p>Structs are value types (<a href="types.md#value-types">Value types</a>) and are said to have value semantics. Classes, on the other hand, are reference types (<a href="types.md#reference-types">Reference types</a>) and are said to have reference semantics.</p>
+
+<p>A variable of a struct type directly contains the data of the struct, whereas a variable of a class type contains a reference to the data, the latter known as an object. When a struct <code class="prettyprint">B</code> contains an instance field of type <code class="prettyprint">A</code> and <code class="prettyprint">A</code> is a struct type, it is a compile-time error for <code class="prettyprint">A</code> to depend on <code class="prettyprint">B</code> or a type constructed from <code class="prettyprint">B</code>. A struct <code class="prettyprint">X</code> <strong><em>directly depends on</em></strong> a struct <code class="prettyprint">Y</code> if <code class="prettyprint">X</code> contains an instance field of type <code class="prettyprint">Y</code>. Given this definition, the complete set of structs upon which a struct depends is the transitive closure of the <strong><em>directly depends on</em></strong> relationship.  For example
+<code class="prettyprint">csharp
+struct Node
+{
+    int data;
+    Node next; // error, Node directly depends on itself
+}
+</code>
+is an error because <code class="prettyprint">Node</code> contains an instance field of its own type.  Another example
+&ldquo;`csharp
+struct A { B b; }</p>
+
+<p>struct B { C c; }</p>
+
+<p>struct C { A a; }
+&rdquo;<code class="prettyprint">
+is an error because each of the types</code>A<code class="prettyprint">,</code>B<code class="prettyprint">, and</code>C` depend on each other.</p>
+
+<p>With classes, it is possible for two variables to reference the same object, and thus possible for operations on one variable to affect the object referenced by the other variable. With structs, the variables each have their own copy of the data (except in the case of <code class="prettyprint">ref</code> and <code class="prettyprint">out</code> parameter variables), and it is not possible for operations on one to affect the other. Furthermore, because structs are not reference types, it is not possible for values of a struct type to be <code class="prettyprint">null</code>.</p>
+
+<p>Given the declaration
+&ldquo;`csharp
+struct Point
+{
+    public int x, y;</p>
+
+<p>public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+<code class="prettyprint">
+the code fragment
+</code>csharp
+Point a = new Point(10, 10);
+Point b = a;
+a.x = 100;
+System.Console.WriteLine(b.x);
+&rdquo;<code class="prettyprint">
+outputs the value</code>10<code class="prettyprint">. The assignment of</code>a<code class="prettyprint">to</code>b<code class="prettyprint">creates a copy of the value, and</code>b<code class="prettyprint">is thus unaffected by the assignment to</code>a.x<code class="prettyprint">. Had</code>Point<code class="prettyprint">instead been declared as a class, the output would be</code>100<code class="prettyprint">because</code>a<code class="prettyprint">and</code>b` would reference the same object.</p>
+
+<h3 id="inheritance">Inheritance</h3>
+
+<p>All struct types implicitly inherit from the class <code class="prettyprint">System.ValueType</code>, which, in turn, inherits from class <code class="prettyprint">object</code>. A struct declaration may specify a list of implemented interfaces, but it is not possible for a struct declaration to specify a base class.</p>
+
+<p>Struct types are never abstract and are always implicitly sealed. The <code class="prettyprint">abstract</code> and <code class="prettyprint">sealed</code> modifiers are therefore not permitted in a struct declaration.</p>
+
+<p>Since inheritance isn&rsquo;t supported for structs, the declared accessibility of a struct member cannot be <code class="prettyprint">protected</code> or <code class="prettyprint">protected internal</code>.</p>
+
+<p>Function members in a struct cannot be <code class="prettyprint">abstract</code> or <code class="prettyprint">virtual</code>, and the <code class="prettyprint">override</code> modifier is allowed only to override methods inherited from <code class="prettyprint">System.ValueType</code>.</p>
+
+<h3 id="assignment">Assignment</h3>
+
+<p>Assignment to a variable of a struct type creates a copy of the value being assigned. This differs from assignment to a variable of a class type, which copies the reference but not the object identified by the reference.</p>
+
+<p>Similar to an assignment, when a struct is passed as a value parameter or returned as the result of a function member, a copy of the struct is created. A struct may be passed by reference to a function member using a <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameter.</p>
+
+<p>When a property or indexer of a struct is the target of an assignment, the instance expression associated with the property or indexer access must be classified as a variable. If the instance expression is classified as a value, a compile-time error occurs. This is described in further detail in <a href="expressions.md#simple-assignment">Simple assignment</a>.</p>
+
+<h3 id="default-values">Default values</h3>
+
+<p>As described in <a href="variables.md#default-values">Default values</a>, several kinds of variables are automatically initialized to their default value when they are created. For variables of class types and other reference types, this default value is <code class="prettyprint">null</code>. However, since structs are value types that cannot be <code class="prettyprint">null</code>, the default value of a struct is the value produced by setting all value type fields to their default value and all reference type fields to <code class="prettyprint">null</code>.</p>
+
+<p>Referring to the <code class="prettyprint">Point</code> struct declared above, the example
+<code class="prettyprint">csharp
+Point[] a = new Point[100];
+</code>
+initializes each <code class="prettyprint">Point</code> in the array to the value produced by setting the <code class="prettyprint">x</code> and <code class="prettyprint">y</code> fields to zero.</p>
+
+<p>The default value of a struct corresponds to the value returned by the default constructor of the struct (<a href="types.md#default-constructors">Default constructors</a>). Unlike a class, a struct is not permitted to declare a parameterless instance constructor. Instead, every struct implicitly has a parameterless instance constructor which always returns the value that results from setting all value type fields to their default value and all reference type fields to <code class="prettyprint">null</code>.</p>
+
+<p>Structs should be designed to consider the default initialization state a valid state. In the example
+&ldquo;`csharp
+using System;</p>
+
+<p>struct KeyValuePair
+{
+    string key;
+    string value;</p>
+
+<p>public KeyValuePair(string key, string value) {
+        if (key == null || value == null) throw new ArgumentException();
+        this.key = key;
+        this.value = value;
+    }
+}
+&rdquo;<code class="prettyprint">
+the user-defined instance constructor protects against null values only where it is explicitly called. In cases where a</code>KeyValuePair<code class="prettyprint">variable is subject to default value initialization, the</code>key<code class="prettyprint">and</code>value` fields will be null, and the struct must be prepared to handle this state.</p>
+
+<h3 id="boxing-and-unboxing">Boxing and unboxing</h3>
+
+<p>A value of a class type can be converted to type <code class="prettyprint">object</code> or to an interface type that is implemented by the class simply by treating the reference as another type at compile-time. Likewise, a value of type <code class="prettyprint">object</code> or a value of an interface type can be converted back to a class type without changing the reference (but of course a run-time type check is required in this case).</p>
+
+<p>Since structs are not reference types, these operations are implemented differently for struct types. When a value of a struct type is converted to type <code class="prettyprint">object</code> or to an interface type that is implemented by the struct, a boxing operation takes place. Likewise, when a value of type <code class="prettyprint">object</code> or a value of an interface type is converted back to a struct type, an unboxing operation takes place. A key difference from the same operations on class types is that boxing and unboxing copies the struct value either into or out of the boxed instance. Thus, following a boxing or unboxing operation, changes made to the unboxed struct are not reflected in the boxed struct.</p>
+
+<p>When a struct type overrides a virtual method inherited from <code class="prettyprint">System.Object</code> (such as <code class="prettyprint">Equals</code>, <code class="prettyprint">GetHashCode</code>, or <code class="prettyprint">ToString</code>), invocation of the virtual method through an instance of the struct type does not cause boxing to occur. This is true even when the struct is used as a type parameter and the invocation occurs through an instance of the type parameter type. For example:
+&ldquo;`csharp
+using System;</p>
+
+<p>struct Counter
+{
+    int value;</p>
+
+<p>public override string ToString() {
+        value++;
+        return value.ToString();
+    }
+}</p>
+
+<p>class Program
+{
+    static void Test<T>() where T: new() {
+        T x = new T();
+        Console.WriteLine(x.ToString());
+        Console.WriteLine(x.ToString());
+        Console.WriteLine(x.ToString());
+    }</p>
+
+<p>static void Main() {
+        Test<Counter>();
+    }
+}
+&rdquo;`</p>
+
+<p>The output of the program is:
+<code class="prettyprint">
+1
+2
+3
+</code></p>
+
+<p>Although it is bad style for <code class="prettyprint">ToString</code> to have side effects, the example demonstrates that no boxing occurred for the three invocations of <code class="prettyprint">x.ToString()</code>.</p>
+
+<p>Similarly, boxing never implicitly occurs when accessing a member on a constrained type parameter. For example, suppose an interface <code class="prettyprint">ICounter</code> contains a method <code class="prettyprint">Increment</code> which can be used to modify a value. If <code class="prettyprint">ICounter</code> is used as a constraint, the implementation of the <code class="prettyprint">Increment</code> method is called with a reference to the variable that <code class="prettyprint">Increment</code> was called on, never a boxed copy.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">interface</span> <span class="n">ICounter</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">Increment</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="nc">Counter</span><span class="p">:</span> <span class="n">ICounter</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="k">value</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">string</span> <span class="nf">ToString</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">value</span><span class="p">.</span><span class="nf">ToString</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">void</span> <span class="n">ICounter</span><span class="p">.</span><span class="nf">Increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">value</span><span class="p">++;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Program</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="n">Test</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;()</span> <span class="k">where</span> <span class="n">T</span><span class="p">:</span> <span class="n">ICounter</span><span class="p">,</span> <span class="k">new</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">T</span> <span class="n">x</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">T</span><span class="p">();</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+        <span class="n">x</span><span class="p">.</span><span class="nf">Increment</span><span class="p">();</span>                    <span class="c1">// Modify x</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+        <span class="p">((</span><span class="n">ICounter</span><span class="p">)</span><span class="n">x</span><span class="p">).</span><span class="nf">Increment</span><span class="p">();</span>        <span class="c1">// Modify boxed copy of x</span>
+        <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Test</span><span class="p">&lt;</span><span class="n">Counter</span><span class="p">&gt;();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The first call to <code class="prettyprint">Increment</code> modifies the value in the variable <code class="prettyprint">x</code>. This is not equivalent to the second call to <code class="prettyprint">Increment</code>, which modifies the value in a boxed copy of <code class="prettyprint">x</code>. Thus, the output of the program is:
+<code class="prettyprint">
+0
+1
+1
+</code></p>
+
+<p>For further details on boxing and unboxing, see <a href="types.md#boxing-and-unboxing">Boxing and unboxing</a>.</p>
+
+<h3 id="meaning-of-this">Meaning of this</h3>
+
+<p>Within an instance constructor or instance function member of a class, <code class="prettyprint">this</code> is classified as a value. Thus, while <code class="prettyprint">this</code> can be used to refer to the instance for which the function member was invoked, it is not possible to assign to <code class="prettyprint">this</code> in a function member of a class.</p>
+
+<p>Within an instance constructor of a struct, <code class="prettyprint">this</code> corresponds to an <code class="prettyprint">out</code> parameter of the struct type, and within an instance function member of a struct, <code class="prettyprint">this</code> corresponds to a <code class="prettyprint">ref</code> parameter of the struct type. In both cases, <code class="prettyprint">this</code> is classified as a variable, and it is possible to modify the entire struct for which the function member was invoked by assigning to <code class="prettyprint">this</code> or by passing this as a <code class="prettyprint">ref</code> or <code class="prettyprint">out</code> parameter.</p>
+
+<h3 id="field-initializers">Field initializers</h3>
+
+<p>As described in <a href="structs.md#default-values">Default values</a>, the default value of a struct consists of the value that results from setting all value type fields to their default value and all reference type fields to <code class="prettyprint">null</code>. For this reason, a struct does not permit instance field declarations to include variable initializers. This restriction applies only to instance fields. Static fields of a struct are permitted to include variable initializers.</p>
+
+<p>The example
+<code class="prettyprint">csharp
+struct Point
+{
+    public int x = 1;  // Error, initializer not permitted
+    public int y = 1;  // Error, initializer not permitted
+}
+</code>
+is in error because the instance field declarations include variable initializers.</p>
+
+<h3 id="constructors">Constructors</h3>
+
+<p>Unlike a class, a struct is not permitted to declare a parameterless instance constructor. Instead, every struct implicitly has a parameterless instance constructor which always returns the value that results from setting all value type fields to their default value and all reference type fields to null (<a href="types.md#default-constructors">Default constructors</a>). A struct can declare instance constructors having parameters. For example
+&ldquo;`csharp
+struct Point
+{
+    int x, y;</p>
+
+<p>public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+&rdquo;`</p>
+
+<p>Given the above declaration, the statements
+<code class="prettyprint">csharp
+Point p1 = new Point();
+Point p2 = new Point(0, 0);
+</code>
+both create a <code class="prettyprint">Point</code> with <code class="prettyprint">x</code> and <code class="prettyprint">y</code> initialized to zero.</p>
+
+<p>A struct instance constructor is not permitted to include a constructor initializer of the form <code class="prettyprint">base(...)</code>.</p>
+
+<p>If the struct instance constructor doesn&rsquo;t specify a constructor initializer, the <code class="prettyprint">this</code> variable corresponds to an <code class="prettyprint">out</code> parameter of the struct type, and similar to an <code class="prettyprint">out</code> parameter, <code class="prettyprint">this</code> must be definitely assigned (<a href="variables.md#definite-assignment">Definite assignment</a>) at every location where the constructor returns. If the struct instance constructor specifies a constructor initializer, the <code class="prettyprint">this</code> variable corresponds to a <code class="prettyprint">ref</code> parameter of the struct type, and similar to a <code class="prettyprint">ref</code> parameter, <code class="prettyprint">this</code> is considered definitely assigned on entry to the constructor body. Consider the instance constructor implementation below:
+&ldquo;`csharp
+struct Point
+{
+    int x, y;</p>
+
+<p>public int X {
+        set { x = value; }
+    }</p>
+
+<p>public int Y {
+        set { y = value; }
+    }</p>
+
+<p>public Point(int x, int y) {
+        X = x;        // error, this is not yet definitely assigned
+        Y = y;        // error, this is not yet definitely assigned
+    }
+}
+&rdquo;`</p>
+
+<p>No instance member function (including the set accessors for the properties <code class="prettyprint">X</code> and <code class="prettyprint">Y</code>) can be called until all fields of the struct being constructed have been definitely assigned. The only exception involves automatically implemented properties (<a href="classes.md#automatically-implemented-properties">Automatically implemented properties</a>). The definite assignment rules (<a href="variables.md#simple-assignment-expressions">Simple assignment expressions</a>) specifically exempt assignment to an auto-property of a struct type within an instance constructor of that struct type: such an assignment is considered a definite assignment of the hidden backing field of the auto-property. Thus, the following is allowed:</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">struct</span> <span class="nc">Point</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">X</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Y</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="nf">Point</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">X</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>      <span class="c1">// allowed, definitely assigns backing field</span>
+        <span class="n">Y</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>      <span class="c1">// allowed, definitely assigns backing field</span>
+    <span class="p">}</span>
+</code></pre>
+<h3 id="destructors">Destructors</h3>
+
+<p>A struct is not permitted to declare a destructor.</p>
+
+<h3 id="static-constructors">Static constructors</h3>
+
+<p>Static constructors for structs follow most of the same rules as for classes. The execution of a static constructor for a struct type is triggered by the first of the following events to occur within an application domain:</p>
+
+<ul>
+<li> A static member of the struct type is referenced.</li>
+<li> An explicitly declared constructor of the struct type is called.</li>
+</ul>
+
+<p>The creation of default values (<a href="structs.md#default-values">Default values</a>) of struct types does not trigger the static constructor. (An example of this is the initial value of elements in an array.)</p>
+
+<h2 id="struct-examples">Struct examples</h2>
+
+<p>The following shows two significant examples of using <code class="prettyprint">struct</code> types to create types that can be used similarly to the predefined types of the language, but with modified semantics.</p>
+
+<h3 id="database-integer-type">Database integer type</h3>
+
+<p>The <code class="prettyprint">DBInt</code> struct below implements an integer type that can represent the complete set of values of the <code class="prettyprint">int</code> type, plus an additional state that indicates an unknown value. A type with these characteristics is commonly used in databases.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">struct</span> <span class="nc">DBInt</span>
+<span class="p">{</span>
+    <span class="c1">// The Null member represents an unknown DBInt value.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">DBInt</span> <span class="n">Null</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DBInt</span><span class="p">();</span>
+
+    <span class="c1">// When the defined field is true, this DBInt represents a known value</span>
+    <span class="c1">// which is stored in the value field. When the defined field is false,</span>
+    <span class="c1">// this DBInt represents an unknown value, and the value field is 0.</span>
+
+    <span class="kt">int</span> <span class="k">value</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">defined</span><span class="p">;</span>
+
+    <span class="c1">// Private instance constructor. Creates a DBInt with a known value.</span>
+
+    <span class="nf">DBInt</span><span class="p">(</span><span class="kt">int</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="k">value</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">defined</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// The IsNull property is true if this DBInt represents an unknown value.</span>
+
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">IsNull</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="p">!</span><span class="n">defined</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+
+    <span class="c1">// The Value property is the known value of this DBInt, or 0 if this</span>
+    <span class="c1">// DBInt represents an unknown value.</span>
+
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">Value</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">value</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+
+    <span class="c1">// Implicit conversion from int to DBInt.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">implicit</span> <span class="k">operator</span> <span class="nf">DBInt</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">DBInt</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Explicit conversion from DBInt to int. Throws an exception if the</span>
+    <span class="c1">// given DBInt represents an unknown value.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">explicit</span> <span class="k">operator</span> <span class="kt">int</span><span class="p">(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="n">x</span><span class="p">.</span><span class="n">defined</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">+(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">?</span> <span class="p">-</span><span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">:</span> <span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">+(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">+</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">-(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">-</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">*(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">*</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">/(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">/</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBInt</span> <span class="k">operator</span> <span class="p">%(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">%</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">==(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">DBBool</span><span class="p">.</span><span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">!=(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">!=</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">DBBool</span><span class="p">.</span><span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">&gt;(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&gt;</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">DBBool</span><span class="p">.</span><span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">&lt;(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&lt;</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">DBBool</span><span class="p">.</span><span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">&gt;=(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&gt;=</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">DBBool</span><span class="p">.</span><span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">&lt;=(</span><span class="n">DBInt</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBInt</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span> <span class="p">&amp;&amp;</span> <span class="n">y</span><span class="p">.</span><span class="n">defined</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&lt;=</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">DBBool</span><span class="p">.</span><span class="n">Null</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">Equals</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!(</span><span class="n">obj</span> <span class="k">is</span> <span class="n">DBInt</span><span class="p">))</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+        <span class="n">DBInt</span> <span class="n">x</span> <span class="p">=</span> <span class="p">(</span><span class="n">DBInt</span><span class="p">)</span><span class="n">obj</span><span class="p">;</span>
+        <span class="k">return</span> <span class="k">value</span> <span class="p">==</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&amp;&amp;</span> <span class="n">defined</span> <span class="p">==</span> <span class="n">x</span><span class="p">.</span><span class="n">defined</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">int</span> <span class="nf">GetHashCode</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">string</span> <span class="nf">ToString</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">defined</span><span class="p">?</span> <span class="k">value</span><span class="p">.</span><span class="nf">ToString</span><span class="p">():</span> <span class="s">"DBInt.Null"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="database-boolean-type">Database boolean type</h3>
+
+<p>The <code class="prettyprint">DBBool</code> struct below implements a three-valued logical type. The possible values of this type are <code class="prettyprint">DBBool.True</code>, <code class="prettyprint">DBBool.False</code>, and <code class="prettyprint">DBBool.Null</code>, where the <code class="prettyprint">Null</code> member indicates an unknown value. Such three-valued logical types are commonly used in databases.</p>
+<pre class="highlight csharp tab-csharp"><code><span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">struct</span> <span class="nc">DBBool</span>
+<span class="p">{</span>
+    <span class="c1">// The three possible DBBool values.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">DBBool</span> <span class="n">Null</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DBBool</span><span class="p">(</span><span class="m">0</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">DBBool</span> <span class="n">False</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DBBool</span><span class="p">(-</span><span class="m">1</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">DBBool</span> <span class="n">True</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DBBool</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+
+    <span class="c1">// Private field that stores -1, 0, 1 for False, Null, True.</span>
+
+    <span class="kt">sbyte</span> <span class="k">value</span><span class="p">;</span>
+
+    <span class="c1">// Private instance constructor. The value parameter must be -1, 0, or 1.</span>
+
+    <span class="nf">DBBool</span><span class="p">(</span><span class="kt">int</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="k">value</span> <span class="p">=</span> <span class="p">(</span><span class="kt">sbyte</span><span class="p">)</span><span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Properties to examine the value of a DBBool. Return true if this</span>
+    <span class="c1">// DBBool has the given value, false otherwise.</span>
+
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">IsNull</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">value</span> <span class="p">==</span> <span class="m">0</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">IsFalse</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">value</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">IsTrue</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">value</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+
+    <span class="c1">// Implicit conversion from bool to DBBool. Maps true to DBBool.True and</span>
+    <span class="c1">// false to DBBool.False.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">implicit</span> <span class="k">operator</span> <span class="nf">DBBool</span><span class="p">(</span><span class="kt">bool</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">?</span> <span class="n">True</span><span class="p">:</span> <span class="n">False</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Explicit conversion from DBBool to bool. Throws an exception if the</span>
+    <span class="c1">// given DBBool is Null, otherwise returns true or false.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">explicit</span> <span class="k">operator</span> <span class="kt">bool</span><span class="p">(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Equality operator. Returns Null if either operand is Null, otherwise</span>
+    <span class="c1">// returns True or False.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">==(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBBool</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="m">0</span> <span class="p">||</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">Null</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">?</span> <span class="n">True</span><span class="p">:</span> <span class="n">False</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Inequality operator. Returns Null if either operand is Null, otherwise</span>
+    <span class="c1">// returns True or False.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">!=(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBBool</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="m">0</span> <span class="p">||</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">Null</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">!=</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">?</span> <span class="n">True</span><span class="p">:</span> <span class="n">False</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Logical negation operator. Returns True if the operand is False, Null</span>
+    <span class="c1">// if the operand is Null, or False if the operand is True.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">!(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">DBBool</span><span class="p">(-</span><span class="n">x</span><span class="p">.</span><span class="k">value</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Logical AND operator. Returns False if either operand is False,</span>
+    <span class="c1">// otherwise Null if either operand is Null, otherwise True.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">&amp;(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBBool</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">DBBool</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&lt;</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Logical OR operator. Returns True if either operand is True, otherwise</span>
+    <span class="c1">// Null if either operand is Null, otherwise False.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="n">DBBool</span> <span class="k">operator</span> <span class="p">|(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">,</span> <span class="n">DBBool</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">DBBool</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&gt;</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">?</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span><span class="p">:</span> <span class="n">y</span><span class="p">.</span><span class="k">value</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Definitely true operator. Returns true if the operand is True, false</span>
+    <span class="c1">// otherwise.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="k">true</span><span class="p">(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Definitely false operator. Returns true if the operand is False, false</span>
+    <span class="c1">// otherwise.</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="k">false</span><span class="p">(</span><span class="n">DBBool</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="k">value</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">Equals</span><span class="p">(</span><span class="kt">object</span> <span class="n">obj</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!(</span><span class="n">obj</span> <span class="k">is</span> <span class="n">DBBool</span><span class="p">))</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+        <span class="k">return</span> <span class="k">value</span> <span class="p">==</span> <span class="p">((</span><span class="n">DBBool</span><span class="p">)</span><span class="n">obj</span><span class="p">).</span><span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">int</span> <span class="nf">GetHashCode</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">value</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">string</span> <span class="nf">ToString</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span> <span class="k">return</span> <span class="s">"DBBool.True"</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">)</span> <span class="k">return</span> <span class="s">"DBBool.False"</span><span class="p">;</span>
+        <span class="k">return</span> <span class="s">"DBBool.Null"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
