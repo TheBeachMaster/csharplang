@@ -21,7 +21,7 @@ includes:
   - expressions 
 
   - statements 
-  - namesapces 
+  - namespaces 
   - classes 
   - structs 
   - arrays 
