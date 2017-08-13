@@ -2,7 +2,8 @@
 title: C-Sharp 6 Draft Specs
 
 language_tabs:
-  - csharp
+  - csharp 
+  - bash
 
 toc_footers:
   - <a href='https://dot.net'>Get Started with dotNet</a>
@@ -10,16 +11,12 @@ toc_footers:
 
 includes: 
 
-  - introduction  
-
-  
+  - introduction 
   - basic-concepts 
   - types 
   - variables 
   - conversions  
-
   - expressions 
-
   - statements 
   - namespaces 
   - classes 
@@ -27,11 +24,9 @@ includes:
   - arrays 
   - interfaces 
   - enums 
-
   - delegates 
   - exceptions
   - attributes 
-
   - unsafe-code
 
 

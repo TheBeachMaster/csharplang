@@ -12,7 +12,8 @@ The element type of an array can be any type, including an array type.
 
 An array type is written as a *non_array_type* followed by one or more *rank_specifier*s:
 
-```antlr
+```bash 
+
 array_type
     : non_array_type rank_specifier+
     ;
@@ -51,8 +52,10 @@ At run-time, a value of type `System.Array` can be `null` or a reference to an i
 
 ### Arrays and the generic IList interface
 
-A one-dimensional array `T[]` implements the interface `System.Collections.Generic.IList<T>` (`IList<T>` for short) and its base interfaces. Accordingly, there is an implicit conversion from `T[]` to `IList<T>` and its base interfaces. In addition, if there is an implicit reference conversion from `S` to `T` then `S[]` implements `IList<T>` and there is an implicit reference conversion from `S[]` to `IList<T>` and its base interfaces ([Implicit reference conversions](conversions.md#implicit-reference-conversions)). If there is an explicit reference conversion from `S` to `T` then there is an explicit reference conversion from `S[]` to `IList<T>` and its base interfaces ([Explicit reference conversions](conversions.md#explicit-reference-conversions)). For example:
-```csharp
+A one-dimensional array `T[]` implements the interface `System.Collections.Generic.IList<T>` (`IList<T>` for short) and its base interfaces. Accordingly, there is an implicit conversion from `T[]` to `IList<T>` and its base interfaces. In addition, if there is an implicit reference conversion from `S` to `T` then `S[]` implements `IList<T>` and there is an implicit reference conversion from `S[]` to `IList<T>` and its base interfaces ([Implicit reference conversions](conversions.md#implicit-reference-conversions)). If there is an explicit reference conversion from `S` to `T` then there is an explicit reference conversion from `S[]` to `IList<T>` and its base interfaces ([Explicit reference conversions](conversions.md#explicit-reference-conversions)). For example: 
+
+```csharp 
+
 using System.Collections.Generic;
 
 class Test
@@ -103,8 +106,10 @@ Every array type inherits the members declared by the `System.Array` type.
 
 For any two *reference_type*s `A` and `B`, if an implicit reference conversion ([Implicit reference conversions](conversions.md#implicit-reference-conversions)) or explicit reference conversion ([Explicit reference conversions](conversions.md#explicit-reference-conversions)) exists from `A` to `B`, then the same reference conversion also exists from the array type `A[R]` to the array type `B[R]`, where `R` is any given *rank_specifier* (but the same for both array types). This relationship is known as ***array covariance***. Array covariance in particular means that a value of an array type `A[R]` may actually be a reference to an instance of an array type `B[R]`, provided an implicit reference conversion exists from `B` to `A`.
 
-Because of array covariance, assignments to elements of reference type arrays include a run-time check which ensures that the value being assigned to the array element is actually of a permitted type ([Simple assignment](expressions.md#simple-assignment)). For example:
-```csharp
+Because of array covariance, assignments to elements of reference type arrays include a run-time check which ensures that the value being assigned to the array element is actually of a permitted type ([Simple assignment](expressions.md#simple-assignment)). For example: 
+
+```csharp 
+
 class Test
 {
     static void Fill(object[] array, int index, int count, object value) {
@@ -128,7 +133,8 @@ Array covariance specifically does not extend to arrays of *value_type*s. For ex
 
 Array initializers may be specified in field declarations ([Fields](classes.md#fields)), local variable declarations ([Local variable declarations](statements.md#local-variable-declarations)), and array creation expressions ([Array creation expressions](expressions.md#array-creation-expressions)):
 
-```antlr
+```bash 
+
 array_initializer
     : '{' variable_initializer_list? '}'
     | '{' variable_initializer_list ',' '}'
@@ -146,12 +152,16 @@ variable_initializer
 
 An array initializer consists of a sequence of variable initializers, enclosed by "`{`" and "`}`" tokens and separated by "`,`" tokens. Each variable initializer is an expression or, in the case of a multi-dimensional array, a nested array initializer.
 
-The context in which an array initializer is used determines the type of the array being initialized. In an array creation expression, the array type immediately precedes the initializer, or is inferred from the expressions in the array initializer. In a field or variable declaration, the array type is the type of the field or variable being declared. When an array initializer is used in a field or variable declaration, such as:
-```csharp
+The context in which an array initializer is used determines the type of the array being initialized. In an array creation expression, the array type immediately precedes the initializer, or is inferred from the expressions in the array initializer. In a field or variable declaration, the array type is the type of the field or variable being declared. When an array initializer is used in a field or variable declaration, such as: 
+
+```csharp 
+
 int[] a = {0, 2, 4, 6, 8};
 ```
-it is simply shorthand for an equivalent array creation expression:
-```csharp
+it is simply shorthand for an equivalent array creation expression: 
+
+```csharp 
+
 int[] a = new int[] {0, 2, 4, 6, 8};
 ```
 
@@ -160,12 +170,16 @@ For a single-dimensional array, the array initializer must consist of a sequence
 a[0] = 0; a[1] = 2; a[2] = 4; a[3] = 6; a[4] = 8;
 ```
 
-For a multi-dimensional array, the array initializer must have as many levels of nesting as there are dimensions in the array. The outermost nesting level corresponds to the leftmost dimension and the innermost nesting level corresponds to the rightmost dimension. The length of each dimension of the array is determined by the number of elements at the corresponding nesting level in the array initializer. For each nested array initializer, the number of elements must be the same as the other array initializers at the same level. The example:
-```csharp
+For a multi-dimensional array, the array initializer must have as many levels of nesting as there are dimensions in the array. The outermost nesting level corresponds to the leftmost dimension and the innermost nesting level corresponds to the rightmost dimension. The length of each dimension of the array is determined by the number of elements at the corresponding nesting level in the array initializer. For each nested array initializer, the number of elements must be the same as the other array initializers at the same level. The example: 
+
+```csharp 
+
 int[,] b = {{0, 1}, {2, 3}, {4, 5}, {6, 7}, {8, 9}};
 ```
-creates a two-dimensional array with a length of five for the leftmost dimension and a length of two for the rightmost dimension:
-```csharp
+creates a two-dimensional array with a length of five for the leftmost dimension and a length of two for the rightmost dimension: 
+
+```csharp 
+
 int[,] b = new int[5, 2];
 ```
 and then initializes the array instance with the following values:
@@ -177,17 +191,23 @@ b[3, 0] = 6; b[3, 1] = 7;
 b[4, 0] = 8; b[4, 1] = 9;
 ```
 
-If a dimension other than the rightmost is given with length zero, the subsequent dimensions are assumed to also have length zero. The example:
-```csharp
+If a dimension other than the rightmost is given with length zero, the subsequent dimensions are assumed to also have length zero. The example: 
+
+```csharp 
+
 int[,] c = {};
 ```
-creates a two-dimensional array with a length of zero for both the leftmost and the rightmost dimension:
-```csharp
+creates a two-dimensional array with a length of zero for both the leftmost and the rightmost dimension: 
+
+```csharp 
+
 int[,] c = new int[0, 0];
 ```
 
-When an array creation expression includes both explicit dimension lengths and an array initializer, the lengths must be constant expressions and the number of elements at each nesting level must match the corresponding dimension length. Here are some examples:
-```csharp
+When an array creation expression includes both explicit dimension lengths and an array initializer, the lengths must be constant expressions and the number of elements at each nesting level must match the corresponding dimension length. Here are some examples: 
+
+```csharp 
+
 int i = 3;
 int[] x = new int[3] {0, 1, 2};        // OK
 int[] y = new int[i] {0, 1, 2};        // Error, i not a constant
