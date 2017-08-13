@@ -15,8 +15,10 @@ A class that derives from the abstract class `System.Attribute`, whether directl
 The attribute `AttributeUsage` ([The AttributeUsage attribute](attributes.md#the-attributeusage-attribute)) is used to describe how an attribute class can be used.
 
 `AttributeUsage` has a positional parameter ([Positional and named parameters](attributes.md#positional-and-named-parameters)) that enables an attribute class to specify the kinds of declarations on which it can be used. The example
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
@@ -27,16 +29,20 @@ public class SimpleAttribute: Attribute
 ```
 
 defines an attribute class named `SimpleAttribute` that can be placed on *class_declaration*s and *interface_declaration*s only. The example
+ 
 
-```csharp
+```csharp 
+
 [Simple] class Class1 {...}
 
 [Simple] interface Interface1 {...}
 ```
 
 shows several uses of the `Simple` attribute. Although this attribute is defined with the name `SimpleAttribute`, when this attribute is used, the `Attribute` suffix may be omitted, resulting in the short name `Simple`. Thus, the example above is semantically equivalent to the following:
+ 
 
-```csharp
+```csharp 
+
 [SimpleAttribute] class Class1 {...}
 
 [SimpleAttribute] interface Interface1 {...}
@@ -45,8 +51,10 @@ shows several uses of the `Simple` attribute. Although this attribute is defined
 `AttributeUsage` has a named parameter ([Positional and named parameters](attributes.md#positional-and-named-parameters)) called `AllowMultiple`, which indicates whether the attribute can be specified more than once for a given entity. If `AllowMultiple` for an attribute class is true, then that attribute class is a ***multi-use attribute class***, and can be specified more than once on an entity. If `AllowMultiple` for an attribute class is false or it is unspecified, then that attribute class is a ***single-use attribute class***, and can be specified at most once on an entity.
 
 The example
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
@@ -65,8 +73,10 @@ public class AuthorAttribute: Attribute
 ```
 
 defines a multi-use attribute class named `AuthorAttribute`. The example
+ 
 
-```csharp
+```csharp 
+
 [Author("Brian Kernighan"), Author("Dennis Ritchie")] 
 class Class1
 {
@@ -79,16 +89,20 @@ shows a class declaration with two uses of the `Author` attribute.
 `AttributeUsage` has another named parameter called `Inherited`, which indicates whether the attribute, when specified on a base class, is also inherited by classes that derive from that base class. If `Inherited` for an attribute class is true, then that attribute is inherited. If `Inherited` for an attribute class is false then that attribute is not inherited. If it is unspecified, its default value is true.
 
 An attribute class `X` not having an `AttributeUsage` attribute attached to it, as in
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 class X: Attribute {...}
 ```
 
 is equivalent to the following:
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 [AttributeUsage(
@@ -104,8 +118,10 @@ class X: Attribute {...}
 Attribute classes can have ***positional parameters*** and ***named parameters***. Each public instance constructor for an attribute class defines a valid sequence of positional parameters for that attribute class. Each non-static public read-write field and property for an attribute class defines a named parameter for the attribute class.
 
 The example
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -129,8 +145,10 @@ public class HelpAttribute: Attribute
 defines an attribute class named `HelpAttribute` that has one positional parameter, `url`, and one named parameter, `Topic`. Although it is non-static and public, the property `Url` does not define a named parameter, since it is not read-write.
 
 This attribute class might be used as follows:
+ 
 
-```csharp
+```csharp 
+
 [Help("http://www.mycompany.com/.../Class1.htm")]
 class Class1
 {
@@ -160,8 +178,10 @@ The types of positional and named parameters for an attribute class are limited 
 ***Attribute specification*** is the application of a previously defined attribute to a declaration. An attribute is a piece of additional declarative information that is specified for a declaration. Attributes can be specified at global scope (to specify attributes on the containing assembly or module) and for *type_declaration*s ([Type declarations](namespaces.md#type-declarations)), *class_member_declaration*s ([Type parameter constraints](classes.md#type-parameter-constraints)), *interface_member_declaration*s ([Interface members](interfaces.md#interface-members)), *struct_member_declaration*s ([Struct members](structs.md#struct-members)), *enum_member_declaration*s ([Enum members](enums.md#enum-members)), *accessor_declarations* ([Accessors](classes.md#accessors)), *event_accessor_declarations* ([Field-like events](classes.md#field-like-events)), and *formal_parameter_list*s ([Method parameters](classes.md#method-parameters)).
 
 Attributes are specified in ***attribute sections***. An attribute section consists of a pair of square brackets, which surround a comma-separated list of one or more attributes. The order in which attributes are specified in such a list, and the order in which sections attached to the same program entity are arranged, is not significant. For instance, the attribute specifications `[A][B]`, `[B][A]`, `[A,B]`, and `[B,A]` are equivalent.
+ 
 
-```antlr
+```antlr 
+
 global_attributes
     : global_attribute_section+
     ;
@@ -245,8 +265,10 @@ attribute_argument_expression
 An attribute consists of an *attribute_name* and an optional list of positional and named arguments. The positional arguments (if any) precede the named arguments. A positional argument consists of an *attribute_argument_expression*; a named argument consists of a name, followed by an equal sign, followed by an *attribute_argument_expression*, which, together, are constrained by the same rules as simple assignment. The order of named arguments is not significant.
 
 The *attribute_name* identifies an attribute class. If the form of *attribute_name* is *type_name* then this name must refer to an attribute class. Otherwise, a compile-time error occurs. The example
+ 
 
-```csharp
+```csharp 
+
 class Class1 {}
 
 [Class1] class Class2 {}    // Error
@@ -266,8 +288,10 @@ Certain contexts permit the specification of an attribute on more than one targe
 *  An attribute specified on an add or remove accessor declaration for an event declaration can apply either to the associated method or to its lone parameter. In the absence of an *attribute_target_specifier*, the attribute applies to the method. The presence of the `method` *attribute_target_specifier* indicates that the attribute applies to the method; the presence of the `param` *attribute_target_specifier* indicates that the attribute applies to the parameter; the presence of the `return` *attribute_target_specifier* indicates that the attribute applies to the return value.
 
 In other contexts, inclusion of an *attribute_target_specifier* is permitted but unnecessary. For instance, a class declaration may either include or omit the specifier `type`:
+ 
 
-```csharp
+```csharp 
+
 [type: Author("Brian Kernighan")]
 class Class1 {}
 
@@ -276,15 +300,19 @@ class Class2 {}
 ```
 
 It is an error to specify an invalid *attribute_target_specifier*. For instance, the specifier `param` cannot be used on a class declaration:
+ 
 
-```csharp
+```csharp 
+
 [param: Author("Brian Kernighan")]        // Error
 class Class1 {}
 ```
 
 By convention, attribute classes are named with a suffix of `Attribute`. An *attribute_name* of the form *type_name* may either include or omit this suffix. If an attribute class is found both with and without this suffix, an ambiguity is present, and a compile-time error results. If the *attribute_name* is spelled such that its right-most *identifier* is a verbatim identifier ([Identifiers](lexical-structure.md#identifiers)), then only an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved. The example
+ 
 
-```csharp
+```csharp  
+
 using System;
 
 [AttributeUsage(AttributeTargets.All)]
@@ -309,8 +337,10 @@ class Class4 {}
 ```
 
 shows two attribute classes named `X` and `XAttribute`. The attribute `[X]` is ambiguous, since it could refer to either `X` or `XAttribute`. Using a verbatim identifier allows the exact intent to be specified in such rare cases. The attribute `[XAttribute]` is not ambiguous (although it would be if there was an attribute class named `XAttributeAttribute`!). If the declaration for class `X` is removed, then both attributes refer to the attribute class named `XAttribute`, as follows:
+ 
+ 
+```csharp 
 
-```csharp
 using System;
 
 [AttributeUsage(AttributeTargets.All)]
@@ -328,8 +358,10 @@ class Class3 {}
 ```
 
 It is a compile-time error to use a single-use attribute class more than once on the same entity. The example
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -362,8 +394,10 @@ An expression `E` is an *attribute_argument_expression* if all of the following 
    * A one-dimensional array of *attribute_argument_expression*s.
 
 For example:
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -390,8 +424,10 @@ class MyClass {}
 ```
 
 A *typeof_expression* ([The typeof operator](expressions.md#the-typeof-operator)) used as an attribute argument expression can reference a non-generic type, a closed constructed type, or an unbound generic type, but it cannot reference an open type. This is to ensure that the expression can be resolved at compile-time.
+ 
 
-```csharp
+```csharp 
+
 class A: Attribute
 {
     public A(Type t) {...}
@@ -452,8 +488,10 @@ A small number of attributes affect the language in some way. These attributes i
 The attribute `AttributeUsage` is used to describe the manner in which the attribute class can be used.
 
 A class that is decorated with the `AttributeUsage` attribute must derive from `System.Attribute`, either directly or indirectly. Otherwise, a compile-time error occurs.
+ 
 
-```csharp
+```csharp 
+
 namespace System
 {
     [AttributeUsage(AttributeTargets.Class)]
@@ -492,6 +530,7 @@ namespace System
 ### The Conditional attribute
 
 The attribute `Conditional` enables the definition of ***conditional methods*** and ***conditional attribute classes***.
+ 
 
 ```csharp
 namespace System.Diagnostics
@@ -517,8 +556,10 @@ A conditional method is subject to the following restrictions:
 *  The conditional method must not be an implementation of an interface method. Otherwise, a compile-time error occurs.
 
 In addition, a compile-time error occurs if a conditional method is used in a *delegate_creation_expression*. The example
+ 
 
-```csharp
+```csharp 
+
 #define DEBUG
 
 using System;
@@ -545,8 +586,10 @@ declares `Class1.M` as a conditional method. `Class2`'s `Test` method calls this
 It is important to note that the inclusion or exclusion of a call to a conditional method is controlled by the conditional compilation symbols at the point of the call. In the example
 
 File `class1.cs`:
+ 
 
-```csharp
+```csharp 
+
 using System.Diagnostics;
 
 class Class1 
@@ -559,8 +602,10 @@ class Class1
 ```
 
 File `class2.cs`:
+ 
 
-```csharp
+```csharp 
+
 #define DEBUG
 
 class Class2
@@ -572,8 +617,10 @@ class Class2
 ```
 
 File `class3.cs`:
+ 
 
-```csharp
+```csharp 
+
 #undef DEBUG
 
 class Class3
@@ -589,8 +636,10 @@ the classes `Class2` and `Class3` each contain calls to the conditional method `
 The use of conditional methods in an inheritance chain can be confusing. Calls made to a conditional method through `base`, of the form `base.M`, are subject to the normal conditional method call rules. In the example
 
 File `class1.cs`:
+ 
 
-```csharp
+```csharp 
+
 using System;
 using System.Diagnostics;
 
@@ -604,8 +653,10 @@ class Class1
 ```
 
 File `class2.cs`:
+ 
 
-```csharp
+```csharp 
+
 using System;
 
 class Class2: Class1
@@ -618,8 +669,10 @@ class Class2: Class1
 ```
 
 File `class3.cs`:
+ 
 
-```csharp
+```csharp 
+
 #define DEBUG
 
 using System;
@@ -638,8 +691,10 @@ class Class3
 #### Conditional attribute classes
 
 An attribute class ([Attribute classes](attributes.md#attribute-classes)) decorated with one or more `Conditional` attributes is a ***conditional attribute class***. A conditional attribute class is thus associated with the conditional compilation symbols declared in its `Conditional` attributes. This example:
+ 
 
-```csharp
+```csharp 
+
 using System;
 using System.Diagnostics;
 [Conditional("ALPHA")]
@@ -654,8 +709,10 @@ Attribute specifications ([Attribute specification](attributes.md#attribute-spec
 It is important to note that the inclusion or exclusion of an attribute specification of a conditional attribute class is controlled by the conditional compilation symbols at the point of the specification. In the example
 
 File `test.cs`:
+ 
 
-```csharp
+```csharp 
+
 using System;
 using System.Diagnostics;
 
@@ -665,8 +722,10 @@ public class TestAttribute : Attribute {}
 ```
 
 File `class1.cs`:
+ 
 
-```csharp
+```csharp 
+
 #define DEBUG
 
 [Test]                // TestAttribute is specified
@@ -675,8 +734,10 @@ class Class1 {}
 ```
 
 File `class2.cs`:
+ 
 
-```csharp
+```csharp 
+
 #undef DEBUG
 
 [Test]                 // TestAttribute is not specified
@@ -689,8 +750,10 @@ the classes `Class1` and `Class2` are each decorated with attribute `Test`, whic
 ### The Obsolete attribute
 
 The attribute `Obsolete` is used to mark types and members of types that should no longer be used.
+ 
 
-```csharp
+```csharp 
+
 namespace System
 {
     [AttributeUsage(
@@ -720,8 +783,10 @@ namespace System
 If a program uses a type or member that is decorated with the `Obsolete` attribute, the compiler issues a warning or an error. Specifically, the compiler issues a warning if no error parameter is provided, or if the error parameter is provided and has the value `false`. The compiler issues an error if the error parameter is specified and has the value `true`.
 
 In the example
+ 
 
-```csharp
+```csharp 
+
 [Obsolete("This class is obsolete; use class B instead")]
 class A
 {
@@ -751,8 +816,10 @@ For purposes such as logging and reporting, it is sometimes useful for a functio
 When an optional parameter is annotated with one of the caller info attributes, omitting the corresponding argument in a call does not necessarily cause the default parameter value to be substituted. Instead, if the specified information about the calling context is available, that information will be passed as the argument value.
 
 For example:
+ 
 
-```csharp
+```csharp 
+
 using System.Runtime.CompilerServices
 
 ...
@@ -832,8 +899,10 @@ The .NET run-time provides a large number of attributes that enable C# programs 
 #### The IndexerName attribute
 
 Indexers are implemented in .NET using indexed properties, and have a name in the .NET metadata. If no `IndexerName` attribute is present for an indexer, then the name `Item` is used by default. The `IndexerName` attribute enables a developer to override this default and specify a different name.
+ 
 
-```csharp
+```csharp 
+
 namespace System.Runtime.CompilerServices.CSharp
 {
     [AttributeUsage(AttributeTargets.Property)]

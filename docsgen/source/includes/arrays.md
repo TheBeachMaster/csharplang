@@ -12,7 +12,7 @@ The element type of an array can be any type, including an array type.
 
 An array type is written as a *non_array_type* followed by one or more *rank_specifier*s:
 
-```bash 
+```antlr 
 
 array_type
     : non_array_type rank_specifier+
@@ -107,7 +107,8 @@ Every array type inherits the members declared by the `System.Array` type.
 For any two *reference_type*s `A` and `B`, if an implicit reference conversion ([Implicit reference conversions](conversions.md#implicit-reference-conversions)) or explicit reference conversion ([Explicit reference conversions](conversions.md#explicit-reference-conversions)) exists from `A` to `B`, then the same reference conversion also exists from the array type `A[R]` to the array type `B[R]`, where `R` is any given *rank_specifier* (but the same for both array types). This relationship is known as ***array covariance***. Array covariance in particular means that a value of an array type `A[R]` may actually be a reference to an instance of an array type `B[R]`, provided an implicit reference conversion exists from `B` to `A`.
 
 Because of array covariance, assignments to elements of reference type arrays include a run-time check which ensures that the value being assigned to the array element is actually of a permitted type ([Simple assignment](expressions.md#simple-assignment)). For example: 
-
+ 
+ 
 ```csharp 
 
 class Test
@@ -133,7 +134,7 @@ Array covariance specifically does not extend to arrays of *value_type*s. For ex
 
 Array initializers may be specified in field declarations ([Fields](classes.md#fields)), local variable declarations ([Local variable declarations](statements.md#local-variable-declarations)), and array creation expressions ([Array creation expressions](expressions.md#array-creation-expressions)):
 
-```bash 
+```antlr 
 
 array_initializer
     : '{' variable_initializer_list? '}'
@@ -165,8 +166,10 @@ it is simply shorthand for an equivalent array creation expression:
 int[] a = new int[] {0, 2, 4, 6, 8};
 ```
 
-For a single-dimensional array, the array initializer must consist of a sequence of expressions that are assignment compatible with the element type of the array. The expressions initialize array elements in increasing order, starting with the element at index zero. The number of expressions in the array initializer determines the length of the array instance being created. For example, the array initializer above creates an `int[]` instance of length 5 and then initializes the instance with the following values:
-```csharp
+For a single-dimensional array, the array initializer must consist of a sequence of expressions that are assignment compatible with the element type of the array. The expressions initialize array elements in increasing order, starting with the element at index zero. The number of expressions in the array initializer determines the length of the array instance being created. For example, the array initializer above creates an `int[]` instance of length 5 and then initializes the instance with the following values: 
+
+```csharp 
+
 a[0] = 0; a[1] = 2; a[2] = 4; a[3] = 6; a[4] = 8;
 ```
 
@@ -182,8 +185,10 @@ creates a two-dimensional array with a length of five for the leftmost dimension
 
 int[,] b = new int[5, 2];
 ```
-and then initializes the array instance with the following values:
-```csharp
+and then initializes the array instance with the following values: 
+
+```csharp 
+
 b[0, 0] = 0; b[0, 1] = 1;
 b[1, 0] = 2; b[1, 1] = 3;
 b[2, 0] = 4; b[2, 1] = 5;

@@ -3,7 +3,8 @@ title: C-Sharp 6 Draft Specs
 
 language_tabs:
   - csharp 
-  - bash
+  - bash 
+  - antlr
 
 toc_footers:
   - <a href='https://dot.net'>Get Started with dotNet</a>
