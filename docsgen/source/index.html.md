@@ -39,7 +39,7 @@ includes:
 search: true
 ---
 
-# Introduction
+# About these Draft Specs
 
 C# is designed by the C# Language Design Team (LDT) in close coordination with the [Roslyn](https://github.com/dotnet/roslyn) project, which implements the language.
 
