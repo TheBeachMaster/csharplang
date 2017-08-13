@@ -12,8 +12,7 @@ includes:
 
   - introduction  
 
-  - lexical-structure  
-
+  
   - basic-concepts 
   - types 
   - variables 
